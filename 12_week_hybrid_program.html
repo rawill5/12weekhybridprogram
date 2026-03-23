@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>12-Week Hybrid Strength & Conditioning Program</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            min-height: 100vh;
+            padding: 15px;
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 25px 0;
+            border-bottom: 2px solid #0f3460;
+            margin-bottom: 25px;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            color: #e94560;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: #a0a0a0;
+            font-size: 1rem;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .nav-tab {
+            padding: 10px 18px;
+            background: #0f3460;
+            border: none;
+            border-radius: 8px;
+            color: #e8e8e8;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tab:hover, .nav-tab.active {
+            background: #e94560;
+            transform: translateY(-2px);
+        }
+        
+        .week-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #0f3460;
+            border-radius: 12px;
+        }
+        
+        .week-btn {
+            padding: 8px 14px;
+            background: #1a1a2e;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            color: #e8e8e8;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        
+        .week-btn:hover {
+            border-color: #e94560;
+        }
+        
+        .week-btn.active {
+            background: #e94560;
+            border-color: #e94560;
+        }
+        
+        .week-btn.phase1 { border-left: 3px solid #4ecdc4; }
+        .week-btn.phase2 { border-left: 3px solid #f39c12; }
+        .week-btn.phase3 { border-left: 3px solid #e94560; }
+        
+        .phase-legend {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 12px;
+            font-size: 0.8rem;
+            flex-wrap: wrap;
+        }
+        
+        .phase-legend span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .phase-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .phase-dot.p1 { background: #4ecdc4; }
+        .phase-dot.p2 { background: #f39c12; }
+        .phase-dot.p3 { background: #e94560; }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .week-header {
+            background: linear-gradient(90deg, #e94560, #0f3460);
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .week-header h2 {
+            font-size: 1.4rem;
+        }
+        
+        .week-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .week-tag {
+            background: rgba(0,0,0,0.3);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        
+        .day-card {
+            background: #0f3460;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .day-header {
+            background: linear-gradient(90deg, #e94560, #0f3460);
+            padding: 15px 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .day-header h3 {
+            font-size: 1.15rem;
+        }
+        
+        .day-header .duration {
+            background: rgba(0,0,0,0.3);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+        }
+        
+        .day-content {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, padding 0.3s ease;
+        }
+        
+        .day-content.expanded {
+            padding: 18px;
+            max-height: 6000px;
+        }
+        
+        .block {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        
+        .block.mobility { border-color: #4ecdc4; background: rgba(78, 205, 196, 0.1); }
+        .block.strength { border-color: #e94560; background: rgba(233, 69, 96, 0.1); }
+        .block.conditioning { border-color: #f39c12; background: rgba(243, 156, 18, 0.1); }
+        .block.power { border-color: #9b59b6; background: rgba(155, 89, 182, 0.1); }
+        .block.skill { border-color: #3498db; background: rgba(52, 152, 219, 0.1); }
+        .block.core { border-color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
+        .block.accessory { border-color: #e67e22; background: rgba(230, 126, 34, 0.1); }
+        
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .block-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .block-time {
+            font-size: 0.8rem;
+            color: #a0a0a0;
+        }
+        
+        .block-details {
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .exercise-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 0.85rem;
+        }
+        
+        .exercise-table th, .exercise-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .exercise-table th {
+            color: #4ecdc4;
+            font-weight: 600;
+        }
+        
+        .exercise-table .gym {
+            color: #f39c12;
+        }
+        
+        .exercise-table .home {
+            color: #4ecdc4;
+        }
+        
+        .cue-box {
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .cue-box strong {
+            color: #e94560;
+        }
+        
+        .alert-box {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 0.9rem;
+        }
+        
+        .alert-box.warning {
+            background: rgba(243, 156, 18, 0.2);
+            border-color: #f39c12;
+        }
+        
+        .alert-box.success {
+            background: rgba(46, 204, 113, 0.2);
+            border-color: #2ecc71;
+        }
+        
+        .alert-box.info {
+            background: rgba(52, 152, 219, 0.2);
+            border-color: #3498db;
+        }
+        
+        .protocol-section {
+            background: #0f3460;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 18px;
+        }
+        
+        .protocol-section h3 {
+            color: #e94560;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .protocol-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 15px;
+        }
+        
+        .protocol-card {
+            background: #1a1a2e;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .protocol-card h4 {
+            color: #4ecdc4;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        
+        .protocol-card ul {
+            list-style: none;
+            font-size: 0.9rem;
+        }
+        
+        .protocol-card li {
+            padding: 5px 0;
+            padding-left: 18px;
+            position: relative;
+        }
+        
+        .protocol-card li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #e94560;
+        }
+        
+        .progression-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 0.85rem;
+        }
+        
+        .progression-table th, .progression-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #1a1a2e;
+        }
+        
+        .progression-table th {
+            background: #1a1a2e;
+            color: #4ecdc4;
+        }
+        
+        .progression-table tr:hover {
+            background: rgba(233, 69, 96, 0.1);
+        }
+        
+        .markow-week {
+            background: rgba(78, 205, 196, 0.1);
+            border: 1px solid #4ecdc4;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .markow-week h4 {
+            color: #4ecdc4;
+            margin-bottom: 12px;
+        }
+        
+        .markow-day {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(78, 205, 196, 0.2);
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .markow-day:last-child {
+            border-bottom: none;
+        }
+        
+        .markow-day .day-label {
+            font-weight: 600;
+            min-width: 70px;
+        }
+        
+        .menu-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 0.85rem;
+        }
+        
+        .menu-table th, .menu-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .menu-table th {
+            color: #e94560;
+            font-weight: 600;
+        }
+        
+        .menu-table .focus-lower { color: #4ecdc4; }
+        .menu-table .focus-upper { color: #f39c12; }
+        .menu-table .focus-global { color: #9b59b6; }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .summary-card {
+            background: #0f3460;
+            border-radius: 12px;
+            padding: 18px;
+        }
+        
+        .summary-card h3 {
+            color: #e94560;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #1a1a2e;
+            font-size: 0.9rem;
+        }
+        
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        
+        .benchmark {
+            background: #1a1a2e;
+            padding: 18px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .benchmark-goal {
+            font-size: 1.1rem;
+            color: #4ecdc4;
+            margin-bottom: 8px;
+        }
+        
+        .benchmark-desc {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 25px;
+            color: #a0a0a0;
+            font-size: 0.85rem;
+        }
+        
+        .print-btn {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            padding: 10px 16px;
+            background: #e94560;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+        }
+        
+        .print-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        @media print {
+            body { background: white; color: black; }
+            .nav-tabs, .week-selector, .print-btn { display: none; }
+            .day-content { max-height: none !important; padding: 18px !important; }
+            .block { break-inside: avoid; }
+        }
+        
+        @media (max-width: 600px) {
+            h1 { font-size: 1.5rem; }
+            .nav-tab { padding: 8px 12px; font-size: 0.85rem; }
+            .day-header h3 { font-size: 1rem; }
+            .week-btn { padding: 6px 10px; font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>12-Week Hybrid Program</h1>
+            <p class="subtitle">PHAT + Mobility + Conditioning | Kick-Optimized Structure</p>
+        </header>
+        
+        <nav class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('program')">Weekly Program</button>
+            <button class="nav-tab" onclick="showTab('overview')">Overview</button>
+            <button class="nav-tab" onclick="showTab('exercises')">Exercise Subs</button>
+            <button class="nav-tab" onclick="showTab('progressions')">Progressions</button>
+            <button class="nav-tab" onclick="showTab('markow')">Markow Schedule</button>
+            <button class="nav-tab" onclick="showTab('evening')">Evening Menu</button>
+            <button class="nav-tab" onclick="showTab('swaps')">Swap Protocols</button>
+            <button class="nav-tab" onclick="showTab('chaos')">Chaos Management</button>
+        </nav>
+        
+        <!-- PROGRAM TAB -->
+        <div id="program" class="tab-content active">
+            <div class="phase-legend">
+                <span><div class="phase-dot p1"></div> Phase 1: Foundation (RPE 6-7)</span>
+                <span><div class="phase-dot p2"></div> Phase 2: Build (RPE 7-8)</span>
+                <span><div class="phase-dot p3"></div> Phase 3: Peak (RPE 8-9)</span>
+            </div>
+            
+            <div class="week-selector">
+                <button class="week-btn phase1 active" onclick="showWeek(1)">Wk 1</button>
+                <button class="week-btn phase1" onclick="showWeek(2)">Wk 2</button>
+                <button class="week-btn phase1" onclick="showWeek(3)">Wk 3</button>
+                <button class="week-btn phase1" onclick="showWeek(4)">Wk 4</button>
+                <button class="week-btn phase2" onclick="showWeek(5)">Wk 5</button>
+                <button class="week-btn phase2" onclick="showWeek(6)">Wk 6</button>
+                <button class="week-btn phase2" onclick="showWeek(7)">Wk 7</button>
+                <button class="week-btn phase2" onclick="showWeek(8)">Wk 8</button>
+                <button class="week-btn phase3" onclick="showWeek(9)">Wk 9</button>
+                <button class="week-btn phase3" onclick="showWeek(10)">Wk 10</button>
+                <button class="week-btn phase3" onclick="showWeek(11)">Wk 11</button>
+                <button class="week-btn phase3" onclick="showWeek(12)">Wk 12</button>
+            </div>
+            
+            <div id="week-container"></div>
+        </div>
+        
+        <!-- OVERVIEW TAB -->
+        <div id="overview" class="tab-content">
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <h3>Weekly Volume</h3>
+                    <div class="summary-item"><span>PHAT Strength</span><span>4 days</span></div>
+                    <div class="summary-item"><span>Zone 2</span><span>~180 min</span></div>
+                    <div class="summary-item"><span>PZ + PZ Max</span><span>~55 min</span></div>
+                    <div class="summary-item"><span>Plyos</span><span>2 sessions</span></div>
+                    <div class="summary-item"><span>Sprint Prep</span><span>1 session (Sat)</span></div>
+                    <div class="summary-item"><span>Markow Mobility</span><span>4 sessions</span></div>
+                    <div class="summary-item"><span>GMB Tissue Prep</span><span>5 sessions</span></div>
+                    <div class="summary-item"><span>Core</span><span>3 sessions</span></div>
+                    <div class="summary-item"><span>Kickboxing</span><span>Friday</span></div>
+                    <div class="summary-item"><span>BJJ</span><span>Sunday</span></div>
+                </div>
+                
+                <div class="summary-card">
+                    <h3>Weekly Structure</h3>
+                    <div class="summary-item"><span>Monday</span><span>Lower Power + Core</span></div>
+                    <div class="summary-item"><span>Tuesday</span><span>Zone 2</span></div>
+                    <div class="summary-item"><span>Wednesday</span><span>Lower Hypertrophy</span></div>
+                    <div class="summary-item"><span>Thursday</span><span>Upper Power + PZ + Core</span></div>
+                    <div class="summary-item"><span>Friday</span><span>PZ Max + Kicks + Upper Hyp</span></div>
+                    <div class="summary-item"><span>Saturday</span><span>Sprint + Z2 + Mobility + Core</span></div>
+                    <div class="summary-item"><span>Sunday</span><span>Social Lift + BJJ</span></div>
+                </div>
+                
+                <div class="summary-card">
+                    <h3>Day Order Rationale</h3>
+                    <div class="alert-box info">
+                        <strong>Why LP → LH → UP → UH?</strong><br>
+                        Last leg work = Wednesday. Thursday = upper only. Friday kickboxing has 48+ hours since heavy leg work. Kicks on fresh legs.
+                    </div>
+                </div>
+                
+                <div class="summary-card">
+                    <h3>Success Benchmark</h3>
+                    <div class="benchmark">
+                        <div class="benchmark-goal">🎯 Higher Kicks</div>
+                        <div class="benchmark-desc">Chambered roundhouse at nose height, 3 sec hold, no low back compensation</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>Equipment</h3>
+                <div class="protocol-grid">
+                    <div class="protocol-card">
+                        <h4>Home Gym</h4>
+                        <ul>
+                            <li>Barbell + Rack</li>
+                            <li>Trap Bar</li>
+                            <li>Adjustable Dumbbells</li>
+                            <li>Kettlebells (up to 55 lb)</li>
+                            <li>Bands</li>
+                            <li>Gorilla Bow</li>
+                            <li>BootySprout</li>
+                            <li>Peloton</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>MMA Gym</h4>
+                        <ul>
+                            <li>Pull-up Bar</li>
+                            <li>Squat Racks</li>
+                            <li>Barbells</li>
+                            <li>Dumbbells</li>
+                            <li>Kettlebells</li>
+                            <li>Slam Balls</li>
+                            <li>Machines / Cables</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>Forced Deload Triggers</h3>
+                <div class="alert-box warning">
+                    <strong>If any of these occur, reduce overlay volume (conditioning, plyos, sprint) — NOT lifts:</strong>
+                    <ul style="margin-top: 8px; margin-left: 18px;">
+                        <li>Radiculopathy symptoms after kicks</li>
+                        <li>2+ "low readiness" days in the same week</li>
+                        <li>Week 8+ and feeling systemically flat</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- EXERCISES TAB -->
+        <div id="exercises" class="tab-content">
+            <div class="protocol-section">
+                <h3>Lower Power (Monday)</h3>
+                <table class="exercise-table">
+                    <tr><th>Exercise</th><th class="gym">MMA Gym</th><th class="home">Home</th></tr>
+                    <tr><td>Box Squat</td><td class="gym">Box Squat</td><td class="home">Box Squat</td></tr>
+                    <tr><td>RDL</td><td class="gym">Barbell RDL</td><td class="home">Gorilla Bow Banded RDL</td></tr>
+                    <tr><td>Leg Extension</td><td class="gym">Single Leg Extension</td><td class="home">Banded Leg Extension</td></tr>
+                    <tr><td>Leg Curl</td><td class="gym">Single Leg Curl</td><td class="home">Banded Leg Curl</td></tr>
+                    <tr><td>Calf Raise</td><td class="gym">Standing Single Leg Calf</td><td class="home">Standing Single Leg Calf</td></tr>
+                </table>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>Lower Hypertrophy (Wednesday)</h3>
+                <table class="exercise-table">
+                    <tr><th>Exercise</th><th class="gym">MMA Gym</th><th class="home">Home</th></tr>
+                    <tr><td>Deadlift</td><td class="gym">Trap Bar Deadlift</td><td class="home">Trap Bar Deadlift</td></tr>
+                    <tr><td>Squat Variation</td><td class="gym">Heels Elevated Goblet</td><td class="home">Heels Elevated Goblet (55 lb KB)</td></tr>
+                    <tr><td>Split Squat</td><td class="gym">Bulgarian Split Squat</td><td class="home">Bulgarian Split Squat</td></tr>
+                    <tr><td>Hamstring Curl</td><td class="gym">Swiss Ball Ham Curl (bilateral)</td><td class="home">Swiss Ball Ham Curl (bilateral)</td></tr>
+                    <tr><td>Hip Thrust</td><td class="gym">Barbell Hip Thrust</td><td class="home">BootySprout + Bands</td></tr>
+                    <tr><td>Calf Raise</td><td class="gym">Seated Calf</td><td class="home">Gorilla Bow Seated Calf</td></tr>
+                    <tr><td>Glute Accessory</td><td class="gym">Frog Pumps</td><td class="home">Frog Pumps</td></tr>
+                </table>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>Upper Power (Thursday)</h3>
+                <table class="exercise-table">
+                    <tr><th>Exercise</th><th class="gym">MMA Gym</th><th class="home">Home</th></tr>
+                    <tr><td>Bench Press</td><td class="gym">Barbell Bench</td><td class="home">Barbell Bench</td></tr>
+                    <tr><td>Row</td><td class="gym">Bent Over Single Arm DB Row</td><td class="home">Bent Over Single Arm DB Row</td></tr>
+                    <tr><td>Pulldown</td><td class="gym">Wide Grip Pulldown</td><td class="home">Banded Wide Grip Pulldown</td></tr>
+                    <tr><td>Shoulder Press</td><td class="gym">Arnold Press</td><td class="home">Arnold Press</td></tr>
+                    <tr><td>Lateral Raise</td><td class="gym">DB Lateral Raise</td><td class="home">DB Lateral Raise</td></tr>
+                    <tr><td>Bicep Curl</td><td class="gym">EZ Bar Curl</td><td class="home">DB Curl</td></tr>
+                    <tr><td>Tricep</td><td class="gym">EZ Bar Skull Crusher</td><td class="home">Banded Skull Crusher</td></tr>
+                </table>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>Upper Hypertrophy (Friday)</h3>
+                <table class="exercise-table">
+                    <tr><th>Exercise</th><th class="gym">MMA Gym</th><th class="home">Home</th></tr>
+                    <tr><td>Incline Press</td><td class="gym">Incline DB Press</td><td class="home">Incline DB Press</td></tr>
+                    <tr><td>Chest Fly</td><td class="gym">Decline Cable Fly</td><td class="home">Banded Fly</td></tr>
+                    <tr><td>Pulldown</td><td class="gym">Machine Pulldown</td><td class="home">Banded Pulldown</td></tr>
+                    <tr><td>Row</td><td class="gym">Machine Row (behind neck)</td><td class="home">Banded Motorcycle Row</td></tr>
+                    <tr><td>Shoulder Press</td><td class="gym">Barbell Shoulder Press</td><td class="home">DB Shoulder Press</td></tr>
+                    <tr><td>Lateral Raise</td><td class="gym">DB Lateral Raise</td><td class="home">DB Lateral Raise</td></tr>
+                    <tr><td>Bicep Curl</td><td class="gym">Cable/DB Curl</td><td class="home">DB Curl</td></tr>
+                    <tr><td>Tricep</td><td class="gym">Machine Tricep Pressdown</td><td class="home">Banded Pressdown</td></tr>
+                </table>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>Accessory Additions (Not in Norton PHAT)</h3>
+                <table class="exercise-table">
+                    <tr><th>Exercise</th><th>Day(s)</th><th>Sets × Reps</th><th>Notes</th></tr>
+                    <tr><td>Band-Assisted Nordics</td><td>Mon or Wed warm-up</td><td>2×3-5</td><td>Slow eccentric (3-5 sec)</td></tr>
+                    <tr><td>Copenhagens</td><td>Mon + Wed</td><td>2×15-20 sec/side</td><td>Paired with lateral glutes</td></tr>
+                    <tr><td>Lateral Glutes (Hip Abduction)</td><td>Mon + Wed + Sat</td><td>2-3×15-20</td><td>Progressive volume</td></tr>
+                    <tr><td>Farmer's Walk</td><td>Mon</td><td>2-3×30-40m</td><td>Post-lifts</td></tr>
+                </table>
+            </div>
+        </div>
+        
+        <!-- PROGRESSIONS TAB -->
+        <div id="progressions" class="tab-content">
+            <div class="protocol-section">
+                <h3>PHAT RPE Progression</h3>
+                <table class="progression-table">
+                    <tr><th>Phase</th><th>Weeks</th><th>Main Lifts RPE</th><th>Accessories RPE</th></tr>
+                    <tr><td>Foundation</td><td>1-4</td><td>RPE 6-7</td><td>RPE 6-7</td></tr>
+                    <tr><td>Build</td><td>5-8</td><td>RPE 7-8</td><td>RPE 7-8</td></tr>
+                    <tr><td>Peak</td><td>9-12</td><td>RPE 8-9</td><td>RPE 8 (capped)</td></tr>
+                </table>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>Plyometric Progression</h3>
+                <table class="progression-table">
+                    <tr><th>Phase</th><th>Weeks</th><th>Monday (Vertical)</th><th>Wednesday (Rotational)</th></tr>
+                    <tr><td>Foundation</td><td>1-4</td><td>Pogo 2×5, Squat jumps 2×5</td><td>Slams 2×5, Rotational 2×5 each</td></tr>
+                    <tr><td>Build</td><td>5-8</td><td>Pogo 2×6, Squat jumps 2×6, Box jumps 2×3</td><td>Slams 2×6, Rotational 2×6, Overhead 2×5</td></tr>
+                    <tr><td>Peak</td><td>9-12</td><td>Pogo 2×6, Squat jumps 2×8, Box jumps 2×5</td><td>Slams 2×8, Rotational 2×8, Overhead 2×6</td></tr>
+                </table>
+                <div class="cue-box">
+                    <strong>Box jumps:</strong> Always step down (don't jump) to protect spine. Use slam balls at MMA gym for rotational work.
+                </div>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>Sprint Prep Progression (Saturday)</h3>
+                <table class="progression-table">
+                    <tr><th>Phase</th><th>Weeks</th><th>Work</th></tr>
+                    <tr><td>Phase 1: Mechanics</td><td>1-4</td><td>Wall drives 2×5, A-skip march 2×10m, Falling start to 10m jog ×3</td></tr>
+                    <tr><td>Phase 2: Tempo</td><td>5-8</td><td>Add 3-4 × 40-50m @ 60-70% (tempo runs)</td></tr>
+                    <tr><td>Phase 3: Build-ups</td><td>9-12</td><td>Add 3 × 30-40m build-ups (gradual to ~85%)</td></tr>
+                    <tr><td>Phase 4: Speed</td><td>13+</td><td>Add 2-3 × 10-20m @ 90-95% (only if hip mobility allows)</td></tr>
+                </table>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>BootySprout Hip Thrust Progression (Wednesday)</h3>
+                <table class="progression-table">
+                    <tr><th>Weeks</th><th>Sets × Reps</th><th>RPE</th><th>Notes</th></tr>
+                    <tr><td>1-4</td><td>2 × 10</td><td>RPE 7</td><td>Establish pattern, add band as needed</td></tr>
+                    <tr><td>5-8</td><td>3 × 10</td><td>RPE 8</td><td>Progress band resistance</td></tr>
+                    <tr><td>9-12</td><td>3 × 12</td><td>RPE 8</td><td>1-2 sec squeeze at lockout</td></tr>
+                </table>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>Lateral Glute + Copenhagen Progression</h3>
+                <table class="progression-table">
+                    <tr><th>Weeks</th><th>Days</th><th>Lateral Glutes</th><th>Copenhagens</th></tr>
+                    <tr><td>1-4</td><td>Mon, Wed, Sat</td><td>2×15-20 @ RPE 7</td><td>2×15 sec/side (Mon + Wed only)</td></tr>
+                    <tr><td>5-8</td><td>Mon, Wed, Sat</td><td>2-3×15-20 @ RPE 7-8</td><td>2×20 sec/side (Mon + Wed only)</td></tr>
+                    <tr><td>9-12</td><td>Mon, Wed, Sat</td><td>3×15-20 @ RPE 8</td><td>2×25 sec/side (Mon + Wed only)</td></tr>
+                </table>
+                <div class="cue-box">
+                    <strong>Copenhagens:</strong> Skip Saturday — legs need rest before Monday. Pair with lateral glutes on Mon/Wed.
+                </div>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>Goblet Squat Progression (When 55 lb KB Tops Out)</h3>
+                <table class="progression-table">
+                    <tr><th>Stage</th><th>Load</th><th>Technique</th></tr>
+                    <tr><td>Starting</td><td>55 lb KB</td><td>Heels elevated, 2×12</td></tr>
+                    <tr><td>When 55 lb tops out</td><td>Heavier DBs</td><td>Same setup</td></tr>
+                    <tr><td>When load is limited</td><td>Current max</td><td>Add 3-sec eccentric + 2-sec pause</td></tr>
+                    <tr><td>Advanced</td><td>DBs</td><td>Front-foot-elevated split squat</td></tr>
+                </table>
+            </div>
+        </div>
+        
+        <!-- MARKOW SCHEDULE TAB -->
+        <div id="markow" class="tab-content">
+            <div class="protocol-section">
+                <h3>12-Week Markow Beginner Hip Mobility Program</h3>
+                <p style="margin-bottom: 15px; color: #a0a0a0; font-size: 0.9rem;">Prescribed sessions mapped to training days: Mon = Day 1, Wed = Day 3, Thu = Day 2, Sat = Day 4</p>
+                
+                <div class="markow-week">
+                    <h4>Weeks 1-2: Foundation</h4>
+                    <div class="markow-day"><span class="day-label">Mon (Day 1)</span><span>Pelvic Magic Zero (23 min) + Split Squat Isometric</span></div>
+                    <div class="markow-day"><span class="day-label">Wed (Day 3)</span><span>Pelvic Magic Cross Connect (27 min)</span></div>
+                    <div class="markow-day"><span class="day-label">Thu (Day 2)</span><span>Rolling For Hip Rotation (6 min) + Hip Rotation Mini</span></div>
+                    <div class="markow-day"><span class="day-label">Sat (Day 4)</span><span>Lower Body CARs + Lower Body Strength</span></div>
+                </div>
+                
+                <div class="markow-week">
+                    <h4>Weeks 3-4: Add Side Smoosh</h4>
+                    <div class="markow-day"><span class="day-label">Mon (Day 1)</span><span>Pelvic Magic Zero (23 min) + Split Squat Isometric</span></div>
+                    <div class="markow-day"><span class="day-label">Wed (Day 3)</span><span>Rolling For Hip Rotation + Pelvic Magic Cross Connect</span></div>
+                    <div class="markow-day"><span class="day-label">Thu (Day 2)</span><span>Rolling For Hip Rotation + Hip Rotation Mini</span></div>
+                    <div class="markow-day"><span class="day-label">Sat (Day 4)</span><span>Pelvic Magic Side Smoosh (36 min) — targets abduction</span></div>
+                </div>
+                
+                <div class="markow-week">
+                    <h4>Weeks 5-6: Rotation Focus + Hip IR Intro</h4>
+                    <div class="markow-day"><span class="day-label">Mon (Day 1)</span><span>Pelvic Magic Side Smoosh + Split Squat Isometric</span></div>
+                    <div class="markow-day"><span class="day-label">Wed (Day 3)</span><span>Rolling For Hip Rotation + Pelvic Magic Cross Connect</span></div>
+                    <div class="markow-day"><span class="day-label">Thu (Day 2)</span><span>Rolling For Hip Rotation + Hip Rotation Mini</span></div>
+                    <div class="markow-day"><span class="day-label">Sat (Day 4)</span><span>Quick Hamstring Strength + Split Squat Isometric</span></div>
+                </div>
+                
+                <div class="markow-week">
+                    <h4>Weeks 7-8: Hip IR Kinstretch</h4>
+                    <div class="markow-day"><span class="day-label">Mon (Day 1)</span><span>Rolling For Hip Rotation + Hip IR Kinstretch 1/2 (15 min) + Split Squat Iso</span></div>
+                    <div class="markow-day"><span class="day-label">Wed (Day 3)</span><span>Breathing For Hip Rotation & CARs + Scissor Slide Routine</span></div>
+                    <div class="markow-day"><span class="day-label">Thu (Day 2)</span><span>Ankle & Foot Mini (13 min) + Gluteus Soleus</span></div>
+                    <div class="markow-day"><span class="day-label">Sat (Day 4)</span><span>Lower Body CARs + Lower Body Strength</span></div>
+                </div>
+                
+                <div class="markow-week">
+                    <h4>Weeks 9-10: Consolidation</h4>
+                    <div class="markow-day"><span class="day-label">Mon (Day 1)</span><span>Rolling For Hip Rotation + Hip IR Kinstretch 1/2 + Split Squat Iso</span></div>
+                    <div class="markow-day"><span class="day-label">Wed (Day 3)</span><span>Breathing For Hip Rotation & CARs + Scissor Slide Routine</span></div>
+                    <div class="markow-day"><span class="day-label">Thu (Day 2)</span><span>Ankle & Foot Mini + Gluteus Soleus</span></div>
+                    <div class="markow-day"><span class="day-label">Sat (Day 4)</span><span>Squat Class 2 (36 min)</span></div>
+                </div>
+                
+                <div class="markow-week">
+                    <h4>Weeks 11-12: Integration</h4>
+                    <div class="markow-day"><span class="day-label">Mon (Day 1)</span><span>Rolling For Hip Rotation + Hip IR Kinstretch 1/2 + Split Squat Iso</span></div>
+                    <div class="markow-day"><span class="day-label">Wed (Day 3)</span><span>Breathing For Hip Rotation & CARs + Scissor Slide Routine</span></div>
+                    <div class="markow-day"><span class="day-label">Thu (Day 2)</span><span>Ankle & Foot Mini + Gluteus Soleus</span></div>
+                    <div class="markow-day"><span class="day-label">Sat (Day 4)</span><span>Squat Class 2 (36 min)</span></div>
+                </div>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>Markow Key Cues</h3>
+                <div class="protocol-grid">
+                    <div class="protocol-card">
+                        <h4>Towel Setup</h4>
+                        <ul>
+                            <li>Catch top of pelvis and nipple line of ribcage</li>
+                            <li>Use bigger towel than shown in videos</li>
+                            <li>Position matters — game-changer for pelvis shape</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>Rolling For Hip Rotation</h4>
+                        <ul>
+                            <li>Keep weight light — stay relaxed</li>
+                            <li>Roll right to left first (for left hip IR)</li>
+                            <li>Add hooklying before if very limited</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>Split Squat Isometric</h4>
+                        <ul>
+                            <li>Heel heavy throughout</li>
+                            <li>Belt buckle away from stuck hip</li>
+                            <li>1st and 5th metatarsal down in back</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>Hip IR Kinstretch</h4>
+                        <ul>
+                            <li>Setup 10-15° beyond active ROM</li>
+                            <li>PAILs = external rotation driving down</li>
+                            <li>RAILs = internal rotation lifting foot</li>
+                            <li>Cramping = try again</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- EVENING MENU TAB -->
+        <div id="evening" class="tab-content">
+            <div class="protocol-section">
+                <h3>Optional Evening Markow Menu</h3>
+                <p style="margin-bottom: 15px; color: #a0a0a0; font-size: 0.9rem;">Available any evening. Not a replacement for yin yoga — do these earlier (post-dinner) if desired. Yin yoga remains your established pre-bed ritual.</p>
+                
+                <table class="menu-table">
+                    <tr><th>Focus</th><th>If You Feel...</th><th>Pull From</th><th>Duration</th></tr>
+                    <tr><td class="focus-lower">Lower Body</td><td>Hips tight</td><td>Hip IR Kinstretch, Side Smoosh, Rolling For Hip Rotation</td><td>15-36 min</td></tr>
+                    <tr><td class="focus-lower">Lower Body</td><td>Need pelvic reset</td><td>Pelvic Magic Zero, Pelvic Magic Cross Connect</td><td>20-27 min</td></tr>
+                    <tr><td class="focus-lower">Lower Body</td><td>Adductors/groin tight</td><td>Groin, Adductors Mini, Adductor City</td><td>15-25 min</td></tr>
+                    <tr><td class="focus-lower">Lower Body</td><td>Quick hip maintenance</td><td>Hip CARs + Lower Body CARs</td><td>10-15 min</td></tr>
+                    <tr><td class="focus-upper">Upper Body</td><td>Shoulders/thoracic tight</td><td>Spine 1, Spine 2, Thoracic Spine Mini</td><td>15-25 min</td></tr>
+                    <tr><td class="focus-upper">Upper Body</td><td>Upper body prep</td><td>Quick Hybrid Upper Body Strength, Mobility for Dips/Pushups/Triceps</td><td>15-20 min</td></tr>
+                    <tr><td class="focus-upper">Upper Body</td><td>Neck tension</td><td>Neck CARs</td><td>5-10 min</td></tr>
+                    <tr><td class="focus-upper">Upper Body</td><td>Ribcage/rotation work</td><td>Intro to Ribcage, Ribcage Rotation</td><td>10-20 min</td></tr>
+                    <tr><td class="focus-global">Global</td><td>Full body reset</td><td>Global Mobility, Total Body 60, Advanced Total Body</td><td>30-60 min</td></tr>
+                    <tr><td class="focus-global">Global</td><td>Just want movement</td><td>Upper Body CARs + Lower Body CARs</td><td>15-20 min</td></tr>
+                    <tr><td class="focus-global">Global</td><td>Connecting everything</td><td>Connecting the Basics, Connecting the Dots Across the Body</td><td>20-30 min</td></tr>
+                </table>
+                
+                <div class="alert-box info" style="margin-top: 15px;">
+                    <strong>Evening Flow:</strong><br>
+                    6:30pm — Optional Markow (15-30 min, if desired)<br>
+                    9:00pm — Yin Yoga (20 min) → Bed<br><br>
+                    <em>Yin yoga rotates lower/upper/total body programmatically. Use Markow menu to supplement areas yin isn't hitting that day.</em>
+                </div>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>Luke Thomas (F4F) — Prescribed 2×/Week</h3>
+                <div class="protocol-grid">
+                    <div class="protocol-card">
+                        <h4>Friday (Pre-Kickboxing)</h4>
+                        <ul>
+                            <li>Chamber Holds: 3×10-15 sec each leg</li>
+                            <li>Slow-Motion Kicks: 5 each side @ 25% speed</li>
+                            <li>Focus: Pelvic control, no low back arch</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>Saturday (Post-Markow)</h4>
+                        <ul>
+                            <li>Standing Leg Lifts & Holds: front/side/rear</li>
+                            <li>3×5 each direction, 2-3 sec hold at top</li>
+                            <li>Focus: Control > height, bridge mobility to kicks</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>GMB Tissue Prep — Prescribed 5×/Week</h3>
+                <table class="progression-table">
+                    <tr><th>Day</th><th>GMB Class</th><th>Duration</th><th>Purpose</th></tr>
+                    <tr><td>Monday</td><td>Hips</td><td>15 min</td><td>Pre-lower power</td></tr>
+                    <tr><td>Wednesday</td><td>Flexion</td><td>15 min</td><td>Pre-lower hypertrophy</td></tr>
+                    <tr><td>Thursday</td><td>Shoulders</td><td>10 min</td><td>Pre-upper power</td></tr>
+                    <tr><td>Saturday</td><td>Extension</td><td>15 min</td><td>Pre-sprint/mobility day</td></tr>
+                    <tr><td>Sunday</td><td>Fundamentals</td><td>15 min</td><td>Pre-social lift/BJJ</td></tr>
+                </table>
+            </div>
+        </div>
+        
+        <!-- SWAP PROTOCOLS TAB -->
+        <div id="swaps" class="tab-content">
+            <div class="protocol-section">
+                <h3>Readiness-Based Swaps</h3>
+                <div class="protocol-grid">
+                    <div class="protocol-card">
+                        <h4>🛌 Low Sleep (3-4 hours)</h4>
+                        <ul>
+                            <li>Drop plyometrics entirely</li>
+                            <li>Drop PZ Max → do Z2 instead</li>
+                            <li>Stay at RPE 6-7 max for lifts</li>
+                            <li>Keep mobility — it's restorative</li>
+                            <li>Skip Farmer's walks</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>😓 High Fatigue</h4>
+                        <ul>
+                            <li>Use home (banded) versions of exercises</li>
+                            <li>Skip Farmer's walks</li>
+                            <li>Keep core and mobility</li>
+                            <li>Drop last 2-3 accessories if needed</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>🤒 Sick</h4>
+                        <ul>
+                            <li>Mobility + CARs only</li>
+                            <li>Skip all strength</li>
+                            <li>Skip all conditioning</li>
+                            <li>Light GMB acceptable</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>✈️ Travel</h4>
+                        <ul>
+                            <li>Hip CARs daily (5-10 min)</li>
+                            <li>Bodyweight squats, lunges, push-ups</li>
+                            <li>Bands for hip abduction</li>
+                            <li>Markow videos on phone</li>
+                            <li>Evening Markow menu is ideal</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>⏱️ Short on Time</h4>
+                        <ul>
+                            <li>Cut: Farmer's → Plyos → Last accessories → PZ length</li>
+                            <li>Never cut: Main lifts, Markow, Core</li>
+                            <li>GMB can shorten to 8-10 min</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>🔥 Feeling Great</h4>
+                        <ul>
+                            <li>Push to top of RPE range</li>
+                            <li>Add 1 set to main lifts</li>
+                            <li>Extend PZ by 10-15 min</li>
+                            <li>Don't go crazy — bank the win</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>Home vs MMA Gym Quick Reference</h3>
+                <div class="protocol-grid">
+                    <div class="protocol-card">
+                        <h4>Lower Body Swaps</h4>
+                        <ul>
+                            <li>Machine Leg Ext → Banded Leg Ext</li>
+                            <li>Machine Leg Curl → Banded Leg Curl</li>
+                            <li>Barbell RDL → Gorilla Bow RDL</li>
+                            <li>Seated Calf → Gorilla Bow Calf</li>
+                            <li>Barbell Hip Thrust → BootySprout</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>Upper Body Swaps</h4>
+                        <ul>
+                            <li>Cable Pulldown → Banded Pulldown</li>
+                            <li>Machine Row → Banded Motorcycle Row</li>
+                            <li>Cable Fly → Banded Fly</li>
+                            <li>EZ Bar Curl → DB Curl</li>
+                            <li>Machine Tricep → Banded Pressdown</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>Plyo Swaps</h4>
+                        <ul>
+                            <li>Slam ball (MMA gym) → Med ball at home</li>
+                            <li>Box jumps → Squat jumps if no box</li>
+                            <li>Rotational throws need wall or partner</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CHAOS MANAGEMENT TAB -->
+        <div id="chaos" class="tab-content">
+            <div class="protocol-section">
+                <h3>When Life Gets Chaotic</h3>
+                <div class="alert-box success">
+                    <strong>The Golden Rule:</strong> 80% consistency beats 100% compliance followed by burnout.
+                </div>
+                
+                <h4 style="margin: 20px 0 12px; color: #4ecdc4;">Priority Hierarchy</h4>
+                <div class="protocol-grid">
+                    <div class="protocol-card">
+                        <h4>🔴 Tier 1: Non-Negotiable</h4>
+                        <ul>
+                            <li>Markow sessions (4×/week)</li>
+                            <li>Main lifts (top sets)</li>
+                            <li>One Z2 session (min 60 min)</li>
+                            <li>Luke Thomas kick work (Fri/Sat)</li>
+                            <li>Kickboxing (Friday)</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>🟡 Tier 2: Protect If Possible</h4>
+                        <ul>
+                            <li>Core (3×/week → 2× ok)</li>
+                            <li>Second Z2 session</li>
+                            <li>GMB tissue prep</li>
+                            <li>Lateral glute + Copenhagen work</li>
+                            <li>PZ ride (Thursday)</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>🟢 Tier 3: Cut First</h4>
+                        <ul>
+                            <li>Farmer's walks</li>
+                            <li>Plyometrics</li>
+                            <li>Last 2-3 accessories</li>
+                            <li>Sprint prep</li>
+                            <li>PZ Max (Friday)</li>
+                            <li>Nordics</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h4 style="margin: 25px 0 12px; color: #4ecdc4;">Missed Session Protocols</h4>
+                <div class="protocol-grid">
+                    <div class="protocol-card">
+                        <h4>Missed Monday</h4>
+                        <ul>
+                            <li>Don't double up Tuesday</li>
+                            <li>Abbreviated Lower Power before Wed's session</li>
+                            <li>Or: Skip Day 1, run Day 3 only this week</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>Missed Wednesday</h4>
+                        <ul>
+                            <li>Try to make it up Saturday AM before Z2</li>
+                            <li>Or: Accept the miss, Day 1 only for lower this week</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>Missed Thursday</h4>
+                        <ul>
+                            <li>Combine with Friday (shorten both)</li>
+                            <li>Or: Saturday AM before conditioning</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-card">
+                        <h4>Missed Friday</h4>
+                        <ul>
+                            <li>Kickboxing missed = gone</li>
+                            <li>Upper Hypertrophy → Saturday</li>
+                            <li>Or: Accept 3 lift days this week</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h4 style="margin: 25px 0 12px; color: #e94560;">Forced Deload Triggers</h4>
+                <div class="alert-box">
+                    <strong>If any of these occur, reduce overlay (conditioning, plyos, sprint) — NOT lifts:</strong>
+                    <ul style="margin-top: 8px; margin-left: 18px;">
+                        <li>Radiculopathy symptoms after kicks</li>
+                        <li>2+ low readiness days in same week</li>
+                        <li>Week 8+ and systemically flat</li>
+                    </ul>
+                </div>
+                
+                <h4 style="margin: 25px 0 12px; color: #4ecdc4;">Overlay Deload Structure (When Triggered)</h4>
+                <div class="protocol-card" style="max-width: 600px;">
+                    <ul>
+                        <li>Strength: Full volume as programmed (no deload)</li>
+                        <li>Z2: 1 × 60 min only</li>
+                        <li>PZ/PZ Max: Skip or halve duration</li>
+                        <li>Mobility: Full volume (restorative)</li>
+                        <li>Core: Full volume</li>
+                        <li>Sprint prep / Plyos: Skip</li>
+                        <li>Farmer's walks: Skip</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="protocol-section">
+                <h3>Red Line Rule</h3>
+                <div class="alert-box">
+                    <strong>🚨 KICKBOXING:</strong> If you feel low back compensation during kicks → STOP and do hip mobility instead. Radiculopathy is the red line. No exceptions.
+                </div>
+            </div>
+        </div>
+        
+        <footer class="footer">
+            <p>Hybrid Program: PHAT (Norton) + Mobility (Markow, GMB, Luke Thomas) + Conditioning (Galpin, Attia)</p>
+            <p>Day Order: LP Mon → LH Wed → UP Thu → UH Fri | Protects Friday Kickboxing</p>
+            <p style="margin-top: 8px; color: #e94560;">Target: 80%+ compliance | Built for decades, not months</p>
+        </footer>
+    </div>
+    
+    <button class="print-btn" onclick="window.print()">🖨️ Print</button>
+    
+    <script>
+        // Week data with all progressions
+        const weekData = {
+            1: {
+                phase: 1, rpe: "6-7",
+                hipThrust: "2×10 @ RPE 7",
+                sprint: "Wall drives 2×5, A-skip march 2×10m, Falling start to 10m jog ×3",
+                lateralGlutes: "2×15-20",
+                copenhagen: "2×15 sec/side",
+                plyoMon: "Pogo jumps 2×5 | Squat jumps 2×5",
+                plyoWed: "Med ball slams 2×5 | Rotational throws 2×5 each side",
+                markow: {
+                    mon: "Pelvic Magic Zero (23 min) + Split Squat Isometric",
+                    wed: "Pelvic Magic Cross Connect (27 min)",
+                    thu: "Rolling For Hip Rotation (6 min) + Hip Rotation Mini",
+                    sat: "Lower Body CARs + Lower Body Strength"
+                }
+            },
+            2: {
+                phase: 1, rpe: "6-7",
+                hipThrust: "2×10 @ RPE 7",
+                sprint: "Wall drives 2×5, A-skip march 2×10m, Falling start to 10m jog ×3",
+                lateralGlutes: "2×15-20",
+                copenhagen: "2×15 sec/side",
+                plyoMon: "Pogo jumps 2×5 | Squat jumps 2×5",
+                plyoWed: "Med ball slams 2×5 | Rotational throws 2×5 each side",
+                markow: {
+                    mon: "Pelvic Magic Zero (23 min) + Split Squat Isometric",
+                    wed: "Pelvic Magic Cross Connect (27 min) + Split Squat Iso",
+                    thu: "Rolling For Hip Rotation (6 min) + Hip Rotation Mini",
+                    sat: "Pelvic Magic Side Smoosh (36 min)"
+                }
+            },
+            3: {
+                phase: 1, rpe: "6-7",
+                hipThrust: "2×10 @ RPE 7",
+                sprint: "Wall drives 2×5, A-skip march 2×10m, Falling start to 10m jog ×3",
+                lateralGlutes: "2×15-20",
+                copenhagen: "2×15 sec/side",
+                plyoMon: "Pogo jumps 2×5 | Squat jumps 2×5",
+                plyoWed: "Med ball slams 2×5 | Rotational throws 2×5 each side",
+                markow: {
+                    mon: "Pelvic Magic Zero (23 min) + Split Squat Isometric",
+                    wed: "Rolling For Hip Rotation + Pelvic Magic Cross Connect",
+                    thu: "Rolling For Hip Rotation + Hip Rotation Mini",
+                    sat: "Pelvic Magic Side Smoosh (36 min)"
+                }
+            },
+            4: {
+                phase: 1, rpe: "6-7",
+                hipThrust: "2×10 @ RPE 7",
+                sprint: "Wall drives 2×5, A-skip march 2×10m, Falling start to 10m jog ×3",
+                lateralGlutes: "2×15-20",
+                copenhagen: "2×15 sec/side",
+                plyoMon: "Pogo jumps 2×5 | Squat jumps 2×5",
+                plyoWed: "Med ball slams 2×5 | Rotational throws 2×5 each side",
+                markow: {
+                    mon: "Pelvic Magic Side Smoosh + Split Squat Isometric",
+                    wed: "Rolling For Hip Rotation + Pelvic Magic Cross Connect",
+                    thu: "Rolling For Hip Rotation + Hip Rotation Mini",
+                    sat: "Quick Hamstring Strength + Split Squat Isometric"
+                }
+            },
+            5: {
+                phase: 2, rpe: "7-8",
+                hipThrust: "3×10 @ RPE 8",
+                sprint: "Wall drives + A-skips + 3-4×40-50m @ 60-70% tempo",
+                lateralGlutes: "2-3×15-20",
+                copenhagen: "2×20 sec/side",
+                plyoMon: "Pogo jumps 2×6 | Squat jumps 2×6 | Box jumps 2×3 (step down)",
+                plyoWed: "Med ball slams 2×6 | Rotational throws 2×6 each | Overhead throw 2×5",
+                markow: {
+                    mon: "Pelvic Magic Side Smoosh + Split Squat Isometric",
+                    wed: "Rolling For Hip Rotation + Pelvic Magic Cross Connect",
+                    thu: "Rolling For Hip Rotation + Hip Rotation Mini",
+                    sat: "Quick Hamstring Strength + Split Squat Isometric"
+                }
+            },
+            6: {
+                phase: 2, rpe: "7-8",
+                hipThrust: "3×10 @ RPE 8",
+                sprint: "Wall drives + A-skips + 3-4×40-50m @ 60-70% tempo",
+                lateralGlutes: "2-3×15-20",
+                copenhagen: "2×20 sec/side",
+                plyoMon: "Pogo jumps 2×6 | Squat jumps 2×6 | Box jumps 2×3 (step down)",
+                plyoWed: "Med ball slams 2×6 | Rotational throws 2×6 each | Overhead throw 2×5",
+                markow: {
+                    mon: "Rolling For Hip Rotation + Hip IR Kinstretch 1/2 (15 min) + Split Squat Iso",
+                    wed: "Breathing For Hip Rotation & CARs + Scissor Slide Routine",
+                    thu: "Ankle & Foot Mini (13 min) + Gluteus Soleus",
+                    sat: "Lower Body CARs + Lower Body Strength"
+                }
+            },
+            7: {
+                phase: 2, rpe: "7-8",
+                hipThrust: "3×10 @ RPE 8",
+                sprint: "Wall drives + A-skips + 3-4×40-50m @ 60-70% tempo",
+                lateralGlutes: "2-3×15-20",
+                copenhagen: "2×20 sec/side",
+                plyoMon: "Pogo jumps 2×6 | Squat jumps 2×6 | Box jumps 2×3 (step down)",
+                plyoWed: "Med ball slams 2×6 | Rotational throws 2×6 each | Overhead throw 2×5",
+                markow: {
+                    mon: "Rolling For Hip Rotation + Hip IR Kinstretch 1/2 + Split Squat Iso",
+                    wed: "Breathing For Hip Rotation & CARs + Scissor Slide Routine",
+                    thu: "Ankle & Foot Mini + Gluteus Soleus",
+                    sat: "Lower Body CARs + Lower Body Strength"
+                }
+            },
+            8: {
+                phase: 2, rpe: "7-8",
+                hipThrust: "3×10 @ RPE 8",
+                sprint: "Wall drives + A-skips + 3-4×40-50m @ 60-70% tempo",
+                lateralGlutes: "2-3×15-20",
+                copenhagen: "2×20 sec/side",
+                plyoMon: "Pogo jumps 2×6 | Squat jumps 2×6 | Box jumps 2×3 (step down)",
+                plyoWed: "Med ball slams 2×6 | Rotational throws 2×6 each | Overhead throw 2×5",
+                markow: {
+                    mon: "Rolling For Hip Rotation + Hip IR Kinstretch 1/2 + Split Squat Iso",
+                    wed: "Breathing For Hip Rotation & CARs + Scissor Slide Routine",
+                    thu: "Ankle & Foot Mini + Gluteus Soleus",
+                    sat: "Lower Body CARs + Lower Body Strength"
+                }
+            },
+            9: {
+                phase: 3, rpe: "8-9",
+                hipThrust: "3×12 @ RPE 8 (1-2 sec squeeze)",
+                sprint: "All Phase 2 work + 3×30-40m build-ups to ~85%",
+                lateralGlutes: "3×15-20",
+                copenhagen: "2×25 sec/side",
+                plyoMon: "Pogo jumps 2×6 | Squat jumps 2×8 | Box jumps 2×5 (step down)",
+                plyoWed: "Med ball slams 2×8 | Rotational throws 2×8 each | Overhead throw 2×6",
+                markow: {
+                    mon: "Rolling For Hip Rotation + Hip IR Kinstretch 1/2 + Split Squat Iso",
+                    wed: "Breathing For Hip Rotation & CARs + Scissor Slide Routine",
+                    thu: "Ankle & Foot Mini + Gluteus Soleus",
+                    sat: "Squat Class 2 (36 min)"
+                }
+            },
+            10: {
+                phase: 3, rpe: "8-9",
+                hipThrust: "3×12 @ RPE 8 (1-2 sec squeeze)",
+                sprint: "All Phase 2 work + 3×30-40m build-ups to ~85%",
+                lateralGlutes: "3×15-20",
+                copenhagen: "2×25 sec/side",
+                plyoMon: "Pogo jumps 2×6 | Squat jumps 2×8 | Box jumps 2×5 (step down)",
+                plyoWed: "Med ball slams 2×8 | Rotational throws 2×8 each | Overhead throw 2×6",
+                markow: {
+                    mon: "Rolling For Hip Rotation + Hip IR Kinstretch 1/2 + Split Squat Iso",
+                    wed: "Breathing For Hip Rotation & CARs + Scissor Slide Routine",
+                    thu: "Ankle & Foot Mini + Gluteus Soleus",
+                    sat: "Squat Class 2 (36 min)"
+                }
+            },
+            11: {
+                phase: 3, rpe: "8-9",
+                hipThrust: "3×12 @ RPE 8 (1-2 sec squeeze)",
+                sprint: "All Phase 2 work + 3×30-40m build-ups to ~85%",
+                lateralGlutes: "3×15-20",
+                copenhagen: "2×25 sec/side",
+                plyoMon: "Pogo jumps 2×6 | Squat jumps 2×8 | Box jumps 2×5 (step down)",
+                plyoWed: "Med ball slams 2×8 | Rotational throws 2×8 each | Overhead throw 2×6",
+                markow: {
+                    mon: "Rolling For Hip Rotation + Hip IR Kinstretch 1/2 + Split Squat Iso",
+                    wed: "Breathing For Hip Rotation & CARs + Scissor Slide Routine",
+                    thu: "Ankle & Foot Mini + Gluteus Soleus",
+                    sat: "Squat Class 2 (36 min)"
+                }
+            },
+            12: {
+                phase: 3, rpe: "8-9",
+                hipThrust: "3×12 @ RPE 8 (1-2 sec squeeze)",
+                sprint: "All Phase 2 work + 3×30-40m build-ups to ~85%",
+                lateralGlutes: "3×15-20",
+                copenhagen: "2×25 sec/side",
+                plyoMon: "Pogo jumps 2×6 | Squat jumps 2×8 | Box jumps 2×5 (step down)",
+                plyoWed: "Med ball slams 2×8 | Rotational throws 2×8 each | Overhead throw 2×6",
+                markow: {
+                    mon: "Rolling For Hip Rotation + Hip IR Kinstretch 1/2 + Split Squat Iso",
+                    wed: "Breathing For Hip Rotation & CARs + Scissor Slide Routine",
+                    thu: "Ankle & Foot Mini + Gluteus Soleus",
+                    sat: "Squat Class 2 (36 min)"
+                }
+            }
+        };
+        
+        function generateWeekHTML(weekNum) {
+            const week = weekData[weekNum];
+            const phaseColors = { 1: '#4ecdc4', 2: '#f39c12', 3: '#e94560' };
+            const phaseNames = { 1: 'Foundation', 2: 'Build', 3: 'Peak' };
+            
+            return `
+                <div class="week-header">
+                    <h2>Week ${weekNum}</h2>
+                    <div class="week-tags">
+                        <span class="week-tag" style="border-left: 3px solid ${phaseColors[week.phase]}">Phase ${week.phase}: ${phaseNames[week.phase]}</span>
+                        <span class="week-tag">RPE ${week.rpe}</span>
+                    </div>
+                </div>
+                
+                <!-- MONDAY -->
+                <div class="day-card">
+                    <div class="day-header" onclick="toggleDay(this)">
+                        <h3>MONDAY — Lower Power + Core</h3>
+                        <span class="duration">~130 min</span>
+                    </div>
+                    <div class="day-content">
+                        <div class="block mobility">
+                            <div class="block-header">
+                                <span class="block-title">GMB Hips</span>
+                                <span class="block-time">15 min</span>
+                            </div>
+                        </div>
+                        
+                        <div class="block mobility">
+                            <div class="block-header">
+                                <span class="block-title">Markow: ${week.markow.mon}</span>
+                                <span class="block-time">~25-35 min</span>
+                            </div>
+                        </div>
+                        
+                        <div class="block power">
+                            <div class="block-header">
+                                <span class="block-title">Plyometrics</span>
+                                <span class="block-time">10 min</span>
+                            </div>
+                            <div class="block-details">
+                                ${week.plyoMon}
+                                ${week.phase >= 2 ? '<div class="cue-box"><strong>Box jumps:</strong> Step down to protect spine.</div>' : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="block strength">
+                            <div class="block-header">
+                                <span class="block-title">PHAT Lower Power @ RPE ${week.rpe}</span>
+                                <span class="block-time">~45 min</span>
+                            </div>
+                            <div class="block-details">
+                                Box Squat → Banded RDL → Single Leg Extension → Single Leg Curl → Standing Calf
+                                <div class="cue-box"><em>Log in Biolayne app</em></div>
+                            </div>
+                        </div>
+                        
+                        <div class="block accessory">
+                            <div class="block-header">
+                                <span class="block-title">Nordics (Optional)</span>
+                                <span class="block-time">5 min</span>
+                            </div>
+                            <div class="block-details">Band-assisted: 2×3-5, slow eccentric (3-5 sec lowering)</div>
+                        </div>
+                        
+                        <div class="block strength">
+                            <div class="block-header">
+                                <span class="block-title">Farmer's Walk</span>
+                                <span class="block-time">7 min</span>
+                            </div>
+                            <div class="block-details">2-3 × 30-40m</div>
+                        </div>
+                        
+                        <div class="block accessory">
+                            <div class="block-header">
+                                <span class="block-title">Lateral Glutes + Copenhagens</span>
+                                <span class="block-time">8 min</span>
+                            </div>
+                            <div class="block-details">Hip Abduction: ${week.lateralGlutes} @ RPE 7 | Copenhagens: ${week.copenhagen}</div>
+                        </div>
+                        
+                        <div class="block core">
+                            <div class="block-header">
+                                <span class="block-title">Prehab Guys Core</span>
+                                <span class="block-time">20 min</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- TUESDAY -->
+                <div class="day-card">
+                    <div class="day-header" onclick="toggleDay(this)">
+                        <h3>TUESDAY — Zone 2</h3>
+                        <span class="duration">~95 min</span>
+                    </div>
+                    <div class="day-content">
+                        <div class="alert-box info">
+                            <strong>Commute Day:</strong> 4am start, done by 5:45am
+                        </div>
+                        
+                        <div class="block conditioning">
+                            <div class="block-header">
+                                <span class="block-title">Peloton Power Zone Endurance</span>
+                                <span class="block-time">90 min</span>
+                            </div>
+                            <div class="block-details">Zone 2-3, nasal breathing, conversational pace.</div>
+                        </div>
+                        
+                        <div class="block mobility">
+                            <div class="block-header">
+                                <span class="block-title">Hip CARs Cool-Down</span>
+                                <span class="block-time">5 min</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- WEDNESDAY -->
+                <div class="day-card">
+                    <div class="day-header" onclick="toggleDay(this)">
+                        <h3>WEDNESDAY — Lower Hypertrophy</h3>
+                        <span class="duration">~130 min</span>
+                    </div>
+                    <div class="day-content">
+                        <div class="block mobility">
+                            <div class="block-header">
+                                <span class="block-title">GMB Flexion</span>
+                                <span class="block-time">15 min</span>
+                            </div>
+                        </div>
+                        
+                        <div class="block mobility">
+                            <div class="block-header">
+                                <span class="block-title">Markow: ${week.markow.wed}</span>
+                                <span class="block-time">~25-30 min</span>
+                            </div>
+                        </div>
+                        
+                        <div class="block power">
+                            <div class="block-header">
+                                <span class="block-title">Plyometrics (Rotational)</span>
+                                <span class="block-time">10 min</span>
+                            </div>
+                            <div class="block-details">
+                                ${week.plyoWed}
+                                <div class="cue-box">Rotational throws = kick transfer. Use slam balls at MMA gym.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="block strength">
+                            <div class="block-header">
+                                <span class="block-title">PHAT Lower Hypertrophy @ RPE ${week.rpe}</span>
+                                <span class="block-time">~55 min</span>
+                            </div>
+                            <div class="block-details">
+                                Trap Bar DL → Heels Elevated Goblet → Bulgarian → Swiss Ball Ham Curl → BootySprout (${week.hipThrust}) → Calf → Frog Pumps
+                                <div class="cue-box"><em>Log in Biolayne app</em></div>
+                            </div>
+                        </div>
+                        
+                        <div class="block accessory">
+                            <div class="block-header">
+                                <span class="block-title">Lateral Glutes + Copenhagens</span>
+                                <span class="block-time">8 min</span>
+                            </div>
+                            <div class="block-details">Hip Abduction: ${week.lateralGlutes} @ RPE 7 | Copenhagens: ${week.copenhagen}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- THURSDAY -->
+                <div class="day-card">
+                    <div class="day-header" onclick="toggleDay(this)">
+                        <h3>THURSDAY — Upper Power + PZ + Core</h3>
+                        <span class="duration">~120 min</span>
+                    </div>
+                    <div class="day-content">
+                        <div class="alert-box warning">
+                            <strong>Clinic Day:</strong> Leave by 7:30am
+                        </div>
+                        
+                        <div class="block mobility">
+                            <div class="block-header">
+                                <span class="block-title">GMB Shoulders</span>
+                                <span class="block-time">10 min</span>
+                            </div>
+                        </div>
+                        
+                        <div class="block strength">
+                            <div class="block-header">
+                                <span class="block-title">PHAT Upper Power @ RPE ${week.rpe}</span>
+                                <span class="block-time">~45 min</span>
+                            </div>
+                            <div class="block-details">
+                                Bench → Single Arm DB Row → Banded Pulldown → Arnold Press → Lateral Raise → EZ Curl → Skull Crusher
+                                <div class="cue-box"><em>Log in Biolayne app</em></div>
+                            </div>
+                        </div>
+                        
+                        <div class="block conditioning">
+                            <div class="block-header">
+                                <span class="block-title">Peloton Power Zone</span>
+                                <span class="block-time">30 min</span>
+                            </div>
+                            <div class="block-details">Zones 3-4 intervals. Contributes to PZP continuous FTP calculation.</div>
+                        </div>
+                        
+                        <div class="block mobility">
+                            <div class="block-header">
+                                <span class="block-title">Markow: ${week.markow.thu}</span>
+                                <span class="block-time">~10-15 min</span>
+                            </div>
+                        </div>
+                        
+                        <div class="block core">
+                            <div class="block-header">
+                                <span class="block-title">Prehab Guys Core</span>
+                                <span class="block-time">20 min</span>
+                            </div>
+                            <div class="block-details"><em>Primes pelvic stability for tomorrow's kickboxing</em></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- FRIDAY -->
+                <div class="day-card">
+                    <div class="day-header" onclick="toggleDay(this)">
+                        <h3>FRIDAY — Skill + Upper Hypertrophy</h3>
+                        <span class="duration">~145 min</span>
+                    </div>
+                    <div class="day-content">
+                        <div class="block mobility">
+                            <div class="block-header">
+                                <span class="block-title">Hip CARs</span>
+                                <span class="block-time">5 min</span>
+                            </div>
+                        </div>
+                        
+                        <div class="block skill">
+                            <div class="block-header">
+                                <span class="block-title">Luke Thomas: Kick Prep</span>
+                                <span class="block-time">10 min</span>
+                            </div>
+                            <div class="block-details">
+                                Chamber Holds: 3×10-15 sec each leg | Slow-Motion Kicks: 5 each side @ 25% speed
+                                <div class="cue-box"><strong>Pelvis neutral, NO low back arch.</strong></div>
+                            </div>
+                        </div>
+                        
+                        <div class="block conditioning">
+                            <div class="block-header">
+                                <span class="block-title">Peloton Power Zone Max</span>
+                                <span class="block-time">25 min</span>
+                            </div>
+                            <div class="block-details">Zone 5-6 intervals. Neural + metabolic warm-up. Contributes to FTP tracking.</div>
+                        </div>
+                        
+                        <div class="block skill">
+                            <div class="block-header">
+                                <span class="block-title">Kickboxing Private Lesson</span>
+                                <span class="block-time">60 min</span>
+                            </div>
+                            <div class="block-details">
+                                <div class="alert-box">
+                                    <strong>🚨 RED LINE:</strong> If low back compensation during kicks → STOP and do hip mobility instead.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="block strength">
+                            <div class="block-header">
+                                <span class="block-title">PHAT Upper Hypertrophy @ RPE ${week.rpe}</span>
+                                <span class="block-time">~45 min</span>
+                            </div>
+                            <div class="block-details">
+                                Incline DB Press → Cable Fly → Pulldown → Row → Shoulder Press → Lateral Raise → Curl → Tricep
+                                <div class="cue-box"><em>Drop RPE by 1 if gassed from kicks. Log in Biolayne app.</em></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SATURDAY -->
+                <div class="day-card">
+                    <div class="day-header" onclick="toggleDay(this)">
+                        <h3>SATURDAY — Sprint + Z2 + Mobility + Core</h3>
+                        <span class="duration">~175 min</span>
+                    </div>
+                    <div class="day-content">
+                        <div class="block mobility">
+                            <div class="block-header">
+                                <span class="block-title">GMB Extension</span>
+                                <span class="block-time">15 min</span>
+                            </div>
+                        </div>
+                        
+                        <div class="block power">
+                            <div class="block-header">
+                                <span class="block-title">Sprint Prep (Outdoors)</span>
+                                <span class="block-time">15 min</span>
+                            </div>
+                            <div class="block-details">
+                                ${week.sprint}
+                                <div class="cue-box">Wait for daylight. Focus on mechanics, posture, arm action.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="block conditioning">
+                            <div class="block-header">
+                                <span class="block-title">Peloton Power Zone Endurance</span>
+                                <span class="block-time">90 min</span>
+                            </div>
+                        </div>
+                        
+                        <div class="block mobility">
+                            <div class="block-header">
+                                <span class="block-title">Markow: ${week.markow.sat}</span>
+                                <span class="block-time">~25-40 min</span>
+                            </div>
+                        </div>
+                        
+                        <div class="block skill">
+                            <div class="block-header">
+                                <span class="block-title">Luke Thomas: Standing Leg Lifts & Holds</span>
+                                <span class="block-time">10 min</span>
+                            </div>
+                            <div class="block-details">Front/side/rear: 3×5 each direction, 2-3 sec hold. Control > height.</div>
+                        </div>
+                        
+                        <div class="block accessory">
+                            <div class="block-header">
+                                <span class="block-title">Lateral Glutes (No Copenhagens)</span>
+                                <span class="block-time">5 min</span>
+                            </div>
+                            <div class="block-details">Hip Abduction: ${week.lateralGlutes} @ RPE 7</div>
+                        </div>
+                        
+                        <div class="block core">
+                            <div class="block-header">
+                                <span class="block-title">Prehab Guys Core</span>
+                                <span class="block-time">20 min</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SUNDAY -->
+                <div class="day-card">
+                    <div class="day-header" onclick="toggleDay(this)">
+                        <h3>SUNDAY — Skill Day</h3>
+                        <span class="duration">~15 min + fixed</span>
+                    </div>
+                    <div class="day-content">
+                        <div class="block mobility">
+                            <div class="block-header">
+                                <span class="block-title">GMB Fundamentals</span>
+                                <span class="block-time">15 min</span>
+                            </div>
+                        </div>
+                        
+                        <div class="block strength">
+                            <div class="block-header">
+                                <span class="block-title">Social Lift (Upper Focus)</span>
+                                <span class="block-time">Variable</span>
+                            </div>
+                            <div class="block-details"><em>Not programmed — do what the group does. Enjoy it.</em></div>
+                        </div>
+                        
+                        <div class="block skill">
+                            <div class="block-header">
+                                <span class="block-title">BJJ Private + Rolling</span>
+                                <span class="block-time">Variable</span>
+                            </div>
+                        </div>
+                        
+                        <div class="block mobility">
+                            <div class="block-header">
+                                <span class="block-title">Evening: Yin Yoga</span>
+                                <span class="block-time">20 min</span>
+                            </div>
+                            <div class="block-details"><em>Established pre-bed ritual. Rotates lower/upper/total body programmatically.</em></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        function showWeek(weekNum) {
+            document.querySelectorAll('.week-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('week-container').innerHTML = generateWeekHTML(weekNum);
+        }
+        
+        function toggleDay(header) {
+            const content = header.nextElementSibling;
+            content.classList.toggle('expanded');
+        }
+        
+        // Initialize Week 1
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('week-container').innerHTML = generateWeekHTML(1);
+        });
+    </script>
+</body>
+</html>
