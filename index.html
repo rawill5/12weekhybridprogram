@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>12-Week Hybrid Training Program</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #0f3460;
+            --bg-card: #1e2746;
+            --text-primary: #eaeaea;
+            --text-secondary: #a0a0a0;
+            --text-muted: #6a6a8a;
+            --accent-primary: #e94560;
+            --accent-secondary: #0f9b8e;
+            --accent-tertiary: #f39c12;
+            --accent-blue: #3498db;
+            --border-color: #2a2a4a;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --shadow: 0 4px 20px rgba(0,0,0,0.3);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+        .light-mode {
+            --bg-primary: #f5f5f7;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #e8e8ed;
+            --bg-card: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #555555;
+            --text-muted: #888888;
+            --border-color: #d0d0d0;
+            --shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .header {
+            background: var(--bg-secondary);
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 1.4rem; font-weight: 700; color: var(--accent-primary); }
+        .header-week { font-size: 0.9rem; color: var(--text-secondary); }
+        .header-actions { display: flex; gap: 12px; align-items: center; }
+        .icon-btn {
+            background: var(--bg-tertiary);
+            border: none;
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .icon-btn:hover { background: var(--accent-primary); }
+        .tab-nav {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .tab-nav::-webkit-scrollbar { display: none; }
+        .tab-nav-inner {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 14px 18px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { color: var(--text-primary); }
+        .tab-btn.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); }
+        .main-content { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+        }
+        .card-title { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+        .week-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .week-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .week-btn:hover { border-color: var(--accent-primary); color: var(--text-primary); }
+        .week-btn.active { background: var(--accent-primary); border-color: var(--accent-primary); color: white; }
+        .week-btn.current { border-color: var(--accent-secondary); box-shadow: 0 0 0 2px var(--accent-secondary); }
+        .readiness-check {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .readiness-label { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 10px; }
+        .readiness-scale { display: flex; gap: 8px; }
+        .readiness-btn {
+            flex: 1;
+            padding: 12px 8px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .readiness-btn:hover { border-color: var(--accent-primary); }
+        .readiness-btn.selected { background: var(--accent-primary); border-color: var(--accent-primary); color: white; }
+        .readiness-suggestion {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            border-left: 3px solid var(--warning);
+        }
+        .day-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            cursor: pointer;
+            background: var(--bg-secondary);
+            transition: background 0.2s;
+        }
+        .day-header:hover { background: var(--bg-tertiary); }
+        .day-info { display: flex; align-items: center; gap: 12px; }
+        .day-name { font-weight: 600; font-size: 1rem; }
+        .day-focus { font-size: 0.85rem; color: var(--text-secondary); }
+        .day-progress { display: flex; align-items: center; gap: 8px; }
+        .progress-bar { width: 60px; height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent-secondary); border-radius: 3px; transition: width 0.3s; }
+        .progress-text { font-size: 0.8rem; color: var(--text-muted); min-width: 40px; }
+        .expand-icon { color: var(--text-muted); transition: transform 0.3s; }
+        .day-card.expanded .expand-icon { transform: rotate(180deg); }
+        .day-content { display: none; padding: 20px; border-top: 1px solid var(--border-color); }
+        .day-card.expanded .day-content { display: block; }
+        .session-timer {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+        }
+        .timer-display { font-family: 'SF Mono', Monaco, monospace; font-size: 1.4rem; font-weight: 600; color: var(--accent-primary); }
+        .timer-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .timer-btn.start { background: var(--success); color: white; }
+        .timer-btn.stop { background: var(--danger); color: white; }
+        .timer-btn.reset { background: var(--bg-secondary); color: var(--text-primary); }
+        .exercise-section { margin-bottom: 20px; }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .section-title { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+        .section-badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; background: var(--accent-primary); color: white; }
+        .section-badge.optional { background: var(--text-muted); }
+        .section-duration { font-size: 0.8rem; color: var(--text-muted); }
+        .section-content { padding-left: 12px; }
+        .section-content.collapsed { display: none; }
+        .exercise-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            background: var(--bg-secondary);
+            transition: all 0.2s;
+        }
+        .exercise-item:hover { background: var(--bg-tertiary); }
+        .exercise-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+            transition: all 0.2s;
+        }
+        .exercise-checkbox.checked { background: var(--success); border-color: var(--success); }
+        .exercise-checkbox.checked::after { content: '✓'; color: white; font-size: 14px; font-weight: bold; }
+        .exercise-info { flex: 1; }
+        .exercise-name { font-weight: 500; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .exercise-name a { color: var(--accent-blue); text-decoration: none; }
+        .exercise-name a:hover { text-decoration: underline; }
+        .video-icon { font-size: 0.8rem; }
+        .exercise-details { font-size: 0.85rem; color: var(--text-secondary); }
+        .exercise-actions { display: flex; gap: 8px; }
+        .cue-btn, .timer-trigger {
+            background: var(--bg-tertiary);
+            border: none;
+            color: var(--text-secondary);
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .cue-btn:hover, .timer-trigger:hover { background: var(--accent-primary); color: white; }
+        .location-picker { display: flex; gap: 8px; margin-bottom: 12px; }
+        .location-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .location-btn:hover { border-color: var(--accent-primary); }
+        .location-btn.selected { background: var(--accent-secondary); border-color: var(--accent-secondary); color: white; }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        .modal-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
+        .modal-subtitle { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 24px; }
+        .modal-timer { font-family: 'SF Mono', Monaco, monospace; font-size: 4rem; font-weight: 700; color: var(--accent-primary); margin-bottom: 24px; }
+        .modal-timer.warning { color: var(--warning); }
+        .modal-timer.complete { color: var(--success); }
+        .modal-controls { display: flex; gap: 12px; justify-content: center; }
+        .modal-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .modal-btn.primary { background: var(--accent-primary); color: white; }
+        .modal-btn.secondary { background: var(--bg-tertiary); color: var(--text-primary); }
+        .cues-modal .modal { text-align: left; max-width: 500px; }
+        .cues-list { list-style: none; padding: 0; }
+        .cues-list li { padding: 8px 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: flex-start; gap: 10px; }
+        .cues-list li:last-child { border-bottom: none; }
+        .cue-bullet { color: var(--accent-primary); font-weight: bold; }
+        .tracker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .tracker-card { background: var(--bg-card); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border-color); }
+        .tracker-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .tracker-input-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        .tracker-input {
+            flex: 1;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        .tracker-input:focus { outline: none; border-color: var(--accent-primary); }
+        .tracker-add-btn { padding: 10px 16px; background: var(--accent-primary); border: none; border-radius: var(--radius-sm); color: white; cursor: pointer; font-weight: 500; }
+        .tracker-entries { max-height: 300px; overflow-y: auto; }
+        .tracker-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+        }
+        .entry-date { font-size: 0.8rem; color: var(--text-muted); }
+        .entry-value { font-weight: 600; color: var(--accent-secondary); }
+        .entry-notes { font-size: 0.85rem; color: var(--text-secondary); }
+        .delete-entry { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
+        .delete-entry:hover { color: var(--danger); }
+        .summary-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        .stat-card { background: var(--bg-tertiary); border-radius: var(--radius-sm); padding: 16px; text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--accent-primary); }
+        .stat-label { font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; }
+        .settings-group { margin-bottom: 24px; }
+        .settings-title { font-size: 1rem; font-weight: 600; margin-bottom: 12px; color: var(--text-secondary); }
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+        }
+        .setting-label { font-weight: 500; }
+        .setting-description { font-size: 0.8rem; color: var(--text-muted); }
+        .toggle {
+            width: 50px;
+            height: 28px;
+            background: var(--bg-tertiary);
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle.active { background: var(--accent-secondary); }
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s;
+        }
+        .toggle.active::after { transform: translateX(22px); }
+        .date-input {
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+        .btn { padding: 12px 24px; border: none; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn-primary { background: var(--accent-primary); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .data-table th { background: var(--bg-tertiary); font-weight: 600; font-size: 0.85rem; color: var(--text-secondary); }
+        .data-table td { font-size: 0.9rem; }
+        .info-card {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--accent-primary);
+        }
+        .info-card h3 { font-size: 1rem; margin-bottom: 8px; }
+        .info-card p { font-size: 0.9rem; color: var(--text-secondary); }
+        .phase-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+        .phase-badge.foundation { background: rgba(52, 152, 219, 0.2); color: var(--accent-blue); }
+        .phase-badge.build { background: rgba(243, 156, 18, 0.2); color: var(--warning); }
+        .phase-badge.peak { background: rgba(233, 69, 96, 0.2); color: var(--accent-primary); }
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.1rem; }
+            .tab-btn { padding: 12px 14px; font-size: 0.85rem; }
+            .main-content { padding: 12px; }
+            .summary-stats { grid-template-columns: repeat(2, 1fr); }
+            .tracker-grid { grid-template-columns: 1fr; }
+            .modal-timer { font-size: 3rem; }
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .timer-running .timer-display { animation: pulse 1s infinite; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div>
+                <h1>12-Week Hybrid Program</h1>
+                <div class="header-week" id="currentWeekDisplay">Week 1 • Foundation Phase</div>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="calendarExportBtn" title="Export to Calendar">📅</button>
+                <button class="icon-btn" id="settingsBtn" title="Settings">⚙️</button>
+            </div>
+        </div>
+    </header>
+
+    <nav class="tab-nav">
+        <div class="tab-nav-inner">
+            <button class="tab-btn active" data-tab="program">Program</button>
+            <button class="tab-btn" data-tab="overview">Overview</button>
+            <button class="tab-btn" data-tab="markow">Markow</button>
+            <button class="tab-btn" data-tab="progressions">Progressions</button>
+            <button class="tab-btn" data-tab="evening">Evening Menu</button>
+            <button class="tab-btn" data-tab="swaps">Swaps</button>
+            <button class="tab-btn" data-tab="chaos">Chaos Mgmt</button>
+            <button class="tab-btn" data-tab="trackers">Trackers</button>
+            <button class="tab-btn" data-tab="settings">Settings</button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="tab-content active" id="tab-program">
+            <div class="week-nav" id="weekNav"></div>
+            <div class="readiness-check" id="readinessCheck">
+                <div class="readiness-label">How are you feeling today?</div>
+                <div class="readiness-scale">
+                    <button class="readiness-btn" data-value="1">1<br><small>Rough</small></button>
+                    <button class="readiness-btn" data-value="2">2<br><small>Tired</small></button>
+                    <button class="readiness-btn" data-value="3">3<br><small>OK</small></button>
+                    <button class="readiness-btn" data-value="4">4<br><small>Good</small></button>
+                    <button class="readiness-btn" data-value="5">5<br><small>Great</small></button>
+                </div>
+                <div class="readiness-suggestion" id="readinessSuggestion" style="display: none;"></div>
+            </div>
+            <div id="weeklyProgramContent"></div>
+        </div>
+
+        <div class="tab-content" id="tab-overview">
+            <div class="card">
+                <h2 class="card-title">Program Philosophy</h2>
+                <div style="margin-top: 16px;">
+                    <p style="margin-bottom: 16px; color: var(--text-secondary);">
+                        This program integrates strength, conditioning, mobility, power, and skill work using a 
+                        <strong>Norton PHAT</strong> strength base with <strong>Markow</strong> hip restructuring, 
+                        <strong>Luke Thomas</strong> kick-specific work, and <strong>Galpin/Attia</strong> conditioning principles.
+                    </p>
+                    <div class="info-card">
+                        <h3>🎯 Primary Goal</h3>
+                        <p>Chambered roundhouse kick at nose height, 3-second hold, no lumbar compensation or pelvic tilt.</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>🦴 Key Limitation</h3>
+                        <p>Hip internal rotation + abduction (hip capsule pattern). Left hip IR is the primary bottleneck.</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>⚠️ Constraint</h3>
+                        <p>Lumbar radiculopathy — box squat and trap bar DL cleared. Manage cumulative spinal compression.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h2 class="card-title">Phase Structure</h2>
+                <table class="data-table" style="margin-top: 16px;">
+                    <thead><tr><th>Phase</th><th>Weeks</th><th>RIR</th><th>Focus</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="phase-badge foundation">Foundation</span></td><td>1-4</td><td>3-4</td><td>Establish patterns, pelvic position, movement quality</td></tr>
+                        <tr><td><span class="phase-badge build">Build</span></td><td>5-8</td><td>2-3</td><td>Increase intensity, deeper hip work, strength-at-length</td></tr>
+                        <tr><td><span class="phase-badge peak">Peak</span></td><td>9-12</td><td>1-2</td><td>Integration, single-leg mastery, kick optimization</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-markow">
+            <div class="card">
+                <h2 class="card-title">12-Week Markow Progression</h2>
+                <p style="color: var(--text-secondary); margin: 12px 0;">Full-body mobility progression coordinated with lifting days.</p>
+            </div>
+            <div id="markowScheduleContent"></div>
+        </div>
+
+        <div class="tab-content" id="tab-progressions">
+            <div class="card">
+                <h2 class="card-title">Copenhagen Plank Progression</h2>
+                <table class="data-table" style="margin-top: 16px;">
+                    <thead><tr><th>Phase</th><th>Weeks</th><th>Duration</th><th>Sets</th></tr></thead>
+                    <tbody>
+                        <tr><td>Foundation</td><td>1-4</td><td>15 sec/side</td><td>2 sets</td></tr>
+                        <tr><td>Build</td><td>5-8</td><td>20 sec/side</td><td>2 sets</td></tr>
+                        <tr><td>Peak</td><td>9-12</td><td>25 sec/side</td><td>2 sets</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card">
+                <h2 class="card-title">Sprint Prep Progression</h2>
+                <table class="data-table" style="margin-top: 16px;">
+                    <thead><tr><th>Phase</th><th>Drills (Every Session)</th><th>Speed Work</th></tr></thead>
+                    <tbody>
+                        <tr><td>Foundation</td><td>Wall drives 2×5, A-skip 2×10m</td><td>Falling start to 10m jog ×3</td></tr>
+                        <tr><td>Build</td><td>Wall drives, A-skip 2×20m, B-skip 2×20m</td><td>3-4×40-50m @ 60-70%</td></tr>
+                        <tr><td>Peak</td><td>Wall drives, A-skip 2×20m, B-skip 2×20m</td><td>3×30-40m @ ~85%</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card">
+                <h2 class="card-title">Luke Thomas Friday Drills</h2>
+                <table class="data-table" style="margin-top: 16px;">
+                    <thead><tr><th>Phase</th><th>Chamber Holds</th><th>Slow-Motion Kicks</th></tr></thead>
+                    <tbody>
+                        <tr><td>Foundation (1-4)</td><td>2×10 sec/leg</td><td>3 each side @ 25% speed</td></tr>
+                        <tr><td>Build (5-8)</td><td>3×12 sec/leg</td><td>5 each side @ 40% speed</td></tr>
+                        <tr><td>Peak (9-12)</td><td>3×15 sec/leg</td><td>5 each side @ 50-60% + 2 sec pause</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-evening">
+            <div class="card">
+                <h2 class="card-title">Optional Evening Mobility Menu</h2>
+                <p style="color: var(--text-secondary); margin: 12px 0;">Choose based on what your yin yoga ISN'T targeting.</p>
+            </div>
+            <div class="card"><h3 class="card-title" style="color: var(--accent-primary);">🦵 Lower Body</h3><div id="eveningLowerContent" style="margin-top: 12px;"></div></div>
+            <div class="card"><h3 class="card-title" style="color: var(--accent-blue);">💪 Upper Body</h3><div id="eveningUpperContent" style="margin-top: 12px;"></div></div>
+            <div class="card"><h3 class="card-title" style="color: var(--accent-secondary);">🌐 Global</h3><div id="eveningGlobalContent" style="margin-top: 12px;"></div></div>
+            <div class="card"><h3 class="card-title" style="color: var(--warning);">🧘 Bootleg Kinstretch</h3><div id="eveningBootlegContent" style="margin-top: 12px;"></div></div>
+        </div>
+
+        <div class="tab-content" id="tab-swaps">
+            <div class="card">
+                <h2 class="card-title">Readiness-Based Swap Protocols</h2>
+            </div>
+            <div class="card">
+                <h3 class="card-title">Readiness 1-2 (Rough/Tired)</h3>
+                <table class="data-table" style="margin-top: 12px;">
+                    <thead><tr><th>Programmed</th><th>Swap To</th></tr></thead>
+                    <tbody>
+                        <tr><td>Box Squat</td><td>Goblet Squat @ lighter load</td></tr>
+                        <tr><td>Trap Bar DL</td><td>KB Sumo DL or RDL</td></tr>
+                        <tr><td>Plyometrics</td><td>Skip or 50% volume</td></tr>
+                        <tr><td>Sprints</td><td>Drills only</td></tr>
+                        <tr><td>PZ Max</td><td>PZ Endurance</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-chaos">
+            <div class="card">
+                <h2 class="card-title">Chaos Management</h2>
+                <p style="color: var(--text-secondary); margin: 12px 0;">Cut in order from Tier 3 → Tier 1.</p>
+            </div>
+            <div class="card" style="border-left: 4px solid var(--danger);">
+                <h3 class="card-title">Tier 3 — Cut First</h3>
+                <ul style="margin-top: 12px; padding-left: 20px; color: var(--text-secondary);">
+                    <li>Carries, Plyos, Last 2-3 accessories, Sprint prep, PZ Max</li>
+                </ul>
+            </div>
+            <div class="card" style="border-left: 4px solid var(--warning);">
+                <h3 class="card-title">Tier 2 — Protect If Possible</h3>
+                <ul style="margin-top: 12px; padding-left: 20px; color: var(--text-secondary);">
+                    <li>Core, Second Z2, GMB, Lateral glutes, KOTG</li>
+                </ul>
+            </div>
+            <div class="card" style="border-left: 4px solid var(--success);">
+                <h3 class="card-title">Tier 1 — Non-Negotiable</h3>
+                <ul style="margin-top: 12px; padding-left: 20px; color: var(--text-secondary);">
+                    <li>Markow, Main lifts, One Z2, Luke Thomas, Kickboxing/BJJ</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-trackers">
+            <div class="card">
+                <h2 class="card-title">📊 Weekly Summary</h2>
+                <div class="summary-stats">
+                    <div class="stat-card"><div class="stat-value" id="statCompletion">0%</div><div class="stat-label">Completion</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statSessions">0/7</div><div class="stat-label">Sessions</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statTime">0h</div><div class="stat-label">Total Time</div></div>
+                </div>
+            </div>
+            <div class="tracker-grid">
+                <div class="tracker-card">
+                    <h3 class="tracker-title">🏋️ PR Log</h3>
+                    <div class="tracker-input-row">
+                        <select class="tracker-input" id="prExercise">
+                            <option value="box-squat">Box Squat</option>
+                            <option value="trap-bar-dl">Trap Bar DL</option>
+                            <option value="bench">Bench Press</option>
+                        </select>
+                        <input type="text" class="tracker-input" id="prWeight" placeholder="Weight">
+                        <input type="text" class="tracker-input" id="prReps" placeholder="Reps">
+                    </div>
+                    <button class="tracker-add-btn" id="addPrBtn">Add PR</button>
+                    <div class="tracker-entries" id="prEntries" style="margin-top: 16px;"></div>
+                </div>
+                <div class="tracker-card">
+                    <h3 class="tracker-title">🦵 Kick Height</h3>
+                    <div class="tracker-input-row">
+                        <select class="tracker-input" id="kickHeight">
+                            <option value="hip">Hip</option>
+                            <option value="ribs">Ribs</option>
+                            <option value="chest">Chest</option>
+                            <option value="chin">Chin</option>
+                            <option value="nose">Nose</option>
+                            <option value="forehead">Forehead</option>
+                        </select>
+                        <input type="text" class="tracker-input" id="kickNotes" placeholder="Notes">
+                    </div>
+                    <button class="tracker-add-btn" id="addKickBtn">Log Kick</button>
+                    <div class="tracker-entries" id="kickEntries" style="margin-top: 16px;"></div>
+                </div>
+                <div class="tracker-card">
+                    <h3 class="tracker-title">🚴 FTP Log</h3>
+                    <div class="tracker-input-row">
+                        <input type="number" class="tracker-input" id="ftpValue" placeholder="FTP (watts)">
+                        <input type="text" class="tracker-input" id="ftpSource" placeholder="Source">
+                    </div>
+                    <button class="tracker-add-btn" id="addFtpBtn">Log FTP</button>
+                    <div class="tracker-entries" id="ftpEntries" style="margin-top: 16px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-settings">
+            <div class="card"><h2 class="card-title">⚙️ Settings</h2></div>
+            <div class="settings-group">
+                <div class="settings-title">Appearance</div>
+                <div class="setting-row">
+                    <div><div class="setting-label">Dark Mode</div><div class="setting-description">Use dark theme</div></div>
+                    <div class="toggle active" id="darkModeToggle"></div>
+                </div>
+            </div>
+            <div class="settings-group">
+                <div class="settings-title">Timer</div>
+                <div class="setting-row">
+                    <div><div class="setting-label">Sound Alerts</div></div>
+                    <div class="toggle active" id="soundToggle"></div>
+                </div>
+                <div class="setting-row">
+                    <div><div class="setting-label">Vibration</div></div>
+                    <div class="toggle active" id="vibrateToggle"></div>
+                </div>
+            </div>
+            <div class="settings-group">
+                <div class="settings-title">Program</div>
+                <div class="setting-row">
+                    <div><div class="setting-label">Start Date</div><div class="setting-description">First day of Week 1</div></div>
+                    <input type="date" class="date-input" id="startDateInput" value="2026-03-30">
+                </div>
+            </div>
+            <div class="settings-group">
+                <div class="settings-title">Data</div>
+                <div class="setting-row">
+                    <div><div class="setting-label">Export Data</div></div>
+                    <button class="btn btn-secondary" id="exportDataBtn">Export</button>
+                </div>
+                <div class="setting-row">
+                    <div><div class="setting-label">Reset All Data</div></div>
+                    <button class="btn btn-danger" id="resetDataBtn">Reset</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="timerModal">
+        <div class="modal">
+            <div class="modal-title" id="timerModalTitle">Exercise Timer</div>
+            <div class="modal-subtitle" id="timerModalSubtitle">Hold position</div>
+            <div class="modal-timer" id="timerModalDisplay">00:00</div>
+            <div class="modal-controls">
+                <button class="modal-btn secondary" id="timerCloseBtn">Close</button>
+                <button class="modal-btn primary" id="timerStartBtn">Start</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay cues-modal" id="cuesModal">
+        <div class="modal">
+            <div class="modal-title" id="cuesModalTitle">Exercise Cues</div>
+            <ul class="cues-list" id="cuesModalContent"></ul>
+            <div class="modal-controls" style="margin-top: 20px;">
+                <button class="modal-btn primary" id="cuesCloseBtn">Got It</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="calendarModal">
+        <div class="modal">
+            <div class="modal-title">Export to Calendar</div>
+            <div style="margin: 20px 0;">
+                <select class="tracker-input" id="calendarWeekSelect" style="width: 100%;"></select>
+            </div>
+            <div class="modal-controls">
+                <button class="modal-btn secondary" id="calendarCancelBtn">Cancel</button>
+                <button class="modal-btn primary" id="calendarDownloadBtn">Download .ics</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const VIDEO_URLS = {
+        'PM 1': 'https://drive.google.com/file/d/1amIbDgWRE3ce8-PhezCX4yJmpbLyHxse/view',
+        'PM 2': 'https://drive.google.com/file/d/1anO-4f1EQtBChX9-c_HRRudcnhShDkkW/view',
+        'PM 3': 'https://drive.google.com/file/d/1cBmW-0EgeKtKhBNjNFKCGs6ARBZZkk0K/view',
+        'PM 4': 'https://drive.google.com/file/d/111R25UfZpLvjyu_nhul7semAC23tlRvX/view',
+        'PM 5': 'https://drive.google.com/file/d/10Y9vQlVA0DfYcdrgOGMCmXYg_oz-d_Cq/view',
+        'Cross Connect': 'https://drive.google.com/file/d/11Q6hmpmJ2uh9bC-trH7NxDBacert_-yc/view',
+        'Side Smoosh': 'https://drive.google.com/file/d/1L3jG_StO9W2in417tk5xaEU1JslrIi9J/view',
+        'Sliding and Gliding': 'https://drive.google.com/file/d/1l9HWmTJSXh9Kqe7ylLbntp-hqARY0es0/view',
+        'Hip Hikers Guide': 'https://drive.google.com/file/d/1xozZeLv2cACPuSBm1dYeSiNXo8CPi-Zh/view',
+        'Hip IR Start Here': 'https://drive.google.com/file/d/1tkoR64fU8grGqW0M7sHwsybJ7UUQbEZA/view',
+        'Hip IR Progress Here': 'https://drive.google.com/file/d/1tgYi1d4USNZZs5ng5bnyqCXhLef-ISpN/view',
+        'Hip IR Progress Part 2': 'https://drive.google.com/file/d/1ld9dELRtkjU2TZ6ONh9tyumz8z51kmf4/view',
+        'Quick Hamstring Strength': 'https://drive.google.com/file/d/1tzEGQRsRL98VQmAVNJfhqricgHfJ-qRt/view',
+        'Mastering Single Leg': 'https://drive.google.com/file/d/15vZpdvZlVL2o3slmAQAgsTBqozxbA9-q/view',
+        'Dynamic 9090': 'https://drive.google.com/file/d/1juWpZuhfOd0SjD0KI7UG-V3LW8SVMTYR/view',
+        'Lower Body CARs': 'https://drive.google.com/file/d/1ElTKdw9HeR6gqp4hGFfTffza35NSgzvU/view',
+        'Upper Body CARs': 'https://drive.google.com/file/d/1A1YzxHxkojMOSuLqWQTYK94uido-6Qb_/view',
+        'Hip Rotation CARs': 'https://drive.google.com/file/d/1txpRH0EX1iUAVP3f_t_z9PiklYp3elVc/view',
+        'Gluteus Soleus': 'https://drive.google.com/file/d/18y0rCygAthLRaIzlljiNiC215M83kYWQ/view',
+        'Spine 1': 'https://drive.google.com/file/d/1Md_B085IaXJ8c5tpC3OdQ5Nm8vWTdn4r/view',
+        'Spine 2': 'https://drive.google.com/file/d/1d6mZwG-oik91Hcv0NgNoZQQCiTQp0LcQ/view',
+        'Thoracic Spine Mini': 'https://drive.google.com/file/d/1ygnQf7sQVDouxV9zi7g2PVDsqv7alBTw/view',
+        'Ribcage Rotation': 'https://drive.google.com/file/d/1igF7tDXuHIYBnEzCRFvRw2J67Ruj74fO/view',
+        'Intro to Ribcage': 'https://drive.google.com/file/d/1soPRASkV2SdHpeL4A8-WSUCp_VIF5sv-/view',
+        'Shoulder Rotation Start Here': 'https://drive.google.com/file/d/1iaZ2JpUAPX6B9xomu6cTDgd1YC3597Qa/view',
+        'Shoulder IR': 'https://drive.google.com/file/d/10KzJLpBFZ5XcyTf_sxG3WwvbHzA-0zsp/view',
+        'Shoulder External Rotation': 'https://drive.google.com/file/d/1goe34ajHgKBghy3bILZg2LMoFF0GhdO8/view',
+        'Strength and Balance': 'https://drive.google.com/file/d/1RbI_25oqxlBrtRWqCqS5r9b4AI4sC1q2/view',
+        'Strength Class Phase 2': 'https://drive.google.com/file/d/1gdOFxU41u-aJgjtiAd0zFiqq17PIDBji/view',
+        'Mobility Class Phase 2': 'https://drive.google.com/file/d/10W6KX-xv7vcwRI4FZ7PYLu-i3KMAL7n3/view',
+        'Alternating Strength': 'https://drive.google.com/file/d/1RO5D1ma6L6QI6lOWMRgiGY5wT-4CwNi6/view',
+        'Global Mobility': 'https://drive.google.com/file/d/1CErTCe6aHElADq6YuKRhG-ukcjfWkwxu/view',
+        'Connecting the Basics': 'https://drive.google.com/file/d/1r185mZkc2ki3ophgEzsjdPVCJWYCYxWn/view',
+        'Connecting the Dots': 'https://drive.google.com/file/d/14jocLYsLG5eBriHiktwji3t-SCze-pWQ/view',
+        'Bootleg CARs n Such': 'https://drive.google.com/file/d/10qdvR6mk_wPeJPBfJCDHI-mHynuwpM7B/view',
+        'Bootleg Full Body Fab': 'https://drive.google.com/file/d/1urzLpuQ7aSm_HGL_BsicBznzGGA9RtEl/view',
+        'Bootleg Hip O Rama': 'https://drive.google.com/file/d/1f1gX_RaJdtM33HmZu1wCaXQ38vLc2x56/view',
+        'Bootleg Shoulders': 'https://drive.google.com/file/d/1QsYJ7G0364HpqS6J0DFYCGAZJkK_Jg6B/view',
+        'LT Functional Kicking Strength': 'https://drive.google.com/file/d/11SrfSQdBhfuzeXbFkboWuPraHns00s4Z/view',
+        'LT Ballistic Stretching': 'https://drive.google.com/file/d/1qyCkCKvKIEXyRzCTHRe4blgYs8XnY_Hh/view',
+        'LT Isometric Holds': 'https://drive.google.com/file/d/1_fDEwWv0z--TB9H-iT2VOuU-kyqH60x3/view',
+        'LT Functional Kicking Intermediate': 'https://drive.google.com/file/d/1Ps_qGLmKDx000je4tYAgZ2kenl-DJQ66/view',
+        'LT Everything Ground Up': 'https://drive.google.com/file/d/1ohQTqHD9lVbbzhyIEeWgp-y3sfA5581Q/view',
+        'LT Neglected Parts': 'https://drive.google.com/file/d/1RDIKjxqeRUGyW9m8coPoOD-fLiJ9UE6B/view',
+        'LT Advanced Mobility 4': 'https://drive.google.com/file/d/1yhk_qLilU5BKG50FfxOr-dmkFiUQbR-W/view',
+        'LT Glutes Hips Legs': 'https://drive.google.com/file/d/16RllNU0mA6cYygSZBPz5yn2QcxaRrWWP/view',
+        'LT PNF': 'https://drive.google.com/file/d/1Wg2aPECInURvA4KMzliuxkB1rmLslj5L/view',
+        'LT Joint Strengthening': 'https://drive.google.com/file/d/1i36ANMC5DA67nxVBAprJXBlkQnpdWvG5/view',
+        'LT Lower Body Active Flexibility': 'https://drive.google.com/file/d/1pgUm9w-kEJRV2Ndj9TypyM6hdClE3YO7/view',
+        'LT Functional Kicking Strength 1': 'https://drive.google.com/file/d/1PUtuiThXs5Iu6MLtdTCA3Re2q8fsAhky/view'
+    };
+
+    const EXERCISE_CUES = {
+        'Split Squat Isometric': ['Heel heavy throughout','Regress ROM by staying higher','Progress by sinking down','First and fifth metatarsal down in back','Belt buckle away if stuck in front of hip','60 sec/side'],
+        'Copenhagen Plank': ['Top leg on bench, bottom underneath','Stack shoulders, hips, ankles','Drive top leg down','No sagging'],
+        'Nordic Curl': ['Anchor feet securely','Band assist across chest','3-5 sec eccentric descent','Catch with hands if needed'],
+        'Patrick Step': ['Small step or slant board','Knee tracks forward over toes','Heel stays down'],
+        'ATG Split Squat': ['Back knee toward floor','Front heel down','Knee past toes','Upright torso'],
+        'Chamber Hold': ['Standing on base leg','Knee high, foot near glute','Hip externally rotated','Hold without wobble'],
+        'Elephant Walk': ['Straight legs','Walk hands forward','Pike hips up','Hamstrings loaded']
+    };
+
+    const MARKOW_SCHEDULE = {
+        1: { mon: 'PM 1', wed: 'Cross Connect', thu: 'Intro to Ribcage', sat: 'Cross Connect + Lower Body CARs' },
+        2: { mon: 'PM 1', wed: 'Cross Connect', thu: 'Shoulder Rotation Start Here', sat: 'Side Smoosh + Gluteus Soleus' },
+        3: { mon: 'PM 2', wed: 'Cross Connect', thu: 'Thoracic Spine Mini', sat: 'PM 1 + Hip IR Start Here' },
+        4: { mon: 'PM 2', wed: 'Cross Connect', thu: 'Ribcage Rotation', sat: 'Side Smoosh + Quick Hamstring Strength' },
+        5: { mon: 'PM 3', wed: 'Cross Connect', thu: 'Shoulder IR', sat: 'Side Smoosh + Quick Hamstring Strength' },
+        6: { mon: 'PM 3', wed: 'Cross Connect', thu: 'Ribcage Rotation', sat: 'Hip IR Progress Here + Gluteus Soleus' },
+        7: { mon: 'Side Smoosh', wed: 'PM 4', thu: 'Spine 1', sat: 'Strength and Balance' },
+        8: { mon: 'PM 4', wed: 'PM 3', thu: 'Shoulder External Rotation', sat: 'Strength and Balance' },
+        9: { mon: 'PM 5', wed: 'PM 4', thu: 'Spine 2', sat: 'Mastering Single Leg + Gluteus Soleus' },
+        10: { mon: 'PM 5', wed: 'Hip IR Progress Part 2', thu: 'Connecting the Basics', sat: 'Alternating Strength' },
+        11: { mon: 'Sliding and Gliding', wed: 'PM 5', thu: 'Spine 2', sat: 'Strength Class Phase 2' },
+        12: { mon: 'Hip Hikers Guide', wed: 'Dynamic 9090', thu: 'Connecting the Dots', sat: 'Mobility Class Phase 2 + Global Mobility' }
+    };
+
+    const LT_SATURDAY = {1:'LT Functional Kicking Strength',2:'LT Ballistic Stretching',3:'LT Isometric Holds',4:'LT Functional Kicking Intermediate',5:'LT Everything Ground Up',6:'LT Neglected Parts',7:'LT Advanced Mobility 4',8:'LT Glutes Hips Legs',9:'LT PNF',10:'LT Joint Strengthening',11:'LT Lower Body Active Flexibility',12:'LT Functional Kicking Strength 1'};
+
+    let state = {settings:{darkMode:true,sound:true,vibrate:true,startDate:'2026-03-30'},currentWeek:1,completion:{},readiness:{},sessionTimes:{},prs:[],kicks:[],ftps:[]};
+
+    function loadState(){const s=localStorage.getItem('hybridProgramState');if(s)state={...state,...JSON.parse(s)};applySettings();}
+    function saveState(){localStorage.setItem('hybridProgramState',JSON.stringify(state));}
+    function applySettings(){document.body.classList.toggle('light-mode',!state.settings.darkMode);document.getElementById('darkModeToggle').classList.toggle('active',state.settings.darkMode);document.getElementById('soundToggle').classList.toggle('active',state.settings.sound);document.getElementById('vibrateToggle').classList.toggle('active',state.settings.vibrate);document.getElementById('startDateInput').value=state.settings.startDate;}
+    function getCurrentWeek(){const s=new Date(state.settings.startDate),t=new Date(),d=Math.floor((t-s)/(1000*60*60*24)),w=Math.floor(d/7)+1;return Math.max(1,Math.min(12,w));}
+    function getPhase(w){return w<=4?'foundation':w<=8?'build':'peak';}
+    function getPhaseLabel(w){const p=getPhase(w);return p.charAt(0).toUpperCase()+p.slice(1);}
+    function formatTime(s){const m=Math.floor(s/60),sec=s%60;return`${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;}
+    function playBeep(){if(!state.settings.sound)return;const ctx=new(window.AudioContext||window.webkitAudioContext)(),o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=800;g.gain.setValueAtTime(0.3,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.5);o.start();o.stop(ctx.currentTime+0.5);}
+    function vibrate(){if(state.settings.vibrate&&navigator.vibrate)navigator.vibrate([200,100,200]);}
+    function createVideoLink(n){const u=VIDEO_URLS[n];return u?`<a href="${u}" target="_blank">${n} ▶</a>`:n;}
+    function createYTLink(t){return`https://www.youtube.com/results?search_query=${encodeURIComponent(t+' kneesovertoesguy')}`;}
+
+    function renderWeekNav(){const c=document.getElementById('weekNav'),cur=getCurrentWeek();let h='';for(let w=1;w<=12;w++)h+=`<button class="week-btn ${w===state.currentWeek?'active':''} ${w===cur?'current':''}" data-week="${w}">Wk ${w}</button>`;c.innerHTML=h;c.querySelectorAll('.week-btn').forEach(b=>b.addEventListener('click',()=>{state.currentWeek=parseInt(b.dataset.week);saveState();renderWeekNav();renderWeeklyProgram();}));document.getElementById('currentWeekDisplay').textContent=`Week ${state.currentWeek} • ${getPhaseLabel(state.currentWeek)} Phase`;}
+
+    function initReadinessCheck(){const btns=document.querySelectorAll('.readiness-btn'),today=new Date().toISOString().split('T')[0];if(state.readiness[today])btns.forEach(b=>b.classList.toggle('selected',parseInt(b.dataset.value)===state.readiness[today]));btns.forEach(b=>b.addEventListener('click',()=>{btns.forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state.readiness[today]=parseInt(b.dataset.value);saveState();showReadinessSuggestion(state.readiness[today]);}));}
+    function showReadinessSuggestion(v){const el=document.getElementById('readinessSuggestion');if(v<=2){el.innerHTML='⚠️ <strong>Low readiness.</strong> Swap barbell→DB/KB, skip plyos, drills only, CARs instead of long Markow.';el.style.display='block';}else if(v===3){el.innerHTML='👍 <strong>Moderate.</strong> Proceed as written, can reduce accessory volume.';el.style.display='block';}else{el.style.display='none';}}
+
+    function renderWeeklyProgram(){const c=document.getElementById('weeklyProgramContent'),w=state.currentWeek,p=getPhase(w),m=MARKOW_SCHEDULE[w],lt=LT_SATURDAY[w];const ct=p==='foundation'?15:p==='build'?20:25;const cht=p==='foundation'?10:p==='build'?12:15;const days=[{name:'Monday',focus:'Lower Power',sections:[{title:'Tissue Prep',dur:'15m',ex:[{n:'GMB Hips',d:'15 min'}]},{title:'Markow',dur:'~25m',ex:[{n:m.mon,d:'Full class',v:1},{n:'Split Squat Isometric',d:'60 sec/side',t:60,c:1}]},{title:'Plyos (Vertical)',dur:'12m',ex:[{n:'Pogo Hops',d:'2×8'},{n:'Squat Jumps',d:'3×5'},{n:'Box Jumps',d:'2×3'}]},{title:'PHAT Lower Power',dur:'~45m',ex:[{n:'Box Squat',d:'Biolayne'},{n:'Banded RDL',d:'Biolayne'},{n:'SL Extension',d:'Biolayne'},{n:'SL Curl',d:'Biolayne'},{n:'SL Calf Raise',d:'Biolayne'}]},{title:'Accessories',dur:'~20m',ex:[{n:'Nordic Curl',d:'2×3-5',c:1},{n:'Farmer Carries',d:'3×40yd'},{n:'Copenhagen Plank',d:`2×${ct}s/side`,t:ct,c:1},{n:'Lateral Glutes',d:'2×15-20'}]},{title:'Core',dur:'20m',ex:[{n:'Prehab Guys Core',d:'~20 min'}]},{title:'Knees Over Toes',dur:'7m',opt:1,ex:[{n:'Banded Tib Raise',d:'2×25',yt:'tibialis raise'},{n:'Patrick Step',d:'2×15/side',c:1,yt:'patrick step'}]}]},{name:'Tuesday',focus:'Z2 + Recovery',sections:[{title:'Conditioning',dur:'90m',ex:[{n:'Peloton PZE',d:'90 min Z2'}]},{title:'Optional Upper Mobility',dur:'15-25m',opt:1,ex:[{n:'GMB Spine/Rotation',d:'15 min'},{n:'Upper Body CARs',d:'Optional',v:1}]}]},{name:'Wednesday',focus:'Lower Hypertrophy',sections:[{title:'Tissue Prep',dur:'15m',ex:[{n:'GMB Flexion',d:'15 min'}]},{title:'Markow',dur:'~27m',ex:[{n:m.wed,d:'Full class',v:1}]},{title:'Plyos (Rotational)',dur:'12m',ex:[{n:'Med Ball Slams',d:'3×6'},{n:'Rotational Slams',d:'3×6 each',c:1},{n:'Chest Pass',d:'2×6'}]},{title:'PHAT Lower Hypertrophy',dur:'~55m',ex:[{n:'Trap Bar DL',d:'Biolayne'},{n:'Goblet Squat',d:'Biolayne'},{n:'Bulgarian Split Squat',d:'Biolayne'},{n:'Swiss Ball Ham Curl',d:'Biolayne'},{n:'SL Calf Raise',d:'Biolayne'},{n:'Frog Pumps',d:'Biolayne'}]},{title:'Accessories',dur:'~15m',ex:[{n:'BootySprout Hip Thrust',d:'2×10'},{n:'Copenhagen Plank',d:`2×${ct}s/side`,t:ct,c:1},{n:'Lateral Glutes',d:'2×15-20'}]},{title:'Knees Over Toes',dur:'10m',opt:1,ex:[{n:'Banded Tib Raise',d:'2×25',yt:'tibialis raise'},{n:'ATG Split Squat',d:'2×10/side',c:1,yt:'ATG split squat'}]}]},{name:'Thursday',focus:'Upper Power',sections:[{title:'Tissue Prep',dur:'10m',ex:[{n:'GMB Shoulders',d:'10 min'}]},{title:'PHAT Upper Power',dur:'~45m',ex:[{n:'Bench Press',d:'Biolayne'},{n:'DB Row',d:'Biolayne'},{n:'Pulldown',d:'Biolayne'},{n:'Arnold Press',d:'Biolayne'},{n:'Lateral Raise',d:'Biolayne'},{n:'EZ Curl',d:'Biolayne'},{n:'Skull Crusher',d:'Biolayne'}]},{title:'Conditioning',dur:'30m',ex:[{n:'Peloton PZ',d:'30 min'}]},{title:'Markow Upper',dur:'15-20m',ex:[{n:m.thu,d:'Full class',v:1}]},{title:'Core',dur:'20m',ex:[{n:'Prehab Guys Core',d:'~20 min'}]}]},{name:'Friday',focus:'Kickboxing + Upper Hyp',sections:[{title:'Movement Prep',dur:'5m',ex:[{n:'Hip CARs',d:'5 min'}]},{title:'LT Kick Drills',dur:'10m',ex:[{n:'Chamber Hold',d:`${p==='foundation'?2:3}×${cht}s/leg`,t:cht,c:1},{n:'Slow-Mo Roundhouse',d:`${p==='foundation'?3:5} each @ ${p==='foundation'?'25%':p==='build'?'40%':'50-60%'}`}]},{title:'Conditioning',dur:'25m',ex:[{n:'Peloton PZ Max',d:'25 min'}]},{title:'Skill',dur:'60m',ex:[{n:'Kickboxing Private',d:'60 min'}]},{title:'PHAT Upper Hypertrophy',dur:'~45m',ex:[{n:'Incline DB Press',d:'Biolayne'},{n:'Cable Fly',d:'Biolayne'},{n:'Pulldown',d:'Biolayne'},{n:'Motorcycle Row',d:'Biolayne'},{n:'Shoulder Press',d:'Biolayne'},{n:'Lateral Raise',d:'Biolayne'},{n:'Curl',d:'Biolayne'},{n:'Tricep Pressdown',d:'Biolayne'}]},{title:'Knees Over Toes',dur:'3m',opt:1,ex:[{n:'Backward Treadmill',d:'3 min',yt:'backward treadmill'}]}]},{name:'Saturday',focus:'Sprint + Z2 + Mobility',sections:[{title:'Tissue Prep',dur:'15m',ex:[{n:'GMB Extension',d:'15 min'}]},{title:'Sprint Prep',dur:'15m',ex:[{n:'Wall Drives',d:'2×5'},{n:'A-Skip',d:p==='foundation'?'2×10m':'2×20m'},{n:'B-Skip',d:'2×20m'},{n:p==='foundation'?'Falling Start':'Sprints',d:p==='foundation'?'×3 to 10m jog':p==='build'?'3-4×40-50m @60-70%':'3×30-40m @~85%'}]},{title:'Conditioning',dur:'90m',ex:[{n:'Peloton PZE',d:'90 min Z2'}]},{title:'Markow Primary',dur:'30-45m',ex:[{n:m.sat,d:'Full session',v:1}]},{title:'LT Video',dur:'20-40m',ex:[{n:lt,d:'Full video',v:1}]},{title:'Accessories',dur:'5m',ex:[{n:'Lateral Glutes',d:'2×15-20'}]},{title:'Core',dur:'20m',ex:[{n:'Prehab Guys Core',d:'~20 min'}]},{title:'Knees Over Toes',dur:'10-12m',opt:1,ex:[{n:'Backward Walk Uphill OR Reverse Step-Down',d:'5-10m OR 2×10/side',c:1}]}]},{name:'Sunday',focus:'KOTG + BJJ',sections:[{title:'Tissue Prep',dur:'15m',ex:[{n:'GMB Fundamentals',d:'15 min'}]},{title:'KOTG (Primary)',dur:'15m',ex:[{n:'Backward Sled/Treadmill',d:'5 min',yt:'backward sled'},{n:'Slant Board Calf Raise',d:'2×25',yt:'KOT calf raise'},{n:'Elephant Walk',d:'2×10/side',c:1,yt:'elephant walk'}]},{title:'Strength (Social)',dur:'Var',ex:[{n:'Social Upper Lift',d:'Not programmed'}]},{title:'Skill',dur:'Var',ex:[{n:'BJJ Private + Rolling',d:'Variable'}]}]}];
+    let html='';days.forEach((day,di)=>{const dk=`w${w}d${di}`;let comp=0,tot=0;day.sections.forEach((s,si)=>{if(!s.opt)s.ex.forEach((e,ei)=>{tot++;if(state.completion[`${dk}s${si}e${ei}`])comp++;});});const pct=tot>0?Math.round((comp/tot)*100):0;html+=`<div class="day-card" data-day="${dk}"><div class="day-header"><div class="day-info"><span class="day-name">${day.name}</span><span class="day-focus">${day.focus}</span></div><div class="day-progress"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div><span class="progress-text">${pct}%</span><span class="expand-icon">▼</span></div></div><div class="day-content"><div class="session-timer"><span>Session:</span><span class="timer-display" id="st-${dk}">00:00:00</span><button class="timer-btn start" data-day="${dk}">Start</button><button class="timer-btn reset" data-day="${dk}">Reset</button></div>`;day.sections.forEach((s,si)=>{const sk=`${dk}s${si}`;html+=`<div class="exercise-section"><div class="section-header"><span class="section-title">${s.title}${s.opt?'<span class="section-badge optional">Optional</span>':''}</span><span class="section-duration">${s.dur}</span></div><div class="section-content">`;s.ex.forEach((e,ei)=>{const ek=`${sk}e${ei}`,chk=state.completion[ek]?'checked':'';html+=`<div class="exercise-item"><div class="exercise-checkbox ${chk}" data-key="${ek}"></div><div class="exercise-info"><div class="exercise-name">${e.v?createVideoLink(e.n):e.n}${e.yt?` <a href="${createYTLink(e.yt)}" target="_blank">📹</a>`:''}</div><div class="exercise-details">${e.d}</div></div><div class="exercise-actions">${e.c?`<button class="cue-btn" data-ex="${e.n}">Cues</button>`:''}${e.t?`<button class="timer-trigger" data-ex="${e.n}" data-dur="${e.t}">⏱${e.t}s</button>`:''}</div></div>`;});html+=`</div></div>`;});html+=`</div></div>`;});c.innerHTML=html;c.querySelectorAll('.day-header').forEach(h=>h.addEventListener('click',()=>h.parentElement.classList.toggle('expanded')));initCheckboxes();initTimers();initCues();initSessionTimers();}
+
+    function initCheckboxes(){document.querySelectorAll('.exercise-checkbox').forEach(cb=>cb.addEventListener('click',()=>{const k=cb.dataset.key;state.completion[k]=!state.completion[k];cb.classList.toggle('checked',state.completion[k]);saveState();updateProgress(k);}));}
+    function updateProgress(k){const dk=k.split('s')[0],dc=document.querySelector(`[data-day="${dk}"]`);if(!dc)return;let comp=0,tot=0;dc.querySelectorAll('.exercise-checkbox').forEach(cb=>{const sec=cb.closest('.exercise-section');if(!sec.querySelector('.section-badge.optional')){tot++;if(cb.classList.contains('checked'))comp++;}});const pct=tot>0?Math.round((comp/tot)*100):0;dc.querySelector('.progress-fill').style.width=`${pct}%`;dc.querySelector('.progress-text').textContent=`${pct}%`;}
+    function initTimers(){document.querySelectorAll('.timer-trigger').forEach(b=>b.addEventListener('click',()=>openTimerModal(b.dataset.ex,parseInt(b.dataset.dur))));}
+    function initCues(){document.querySelectorAll('.cue-btn').forEach(b=>b.addEventListener('click',()=>openCuesModal(b.dataset.ex)));}
+    function initSessionTimers(){const st={};document.querySelectorAll('.session-timer .timer-btn.start').forEach(b=>b.addEventListener('click',()=>{const dk=b.dataset.day,disp=document.getElementById(`st-${dk}`);if(b.textContent==='Start'){st[dk]={start:Date.now()-(state.sessionTimes[dk]||0),int:setInterval(()=>{const e=Date.now()-st[dk].start;state.sessionTimes[dk]=e;const h=Math.floor(e/3600000),m=Math.floor((e%3600000)/60000),s=Math.floor((e%60000)/1000);disp.textContent=`${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;},1000)};b.textContent='Pause';b.classList.replace('start','stop');}else{clearInterval(st[dk].int);saveState();b.textContent='Start';b.classList.replace('stop','start');}}));document.querySelectorAll('.session-timer .timer-btn.reset').forEach(b=>b.addEventListener('click',()=>{const dk=b.dataset.day;if(st[dk])clearInterval(st[dk].int);state.sessionTimes[dk]=0;document.getElementById(`st-${dk}`).textContent='00:00:00';const sb=b.parentElement.querySelector('.stop,.start');sb.textContent='Start';sb.classList.remove('stop');sb.classList.add('start');saveState();}));}
+
+    let timerInt=null,timerRem=0;
+    function openTimerModal(ex,dur){const m=document.getElementById('timerModal');document.getElementById('timerModalTitle').textContent=ex;timerRem=dur;document.getElementById('timerModalDisplay').textContent=formatTime(dur);document.getElementById('timerModalDisplay').className='modal-timer';document.getElementById('timerStartBtn').textContent='Start';m.classList.add('active');}
+    document.getElementById('timerStartBtn').addEventListener('click',function(){if(this.textContent==='Start'){this.textContent='Pause';timerInt=setInterval(()=>{timerRem--;const d=document.getElementById('timerModalDisplay');d.textContent=formatTime(timerRem);if(timerRem<=5)d.classList.add('warning');if(timerRem<=0){clearInterval(timerInt);d.className='modal-timer complete';d.textContent='DONE!';playBeep();vibrate();document.getElementById('timerStartBtn').textContent='Close';}},1000);}else if(this.textContent==='Pause'){clearInterval(timerInt);this.textContent='Resume';}else if(this.textContent==='Resume'){this.textContent='Pause';timerInt=setInterval(()=>{timerRem--;const d=document.getElementById('timerModalDisplay');d.textContent=formatTime(timerRem);if(timerRem<=5)d.classList.add('warning');if(timerRem<=0){clearInterval(timerInt);d.className='modal-timer complete';d.textContent='DONE!';playBeep();vibrate();document.getElementById('timerStartBtn').textContent='Close';}},1000);}else{document.getElementById('timerModal').classList.remove('active');}});
+    document.getElementById('timerCloseBtn').addEventListener('click',()=>{clearInterval(timerInt);document.getElementById('timerModal').classList.remove('active');});
+
+    function openCuesModal(ex){const m=document.getElementById('cuesModal'),cues=EXERCISE_CUES[ex]||['No cues available'];document.getElementById('cuesModalTitle').textContent=ex;document.getElementById('cuesModalContent').innerHTML=cues.map(c=>`<li><span class="cue-bullet">•</span>${c}</li>`).join('');m.classList.add('active');}
+    document.getElementById('cuesCloseBtn').addEventListener('click',()=>document.getElementById('cuesModal').classList.remove('active'));
+
+    function renderMarkowSchedule(){const c=document.getElementById('markowScheduleContent');let h='';for(let w=1;w<=12;w++){const s=MARKOW_SCHEDULE[w],p=getPhase(w);h+=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><span class="card-title">Week ${w}</span><span class="phase-badge ${p}">${getPhaseLabel(w)}</span></div><table class="data-table"><thead><tr><th>Day</th><th>Session</th></tr></thead><tbody><tr><td>Mon</td><td>${createVideoLink(s.mon)} + Split Squat Iso</td></tr><tr><td>Wed</td><td>${createVideoLink(s.wed)}</td></tr><tr><td>Thu</td><td>${createVideoLink(s.thu)}</td></tr><tr><td>Sat</td><td>${createVideoLink(s.sat)}</td></tr></tbody></table></div>`;}c.innerHTML=h;}
+
+    function renderEveningMenu(){const lower=['Hip IR Start Here','Hip IR Progress Here','Side Smoosh','PM 1','PM 2','PM 3','Cross Connect','Groin','Lower Body CARs','Gluteus Soleus','Quick Hamstring Strength'];const upper=['Spine 1','Spine 2','Thoracic Spine Mini','Ribcage Rotation','Upper Body CARs','Shoulder Rotation Start Here'];const global=['Global Mobility','Connecting the Basics','Connecting the Dots'];const bootleg=['Bootleg CARs n Such','Bootleg Full Body Fab','Bootleg Hip O Rama','Bootleg Shoulders'];document.getElementById('eveningLowerContent').innerHTML=lower.map(v=>`<div class="exercise-item"><div class="exercise-name">${createVideoLink(v)}</div></div>`).join('');document.getElementById('eveningUpperContent').innerHTML=upper.map(v=>`<div class="exercise-item"><div class="exercise-name">${createVideoLink(v)}</div></div>`).join('');document.getElementById('eveningGlobalContent').innerHTML=global.map(v=>`<div class="exercise-item"><div class="exercise-name">${createVideoLink(v)}</div></div>`).join('');document.getElementById('eveningBootlegContent').innerHTML=bootleg.map(v=>`<div class="exercise-item"><div class="exercise-name">${createVideoLink(v)}</div></div>`).join('');}
+
+    function initTrackers(){document.getElementById('addPrBtn').addEventListener('click',()=>{const ex=document.getElementById('prExercise').value,wt=document.getElementById('prWeight').value,rp=document.getElementById('prReps').value;if(!wt||!rp)return;state.prs.unshift({date:new Date().toISOString().split('T')[0],exercise:ex,weight:wt,reps:rp});saveState();renderPRs();document.getElementById('prWeight').value='';document.getElementById('prReps').value='';});document.getElementById('addKickBtn').addEventListener('click',()=>{const h=document.getElementById('kickHeight').value,n=document.getElementById('kickNotes').value;state.kicks.unshift({date:new Date().toISOString().split('T')[0],height:h,notes:n});saveState();renderKicks();document.getElementById('kickNotes').value='';});document.getElementById('addFtpBtn').addEventListener('click',()=>{const v=document.getElementById('ftpValue').value,s=document.getElementById('ftpSource').value;if(!v)return;state.ftps.unshift({date:new Date().toISOString().split('T')[0],value:v,source:s});saveState();renderFTPs();document.getElementById('ftpValue').value='';document.getElementById('ftpSource').value='';});renderPRs();renderKicks();renderFTPs();}
+    function renderPRs(){const c=document.getElementById('prEntries'),names={'box-squat':'Box Squat','trap-bar-dl':'Trap Bar DL','bench':'Bench'};c.innerHTML=state.prs.slice(0,10).map((p,i)=>`<div class="tracker-entry"><div><div class="entry-date">${p.date}</div><div>${names[p.exercise]}</div></div><div class="entry-value">${p.weight}×${p.reps}</div><button class="delete-entry" data-t="prs" data-i="${i}">×</button></div>`).join('');initDeletes();}
+    function renderKicks(){const c=document.getElementById('kickEntries');c.innerHTML=state.kicks.slice(0,10).map((k,i)=>`<div class="tracker-entry"><div><div class="entry-date">${k.date}</div>${k.notes?`<div class="entry-notes">${k.notes}</div>`:''}</div><div class="entry-value">${k.height}</div><button class="delete-entry" data-t="kicks" data-i="${i}">×</button></div>`).join('');initDeletes();}
+    function renderFTPs(){const c=document.getElementById('ftpEntries');c.innerHTML=state.ftps.slice(0,10).map((f,i)=>`<div class="tracker-entry"><div><div class="entry-date">${f.date}</div>${f.source?`<div class="entry-notes">${f.source}</div>`:''}</div><div class="entry-value">${f.value}w</div><button class="delete-entry" data-t="ftps" data-i="${i}">×</button></div>`).join('');initDeletes();}
+    function initDeletes(){document.querySelectorAll('.delete-entry').forEach(b=>b.addEventListener('click',()=>{state[b.dataset.t].splice(parseInt(b.dataset.i),1);saveState();if(b.dataset.t==='prs')renderPRs();if(b.dataset.t==='kicks')renderKicks();if(b.dataset.t==='ftps')renderFTPs();}));}
+
+    function initSettings(){document.getElementById('darkModeToggle').addEventListener('click',function(){state.settings.darkMode=!state.settings.darkMode;this.classList.toggle('active',state.settings.darkMode);document.body.classList.toggle('light-mode',!state.settings.darkMode);saveState();});document.getElementById('soundToggle').addEventListener('click',function(){state.settings.sound=!state.settings.sound;this.classList.toggle('active',state.settings.sound);saveState();});document.getElementById('vibrateToggle').addEventListener('click',function(){state.settings.vibrate=!state.settings.vibrate;this.classList.toggle('active',state.settings.vibrate);saveState();});document.getElementById('startDateInput').addEventListener('change',function(){state.settings.startDate=this.value;state.currentWeek=getCurrentWeek();saveState();renderWeekNav();renderWeeklyProgram();});document.getElementById('exportDataBtn').addEventListener('click',()=>{const d=JSON.stringify(state,null,2),b=new Blob([d],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='hybrid-program-backup.json';a.click();});document.getElementById('resetDataBtn').addEventListener('click',()=>{if(confirm('Reset ALL data?')){localStorage.removeItem('hybridProgramState');location.reload();}});}
+
+    document.getElementById('calendarExportBtn').addEventListener('click',()=>{const m=document.getElementById('calendarModal'),s=document.getElementById('calendarWeekSelect');s.innerHTML='';for(let w=1;w<=12;w++){const o=document.createElement('option');o.value=w;o.textContent=`Week ${w} - ${getPhaseLabel(w)}`;if(w===state.currentWeek)o.selected=true;s.appendChild(o);}m.classList.add('active');});
+    document.getElementById('calendarCancelBtn').addEventListener('click',()=>document.getElementById('calendarModal').classList.remove('active'));
+    document.getElementById('calendarDownloadBtn').addEventListener('click',()=>{const w=parseInt(document.getElementById('calendarWeekSelect').value);generateICS(w);document.getElementById('calendarModal').classList.remove('active');});
+    function generateICS(w){const sd=new Date(state.settings.startDate);sd.setDate(sd.getDate()+(w-1)*7);const days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];let ics=`BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Hybrid Training//EN\n`;days.forEach((d,i)=>{const ed=new Date(sd);ed.setDate(ed.getDate()+i);const ds=ed.toISOString().replace(/[-:]/g,'').split('T')[0];ics+=`BEGIN:VEVENT\nDTSTART;VALUE=DATE:${ds}\nSUMMARY:${d} Training\nEND:VEVENT\n`;});ics+='END:VCALENDAR';const b=new Blob([ics],{type:'text/calendar'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=`hybrid-week-${w}.ics`;a.click();}
+
+    document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(`tab-${b.dataset.tab}`).classList.add('active');}));
+    document.getElementById('settingsBtn').addEventListener('click',()=>{document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));document.querySelector('[data-tab="settings"]').classList.add('active');document.getElementById('tab-settings').classList.add('active');});
+
+    loadState();state.currentWeek=getCurrentWeek();renderWeekNav();renderWeeklyProgram();renderMarkowSchedule();renderEveningMenu();initReadinessCheck();initTrackers();initSettings();
+    </script>
+</body>
+</html>
