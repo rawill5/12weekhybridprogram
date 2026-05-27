@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="HYBRID v6">
+<meta name="apple-mobile-web-app-title" content="HYBRID v7">
 <meta name="theme-color" content="#0c0a09">
-<title>Hybrid Training — v6</title>
+<title>Hybrid Training — v7</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -149,19 +149,19 @@
   }
   .tab {
     flex: 1;
-    padding: 10px 4px 8px;
+    padding: 10px 2px 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 3px;
     color: var(--text-mute);
     font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.1em;
+    font-size: 8.5px;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     position: relative;
   }
-  .tab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+  .tab svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.6; }
   .tab.active { color: var(--accent); }
   .tab.active::before {
     content: '';
@@ -985,6 +985,142 @@
   }
   .info-note strong { color: var(--accent); }
 
+  /* ============ MOBILITY MENU ============ */
+  .mob-section {
+    margin-bottom: 22px;
+  }
+  .mob-section-head {
+    font-family: var(--display);
+    font-size: 22px;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    margin: 0 0 4px;
+    text-transform: uppercase;
+  }
+  .mob-section-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-mute);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .mob-pick-card {
+    background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.02));
+    border: 1px solid var(--accent-dim);
+    border-radius: 6px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .mob-pick-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .mob-pick-note {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    font-style: italic;
+  }
+  .mob-vid {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    margin-bottom: 6px;
+    text-decoration: none;
+    color: var(--text);
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .mob-vid:hover, .mob-vid:active {
+    border-color: var(--accent-dim);
+    background: rgba(245,158,11,0.04);
+  }
+  .mob-vid.dim {
+    opacity: 0.45;
+  }
+  .mob-vid.dim::after {
+    content: 'in this week';
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .mob-vid-title {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .mob-vid-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .mob-src {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--surface-2);
+    color: var(--text-mute);
+  }
+  .mob-src.s-markow { background: rgba(245,158,11,0.15); color: var(--accent); }
+  .mob-src.s-lt { background: rgba(168, 85, 247, 0.18); color: #c4b5fd; }
+  .mob-src.s-kinstretch { background: rgba(59, 130, 246, 0.18); color: #93c5fd; }
+  .mob-src.s-gmb { background: rgba(34, 197, 94, 0.18); color: #86efac; }
+  .mob-dur {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-mute);
+  }
+  .mob-cat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .mob-cat-btn {
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: left;
+    cursor: pointer;
+  }
+  .mob-cat-btn.active {
+    background: rgba(245,158,11,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .mob-readi-banner {
+    background: rgba(220, 38, 38, 0.08);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: #fca5a5;
+  }
+  .mob-readi-banner strong { color: #fee2e2; }
+
   /* ============ MODAL ============ */
   .modal {
     position: fixed;
@@ -1090,7 +1226,7 @@
   <header class="top-bar">
     <div class="top-bar-inner">
       <div class="brand">
-        <div class="brand-mark">HYBRID <span class="accent">/</span> v6</div>
+        <div class="brand-mark">HYBRID <span class="accent">/</span> v7</div>
         <div class="brand-sub">PHAT · MARKOW · LT · KOTG · ATTIA</div>
       </div>
       <div class="week-pick">
@@ -1134,6 +1270,13 @@
       <div id="logBody"></div>
     </section>
 
+    <!-- ============ MOBILITY VIEW ============ -->
+    <section class="view" data-view="mobility">
+      <h1 class="page-title">EVENING MOBILITY</h1>
+      <div class="page-sub">Supplements yin yoga · active recovery · pick what yin isn't covering</div>
+      <div id="mobBody"></div>
+    </section>
+
     <!-- ============ INFO VIEW ============ -->
     <section class="view" data-view="info">
       <h1 class="page-title">INFO</h1>
@@ -1159,6 +1302,10 @@
     <button class="tab" data-tab="log">
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
       Log
+    </button>
+    <button class="tab" data-tab="mobility">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 7v6"/><path d="M9 21l3-8 3 8"/><path d="M5 11l4 2 4-3 4 1"/></svg>
+      Mobility
     </button>
     <button class="tab" data-tab="info">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
@@ -1194,7 +1341,7 @@
 
 <script>
 /* ==================================================
-   HYBRID v6 — APP LOGIC
+   HYBRID v7 — APP LOGIC
    ================================================== */
 
 /* ---------- STORAGE ---------- */
@@ -1376,6 +1523,91 @@ const KOTG = {
 };
 
 /* ==================================================
+   EVENING MOBILITY MENU
+   Supplements nightly 20-min yin yoga.
+   Active mobility (CARs, strength-mobility, structured practice).
+   Choose what yin isn't targeting.
+   All durations are estimates — correct later.
+   ================================================== */
+const MOB = {
+  // ---------- LOWER BODY (hip IR, pelvic, kick) ----------
+  lower: [
+    { t: 'Hip IR Start Here',         u: 'https://drive.google.com/file/d/1tkoR64fU8grGqW0M7sHwsybJ7UUQbEZA/view', s: 'Markow', d: 12, tags: ['hip-ir','kick','priority'] },
+    { t: 'Hip IR Progress Here',      u: 'https://drive.google.com/file/d/1tgYi1d4USNZZs5ng5bnyqCXhLef-ISpN/view', s: 'Markow', d: 15, tags: ['hip-ir','kick','priority'] },
+    { t: 'Hip IR Progress Part 2',    u: 'https://drive.google.com/file/d/1ld9dELRtkjU2TZ6ONh9tyumz8z51kmf4/view', s: 'Markow', d: 15, tags: ['hip-ir','kick'] },
+    { t: 'Side Smoosh',               u: 'https://drive.google.com/file/d/1L3jG_StO9W2in417tk5xaEU1JslrIi9J/view', s: 'Markow', d: 10, tags: ['pelvic','hip-ir'] },
+    { t: 'Pelvic Magic 1',            u: 'https://drive.google.com/file/d/1amIbDgWRE3ce8-PhezCX4yJmpbLyHxse/view', s: 'Markow', d: 12, tags: ['pelvic','recovery'] },
+    { t: 'Pelvic Magic 2',            u: 'https://drive.google.com/file/d/1anO-4f1EQtBChX9-c_HRRudcnhShDkkW/view', s: 'Markow', d: 12, tags: ['pelvic','recovery'] },
+    { t: 'Pelvic Magic 3',            u: 'https://drive.google.com/file/d/1cBmW-0EgeKtKhBNjNFKCGs6ARBZZkk0K/view', s: 'Markow', d: 12, tags: ['pelvic','recovery'] },
+    { t: 'Cross Connect',             u: 'https://drive.google.com/file/d/11Q6hmpmJ2uh9bC-trH7NxDBacert_-yc/view', s: 'Markow', d: 10, tags: ['pelvic'] },
+    { t: 'Lower Body CARs',           u: 'https://drive.google.com/file/d/1ElTKdw9HeR6gqp4hGFfTffza35NSgzvU/view', s: 'Markow', d: 12, tags: ['cars'] },
+    { t: 'Gluteus Soleus',            u: 'https://drive.google.com/file/d/18y0rCygAthLRaIzlljiNiC215M83kYWQ/view', s: 'Markow', d: 8,  tags: ['cars','short'] },
+    { t: 'Quick Hamstring Strength',  u: 'https://drive.google.com/file/d/1tzEGQRsRL98VQmAVNJfhqricgHfJ-qRt/view', s: 'Markow', d: 8,  tags: ['short'] },
+    // Luke Thomas additions (kick-specific)
+    { t: 'LT 13 — Glutes, Hips & Legs',         u: 'https://drive.google.com/file/d/16RllNU0mA6cYygSZBPz5yn2QcxaRrWWP/view', s: 'LT',   d: 22, tags: ['kick','hip-ir'] },
+    { t: 'LT 15 — Groin and Hips',              u: 'https://drive.google.com/file/d/1uN63PFm4Wn-iZ4yO4n-fKLhvDZ5tSJmH/view', s: 'LT',   d: 20, tags: ['kick','hip-er'] },
+    { t: 'LT 5 — Hip Mobility',                 u: 'https://drive.google.com/file/d/1qfKcGkuuvk-cWc0wwpHhV-pQhb5ePvIa/view', s: 'LT',   d: 18, tags: ['kick'] },
+    { t: 'LT 8 — Hip Mobility & Recovery',      u: 'https://drive.google.com/file/d/16S_JDzxLUjRFitWW5LUOVnmxSsn_t2Ly/view', s: 'LT',   d: 20, tags: ['kick','recovery'] },
+    { t: 'LT 23 — Lower Body Active Flexibility', u: 'https://drive.google.com/file/d/1pgUm9w-kEJRV2Ndj9TypyM6hdClE3YO7/view', s: 'LT', d: 22, tags: ['kick','active-flex'] }
+  ],
+  // ---------- UPPER BODY (t-spine, shoulder) ----------
+  upper: [
+    { t: 'Spine 1',                   u: 'https://drive.google.com/file/d/1Md_B085IaXJ8c5tpC3OdQ5Nm8vWTdn4r/view', s: 'Markow', d: 25, tags: ['spine'] },
+    { t: 'Spine 2',                   u: 'https://drive.google.com/file/d/1d6mZwG-oik91Hcv0NgNoZQQCiTQp0LcQ/view', s: 'Markow', d: 25, tags: ['spine'] },
+    { t: 'Thoracic Spine Mini',       u: 'https://drive.google.com/file/d/1ygnQf7sQVDouxV9zi7g2PVDsqv7alBTw/view', s: 'Markow', d: 8,  tags: ['spine','short'] },
+    { t: 'Ribcage Rotation',          u: 'https://drive.google.com/file/d/1igF7tDXuHIYBnEzCRFvRw2J67Ruj74fO/view', s: 'Markow', d: 12, tags: ['spine','rotation'] },
+    { t: 'Upper Body CARs',           u: 'https://drive.google.com/file/d/1A1YzxHxkojMOSuLqWQTYK94uido-6Qb_/view', s: 'Markow', d: 12, tags: ['cars'] },
+    { t: 'Shoulder Rotation Start',   u: 'https://drive.google.com/file/d/1iaZ2JpUAPX6B9xomu6cTDgd1YC3597Qa/view', s: 'Markow', d: 12, tags: ['shoulder'] }
+  ],
+  // ---------- GLOBAL / FULL BODY ----------
+  global: [
+    { t: 'Global Mobility',           u: 'https://drive.google.com/file/d/1CErTCe6aHElADq6YuKRhG-ukcjfWkwxu/view', s: 'Markow', d: 25, tags: ['global'] },
+    { t: 'Connecting the Basics',     u: 'https://drive.google.com/file/d/1r185mZkc2ki3ophgEzsjdPVCJWYCYxWn/view', s: 'Markow', d: 18, tags: ['global','posture'] },
+    { t: 'Connecting the Dots',       u: 'https://drive.google.com/file/d/14jocLYsLG5eBriHiktwji3t-SCze-pWQ/view', s: 'Markow', d: 18, tags: ['global','posture'] },
+    // GMB (accessed via GMB app — no direct links)
+    { t: 'GMB Fundamentals',          u: 'https://gmb.io/mobility/', s: 'GMB', d: 30, tags: ['global','gmb'] },
+    { t: 'GMB Spine',                 u: 'https://gmb.io/mobility/', s: 'GMB', d: 25, tags: ['spine','gmb'] },
+    { t: 'GMB Hips',                  u: 'https://gmb.io/mobility/', s: 'GMB', d: 25, tags: ['hip-er','gmb'] },
+    { t: 'GMB Shoulders',             u: 'https://gmb.io/mobility/', s: 'GMB', d: 25, tags: ['shoulder','gmb'] },
+    { t: 'GMB Rotation/Sidebending',  u: 'https://gmb.io/mobility/', s: 'GMB', d: 25, tags: ['rotation','gmb'] }
+  ],
+  // ---------- KINSTRETCH (longer structured) ----------
+  kinstretch: [
+    { t: 'Bootleg #1 — CARs n Such',        u: 'https://drive.google.com/file/d/10qdvR6mk_wPeJPBfJCDHI-mHynuwpM7B/view', s: 'Kinstretch', d: 55, tags: ['cars','full-body','long'] },
+    { t: 'Bootleg #2 — Full Body Fab',      u: 'https://drive.google.com/file/d/1urzLpuQ7aSm_HGL_BsicBznzGGA9RtEl/view', s: 'Kinstretch', d: 55, tags: ['full-body','long'] },
+    { t: 'Bootleg #3 — Hip O Rama',         u: 'https://drive.google.com/file/d/1f1gX_RaJdtM33HmZu1wCaXQ38vLc2x56/view', s: 'Kinstretch', d: 55, tags: ['hip-ir','hip-er','long'] },
+    { t: 'Bootleg #4 — Shoulders',          u: 'https://drive.google.com/file/d/1QsYJ7G0364HpqS6J0DFYCGAZJkK_Jg6B/view', s: 'Kinstretch', d: 55, tags: ['shoulder','long'] }
+  ],
+  // ---------- BREATHING / PARASYMPATHETIC ----------
+  breathing: [
+    { t: 'Tranquilo Time',            u: 'https://drive.google.com/file/d/1WgA-UcmkAtozfIAs9C5osGJb3a-VhYaw/view', s: 'Markow', d: 10, tags: ['breath','sleep'] },
+    { t: 'Elevator Breathing',        u: 'https://drive.google.com/file/d/1q2UxydjVw_taRy27MHMCad9bDgfQZc8H/view', s: 'Markow', d: 8,  tags: ['breath','short'] },
+    { t: 'Level Up Your Awareness',   u: 'https://drive.google.com/file/d/1ukfW4mQ77gIuvhHQopfYjh2UiNjmEPMo/view', s: 'Markow', d: 12, tags: ['breath'] },
+    { t: 'Neck Tranquilizer',         u: 'https://drive.google.com/file/d/1Sc4cvIP9QUWD8xHvHYUienIKyF_77tf9/view', s: 'Markow', d: 8,  tags: ['breath','sleep','short'] },
+    { t: 'Sidelying Breathing',       u: 'https://drive.google.com/file/d/1pN83QfJWfl1QcCUBFnyTY74H0QzWSD0V/view', s: 'Markow', d: 10, tags: ['breath','sleep'] }
+  ]
+};
+
+// Day → category mapping (per evening menu addition Section 24)
+const MOB_DAY_RULE = {
+  Mon: { primary: 'upper',  alt: 'global',     note: 'Lower Power done — give legs a break.' },
+  Tue: { primary: 'lower',  alt: 'global',     note: 'Easy Z2 day — gentle hip work fits.' },
+  Wed: { primary: 'lower',  alt: 'kinstretch', note: 'Upper Power done — hip IR is the priority.' },
+  Thu: { primary: 'upper',  alt: 'global',     note: 'Lower Hyp done — give legs a break.' },
+  Fri: { primary: 'lower',  alt: 'kinstretch', note: 'Kicks expose hip restriction — hit it tonight.' },
+  Sat: { primary: 'global', alt: 'breathing',  note: 'High-volume day. Keep evening light or skip.' },
+  Sun: { primary: 'lower',  alt: 'global',     note: 'Post-BJJ recovery emphasis.' }
+};
+
+const MOB_CAT_LABEL = {
+  lower: 'Lower Body / Hips / Kick',
+  upper: 'Upper Body / Spine / Shoulder',
+  global: 'Global / Full Body',
+  kinstretch: 'Bootleg Kinstretch',
+  breathing: 'Breathing / Parasympathetic'
+};
+
+/* ==================================================
    DAY CONTENT — phase-aware renderers
    ================================================== */
 function renderDay(day, week, medMode) {
@@ -1479,6 +1711,13 @@ function renderMon(week, phase, med) {
   blocks += block(2, 'Core — Prehab Guys Block A',
     `Self-managed. ~20 min. <em>Reference only — never integrated.</em>`, false);
 
+  blocks += block(2, 'KOTG — Ankle & Knee Prep',
+    `<ul>
+      <li>Banded Tib Raise: <span class="data">2 × 25</span></li>
+      <li>Patrick Step: <span class="data">2 × 15/side</span></li>
+     </ul>
+     <span class="cue">After main lifts. Low fatigue cost — protects knee and improves shin/VMO drive.</span>`, false);
+
   return `
     ${dayHeader('MONDAY', 'Lower Power · Vertical Plyos · Markow Lower', 140, 85, 'Home (most compliant)')}
     ${medBanner(med)}
@@ -1551,6 +1790,13 @@ function renderWed(week, phase, med) {
 
   blocks += block(2, 'Core — Prehab Guys Block B',
     `Self-managed. <em>Reference only.</em>`, false);
+
+  blocks += block(2, 'KOTG — Ankle & Knee Prep',
+    `<ul>
+      <li>Banded Tib Raise: <span class="data">2 × 25</span></li>
+      <li>ATG Split Squat: <span class="data">2 × 10/side</span></li>
+     </ul>
+     <span class="cue">After main lifts. Knee-over-toes work — pairs well with Wed's upper-body main lift since legs are fresh.</span>`, false);
 
   return `
     ${dayHeader('WEDNESDAY', 'Upper Power · PAP · Markow Upper', 125, 80, 'Home')}
@@ -1638,8 +1884,13 @@ function renderFri(week, phase, med) {
   }
 
   blocks += block(1, 'KICKBOXING (60 min) — Private Lesson',
-    `MMA Gym. <strong>Tier 1 — never skip if at all possible.</strong><br>
-     Optional: 3-min backward treadmill walk pre-session (KOTG).`, false);
+    `MMA Gym. <strong>Tier 1 — never skip if at all possible.</strong>`, false);
+
+  blocks += block(3, 'KOTG — Optional Pre-Kick',
+    `<ul>
+      <li>Backward Treadmill Walk: <span class="data">3 min</span></li>
+     </ul>
+     <span class="cue">Done at the MMA gym before warming up. Optional — skip if rushed.</span>`, true);
 
   if (!med) {
     blocks += block(3, 'PHAT Upper Hypertrophy',
@@ -2405,6 +2656,200 @@ function bindOtherWeekEvents(container, w) {
 }
 
 /* ==================================================
+   RENDER — MOBILITY (evening menu)
+   Layered tonight's pick logic:
+   1. Safety gate (readiness ≤3 → Global/Breathing only)
+   2. Deload gate (deload week → light only)
+   3. Day-based category
+   4. Within-category priority (hip-ir floats Wed/Fri, recovery Sun)
+   5. Weekly dedupe filter (videos used in this week's Markow rotation)
+   ================================================== */
+function getCurrentDayKey() {
+  const dow = new Date().getDay(); // 0=Sun, 1=Mon...
+  return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow];
+}
+
+function getTodayReadiness() {
+  const wk = state.currentWeek;
+  const dayKey = getCurrentDayKey().toLowerCase();
+  const log = state.log?.[wk]?.[dayKey];
+  return log?.readiness || null;
+}
+
+function getThisWeekMarkowUrls() {
+  // Videos used in this week's scheduled Markow rotation — dedupe filter
+  // MARKOW[wk] is [mon, wed, thu, [sat...]] — flatten the Saturday nested array
+  const wk = state.currentWeek;
+  const m = MARKOW[wk] || [];
+  const urls = [];
+  m.forEach(item => {
+    if (Array.isArray(item)) {
+      item.forEach(x => { if (x?.url) urls.push(x.url); });
+    } else if (item?.url) {
+      urls.push(item.url);
+    }
+  });
+  return urls;
+}
+
+function tonightsPick() {
+  const dayKey = getCurrentDayKey();
+  const rule = MOB_DAY_RULE[dayKey];
+  const readi = getTodayReadiness();
+  const phase = phaseFor(state.currentWeek);
+  const isDl = phase.isDeload;
+  const usedUrls = new Set(getThisWeekMarkowUrls());
+
+  let category = rule.primary;
+  let reason = rule.note;
+  let safetyTriggered = false;
+
+  // Layer 1: Safety gate
+  if (readi !== null && readi <= 3) {
+    category = 'breathing';
+    reason = `Readiness ${readi}/5 — overriding to low-demand recovery work.`;
+    safetyTriggered = true;
+  }
+  // Layer 2: Deload gate
+  else if (isDl) {
+    category = 'global';
+    reason = `Deload week — keeping evening work light.`;
+    safetyTriggered = true;
+  }
+
+  let pool = (MOB[category] || []).slice();
+
+  // Layer 4: Within-category sort priority
+  if (!safetyTriggered) {
+    if (dayKey === 'Wed' || dayKey === 'Fri') {
+      // Hip IR / kick priority floats up
+      pool.sort((a, b) => {
+        const aP = a.tags?.includes('hip-ir') || a.tags?.includes('priority') ? 0 : 1;
+        const bP = b.tags?.includes('hip-ir') || b.tags?.includes('priority') ? 0 : 1;
+        return aP - bP;
+      });
+    } else if (dayKey === 'Sun') {
+      // Recovery / pelvic floats up
+      pool.sort((a, b) => {
+        const aP = a.tags?.includes('pelvic') || a.tags?.includes('recovery') ? 0 : 1;
+        const bP = b.tags?.includes('pelvic') || b.tags?.includes('recovery') ? 0 : 1;
+        return aP - bP;
+      });
+    } else if (dayKey === 'Tue') {
+      // Shorter floats up
+      pool.sort((a, b) => (a.d || 99) - (b.d || 99));
+    }
+  }
+
+  // Layer 5: Dedupe — push used-this-week videos to bottom
+  pool.sort((a, b) => {
+    const aU = usedUrls.has(a.u) ? 1 : 0;
+    const bU = usedUrls.has(b.u) ? 1 : 0;
+    return aU - bU;
+  });
+
+  return {
+    dayKey,
+    category,
+    reason,
+    safetyTriggered,
+    primary: pool[0] || null,
+    alt: pool.slice(1, 3),
+    altCategory: rule.alt,
+    readi,
+    usedUrls
+  };
+}
+
+function mobVidRow(v, usedUrls) {
+  const isDim = usedUrls?.has(v.u) ? 'dim' : '';
+  const srcCls = `s-${v.s.toLowerCase()}`;
+  return `
+    <a href="${v.u}" target="_blank" rel="noopener" class="mob-vid ${isDim}">
+      <span class="mob-vid-title">${v.t}</span>
+      <span class="mob-vid-meta">
+        <span class="mob-src ${srcCls}">${v.s}</span>
+        <span class="mob-dur">~${v.d} min</span>
+      </span>
+    </a>
+  `;
+}
+
+function renderMobility() {
+  const body = document.getElementById('mobBody');
+  const pick = tonightsPick();
+  const usedUrls = pick.usedUrls;
+
+  let html = '';
+
+  // -------- Tonight's Pick --------
+  const dayFull = { Sun:'Sunday', Mon:'Monday', Tue:'Tuesday', Wed:'Wednesday', Thu:'Thursday', Fri:'Friday', Sat:'Saturday' }[pick.dayKey];
+
+  html += `<div class="mob-section">
+    <div class="mob-section-head">TONIGHT'S PICK</div>
+    <div class="mob-section-sub">${dayFull} · ${MOB_CAT_LABEL[pick.category]}</div>`;
+
+  if (pick.safetyTriggered) {
+    html += `<div class="mob-readi-banner"><strong>${pick.readi !== null ? `Readiness ${pick.readi}/5` : 'Deload week'}:</strong> ${pick.reason}</div>`;
+  }
+
+  html += `<div class="mob-pick-card">
+    <div class="mob-pick-label">★ Primary</div>
+    <div class="mob-pick-note">${pick.reason}</div>
+    ${pick.primary ? mobVidRow(pick.primary, usedUrls) : '<em>No videos in this category — try Browse below.</em>'}`;
+
+  if (pick.alt && pick.alt.length) {
+    html += `<div class="mob-pick-label" style="margin-top:14px">Also good tonight</div>
+      ${pick.alt.map(v => mobVidRow(v, usedUrls)).join('')}`;
+  }
+
+  // Alt category note (e.g., "or try Global tonight")
+  if (pick.altCategory && pick.altCategory !== pick.category) {
+    html += `<div style="margin-top:12px;font-size:11px;color:var(--text-mute);font-family:var(--mono);letter-spacing:0.05em;text-transform:uppercase">
+      Alt category for tonight: <strong style="color:var(--text-dim)">${MOB_CAT_LABEL[pick.altCategory]}</strong> — see "By Goal" below.
+    </div>`;
+  }
+
+  html += `</div></div>`;
+
+  // -------- Selection Logic note (compact) --------
+  html += `<div class="info-note" style="font-size:11px">
+    <strong>Logic:</strong> Day-based recommendation, then sorted by what's most relevant tonight. Videos already in this week's Markow rotation are dimmed (you've already done them). Yin yoga covers passive — these are active.
+  </div>`;
+
+  // -------- By Goal --------
+  html += `<div class="mob-section" style="margin-top:24px">
+    <div class="mob-section-head">BY GOAL</div>
+    <div class="mob-section-sub">Curated picks · all videos</div>`;
+
+  Object.keys(MOB_CAT_LABEL).forEach(cat => {
+    const vids = MOB[cat];
+    if (!vids || !vids.length) return;
+    html += `<details class="accordion" style="margin-bottom:8px">
+      <summary><span class="acc-title">${MOB_CAT_LABEL[cat]} <span style="color:var(--text-mute);font-weight:400">(${vids.length})</span></span></summary>
+      <div class="acc-body" style="padding:8px 0 0">
+        ${vids.map(v => mobVidRow(v, usedUrls)).join('')}
+      </div>
+    </details>`;
+  });
+
+  html += `</div>`;
+
+  // -------- Browse Library (full Markow + Kinstretch) --------
+  html += `<div class="mob-section" style="margin-top:24px">
+    <div class="mob-section-head">BROWSE LIBRARY</div>
+    <div class="mob-section-sub">Full Markow + Kinstretch reference</div>
+    <div class="info-note" style="font-size:11px">
+      The library above is the curated subset. For the complete Markow video library and Bootleg Kinstretch sessions, open the
+      <a href="https://drive.google.com/drive/folders/" target="_blank" rel="noopener" style="color:var(--accent)">shared Drive folder</a>
+      or refer to <em>Mobility_Video_File_List.md</em> in your project files.
+    </div>
+  </div>`;
+
+  body.innerHTML = html;
+}
+
+/* ==================================================
    RENDER — INFO VIEW (references + report)
    ================================================== */
 function renderInfo() {
@@ -2727,7 +3172,7 @@ function renderInfo() {
     </div>
   </div>`;
 
-  html += `<div class="ver">HYBRID TRAINING · v6 · MAY 2026 · PHAT × MARKOW × LT × KOTG × ATTIA</div>`;
+  html += `<div class="ver">HYBRID TRAINING · v7 · MAY 2026 · PHAT × MARKOW × LT × KOTG × ATTIA</div>`;
 
   body.innerHTML = html;
 
@@ -2873,7 +3318,7 @@ function renderReport() {
    ================================================== */
 function buildExportText() {
   let out = '';
-  out += `HYBRID TRAINING — v6 — Compliance Summary\n`;
+  out += `HYBRID TRAINING — v7 — Compliance Summary\n`;
   out += `Generated: ${new Date().toISOString().slice(0,10)}\n`;
   out += `${'='.repeat(48)}\n\n`;
 
@@ -2933,7 +3378,7 @@ function buildExportText() {
   out += `  Prehab Guys core + Sunday social lift: self-managed reference only\n`;
 
   out += `\n${'='.repeat(48)}\n`;
-  out += `For new chat context, paste this with: "Continuing my v6 hybrid program. Please resume as my S&C coach."\n`;
+  out += `For new chat context, paste this with: "Continuing my v7 hybrid program. Please resume as my S&C coach."\n`;
   return out;
 }
 
@@ -2963,6 +3408,7 @@ function switchTab(tab) {
   else if (tab === 'week') renderWeek();
   else if (tab === 'decide') renderTree();
   else if (tab === 'log') renderLog();
+  else if (tab === 'mobility') renderMobility();
   else if (tab === 'info') renderInfo();
 }
 
