@@ -279,9 +279,9 @@ const PLYO={
   {wk:[9,12],ph:"Peak",t:"Continuous bound 3×3–4/side · Rotational throw 4×4/side max intent",cue:"Reactive, minimal ground contact. Stop when distance or control drops."}
  ],
  sat:[
-  {wk:[1,4],ph:"Foundation",t:"",cue:""},
-  {wk:[5,8],ph:"Build",t:"Sprint build-ups 3×15m @ ~85% (acceleration mechanics only)",cue:"Drive phase — stay UNDER max velocity. Full recovery between reps. Do these BEFORE Z2, not after."},
-  {wk:[9,12],ph:"Peak",t:"Sprint / hill accelerations 4×20m (capped before max velocity)",cue:"Sub sled or hill push if any hamstring pull risk. Fresh legs or skip."}
+  {wk:[1,4],ph:"Drill Ramp",drill:1,t:"① Ankling / pogo — 2×20m (foot & ankle stiffness)\n② Wall drive: march → single exchange → continuous — 2×10/side (acceleration posture)\n③ A-march → A-skip → dribble, low-heel recovery — 2×20m each (mechanics + tissue)\n④ Build-ups to ~70% — 3×20m (accelerate gradually, float, decelerate)\nWork down the ladder as mechanics clean up. No full-effort sprints yet.",cue:"This is where you earn the right to sprint. Clean shin angle, punch the ground back, tall posture. Building tendon tolerance before speed."},
+  {wk:[5,8],ph:"Build",t:"Warm-up first: A-skip + 2 wall exchanges + 1 build-up.\nThen: Sprint build-ups 3×15m @ ~85% (acceleration only).",cue:"Drills prime the pattern, then build-ups. Stay UNDER max velocity. Full recovery between reps. Do all of this BEFORE Z2, not after."},
+  {wk:[9,12],ph:"Peak",t:"Warm-up first: A-skip + build-up ladder.\nThen: Sprint / hill accelerations 4×20m (capped before max velocity).",cue:"Drills every time before accelerations. Sub sled/hill push if any hamstring pull risk. Fresh legs or skip."}
  ]
 };
 function plyoBlock(k,w){const arr=PLYO[k];const wn=w+1;return arr.find(b=>wn>=b.wk[0]&&wn<=b.wk[1])||arr[arr.length-1];}
@@ -610,11 +610,12 @@ function plyoCard(w,dow,dISO,editable){
   let title;
   if(k==="mon")title="Vertical + Lateral Plyos";
   else if(k==="thu")title="Horizontal + Rotational Plyos";
-  else title="Sprint Accelerations";
-  const seqNote=isSprint?"Do these first, then Z2 — sprints on fresh legs, not after aerobic work.":"Run these BEFORE the heavy lower work — priming, not a second workout.";
+  else title=B.drill?"Sprint Drills":"Sprint Accelerations";
+  const seqNote=isSprint?"Do these first, then Z2 — sprint work on fresh legs, not after aerobic work.":"Run these BEFORE the heavy lower work — priming, not a second workout.";
+  const body=B.t.replace(/\n/g,"<br>");
   return `<div class="card spine"><h3>${title} · ${B.ph} <span class="tiertag T3">T3</span></h3>
   <div class="meta">${seqNote} ${blocked?"⛔ Skipped today — readiness/down-week gate.":(optional?"Optional at readiness 3 — quality reps only, cut volume.":"Unlocked (readiness ≥4). Full intent, full rest.")}</div>
-  ${blocked?"":`<div class="row"><div class="nm">${B.t}</div></div><div class="mini" style="margin-top:4px">Cue: ${B.cue}</div>${editable?ckHTML(dISO,"plyo"):""}`}</div>`;
+  ${blocked?"":`<div class="row"><div class="nm">${body}</div></div><div class="mini" style="margin-top:4px">Cue: ${B.cue}</div>${editable?ckHTML(dISO,"plyo"):""}`}</div>`;
 }
 function condCard(w,dow,dISO,editable){
   const k={1:"tue",3:"thu",5:"sat"}[dow];if(!k)return "";
@@ -682,7 +683,7 @@ function rWeek(){
   <div class="wksel">${Array.from({length:12},(_,i)=>`<button class="${i===w?"on":""}" onclick="wkView=${i};render()">${i+1}</button>`).join("")}</div>
   <div class="daysel">${DAYS.map((d,i)=>`<button class="${i===dow?"on":""}" onclick="wkDay=${i};render()">${d}</button>`).join("")}</div>
   <div class="mini">Preview only — logging happens on Today.</div></div>`;
-  h+=`<div class="card"><h3>Week map</h3><div class="mini" style="margin-bottom:6px">Mon D1 Lower + vert/lateral plyos · Tue Z2 90 · Wed D2 Upper · Thu D3 Lower + horizontal/rot plyos (+opt PZ Max) · Fri kicks → D4 · Sat Z2/PZ Max + sprints (wk5+) + Luke Thomas · Sun gap-fill + BJJ + primary KOTG. Lower days never back-to-back; Z2 off hard-leg days; sprints sit before BJJ not before kicks; HIIT gated and kept off pre-kick days.</div></div>`;
+  h+=`<div class="card"><h3>Week map</h3><div class="mini" style="margin-bottom:6px">Mon D1 Lower + vert/lateral plyos · Tue Z2 90 · Wed D2 Upper · Thu D3 Lower + horizontal/rot plyos (+opt PZ Max) · Fri kicks → D4 · Sat Z2/PZ Max + sprint drills (wk1–4) → sprints (wk5+) + Luke Thomas · Sun gap-fill + BJJ + primary KOTG. Lower days never back-to-back; Z2 off hard-leg days; sprints sit before BJJ not before kicks; HIIT gated and kept off pre-kick days.</div></div>`;
   h+=dayStack(w,dow,"preview",false);
   h+=`<div class="card"><h3>Chaos tiers — what to cut first</h3>
   ${["T1","T2","T3"].map(t=>`<div class="klabel"><span class="tiertag ${t}">${t}</span> ${t==="T1"?"Never cut":t==="T2"?"Protect if possible":"Cut first"}</div><ul class="tinylist">${TIERS[t].map(x=>`<li>${x}</li>`).join("")}</ul>`).join("")}</div>`;
