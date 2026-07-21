@@ -265,10 +265,26 @@ const BAAR={t:"Baar wrist/elbow isometrics — reverse wrist-curl hold, wrist-fl
  note:"Time collagen 15g + vit C ~200mg 30–60 min before. GMB's wrist work today double-counts — skip Baar if you ran a GMB class with the wrist hold."};
 
 /* ---- Plyos ---- */
+/* Phase-driven, plane-organized, each slot primes the lift that follows it.
+   Mon vertical+lateral → box squat · Thu horizontal+rotational → trap bar · Sat sprint → conditioning day. */
 const PLYO={
- mon:{t:"Vertical plyos — Pogo hops 3×10 · Box jump 4×3 · Depth drop 3×3 (Wk5+: depth jump 3×3)",gate:4,tier:"T3"},
- thu:{t:"Rotational plyos — Medball rotational scoop throw 3×5/side · Lateral bound 3×3/side (Wk5+: add 2×10m sprint build-ups)",gate:4,tier:"T3"}
+ mon:[
+  {wk:[1,4],ph:"Foundation",t:"Pogo hops 3×10 · Box jump 3×3 (step down) · Lateral bound 3×3/side (stick)",cue:"Quiet fast contacts; own every landing. Amplitude low — building tissue."},
+  {wk:[5,8],ph:"Build",t:"Pogo 2×10 (prime) · Depth jump 3×3 from 12–18\" · Lateral bound 3×3/side",cue:"Minimize ground time off the depth jump. Reset a rep if height drops."},
+  {wk:[9,12],ph:"Peak",t:"Depth jump 3×3 max intent · Lateral bound + stick 3×3/side",cue:"Every rep max height. Low volume, full rest."}
+ ],
+ thu:[
+  {wk:[1,4],ph:"Foundation",t:"Broad jump 3×3 (stick landing) · Medball rotational scoop throw 3×5/side",cue:"Distance is a byproduct of clean hip drive — own the landing before chasing range."},
+  {wk:[5,8],ph:"Build",t:"Broad jump 4×3 · Single bound 3×3/side (stick) · Rotational throw 3×5/side",cue:"Full hip extension, absorb the landing. Bounds train single-leg horizontal force."},
+  {wk:[9,12],ph:"Peak",t:"Continuous bound 3×3–4/side · Rotational throw 4×4/side max intent",cue:"Reactive, minimal ground contact. Stop when distance or control drops."}
+ ],
+ sat:[
+  {wk:[1,4],ph:"Foundation",t:"",cue:""},
+  {wk:[5,8],ph:"Build",t:"Sprint build-ups 3×15m @ ~85% (acceleration mechanics only)",cue:"Drive phase — stay UNDER max velocity. Full recovery between reps. Do these BEFORE Z2, not after."},
+  {wk:[9,12],ph:"Peak",t:"Sprint / hill accelerations 4×20m (capped before max velocity)",cue:"Sub sled or hill push if any hamstring pull risk. Fresh legs or skip."}
+ ]
 };
+function plyoBlock(k,w){const arr=PLYO[k];const wn=w+1;return arr.find(b=>wn>=b.wk[0]&&wn<=b.wk[1])||arr[arr.length-1];}
 
 /* ---- Conditioning ---- */
 const COND={
@@ -583,13 +599,22 @@ function skillCard(w,dow,dISO,editable){
   return h;
 }
 function plyoCard(w,dow,dISO,editable){
-  const k={0:"mon",3:"thu"}[dow];if(!k)return "";
-  const P=PLYO[k];const r=readiness(dISO);
+  const k={0:"mon",3:"thu",5:"sat"}[dow];if(!k)return "";
+  const B=plyoBlock(k,w);const r=readiness(dISO);
+  if(!B.t)return "";  /* Sat Foundation: no sprint work yet */
+  const isSprint=k==="sat";
+  /* weeks 11–12 Saturday is the PZ Max FTP-estimation ride — sprints yield */
+  if(isSprint&&w>=10)return `<div class="card spine"><h3>Sprints <span class="tiertag T3">T3</span></h3><div class="meta">⛔ Skipped this week — Saturday is the PZ Max FTP-estimation ride. Block test takes priority over sprint work.</div></div>`;
   const blocked=isDown()||(r!==null&&r<=2);
   const optional=r===3;
-  return `<div class="card spine"><h3>${k==="mon"?"Vertical":"Rotational"} Plyos <span class="tiertag T3">T3</span></h3>
-  <div class="meta">${blocked?"⛔ Skipped — readiness/down-week gate":(optional?"Optional at readiness 3 — quality reps only":"Unlocked (readiness ≥4). Full intent, full rest, stop when height/speed drops.")}</div>
-  ${blocked?"":`<div class="row"><div class="nm">${P.t}</div></div>${editable?ckHTML(dISO,"plyo"):""}`}</div>`;
+  let title;
+  if(k==="mon")title="Vertical + Lateral Plyos";
+  else if(k==="thu")title="Horizontal + Rotational Plyos";
+  else title="Sprint Accelerations";
+  const seqNote=isSprint?"Do these first, then Z2 — sprints on fresh legs, not after aerobic work.":"Run these BEFORE the heavy lower work — priming, not a second workout.";
+  return `<div class="card spine"><h3>${title} · ${B.ph} <span class="tiertag T3">T3</span></h3>
+  <div class="meta">${seqNote} ${blocked?"⛔ Skipped today — readiness/down-week gate.":(optional?"Optional at readiness 3 — quality reps only, cut volume.":"Unlocked (readiness ≥4). Full intent, full rest.")}</div>
+  ${blocked?"":`<div class="row"><div class="nm">${B.t}</div></div><div class="mini" style="margin-top:4px">Cue: ${B.cue}</div>${editable?ckHTML(dISO,"plyo"):""}`}</div>`;
 }
 function condCard(w,dow,dISO,editable){
   const k={1:"tue",3:"thu",5:"sat"}[dow];if(!k)return "";
@@ -657,7 +682,7 @@ function rWeek(){
   <div class="wksel">${Array.from({length:12},(_,i)=>`<button class="${i===w?"on":""}" onclick="wkView=${i};render()">${i+1}</button>`).join("")}</div>
   <div class="daysel">${DAYS.map((d,i)=>`<button class="${i===dow?"on":""}" onclick="wkDay=${i};render()">${d}</button>`).join("")}</div>
   <div class="mini">Preview only — logging happens on Today.</div></div>`;
-  h+=`<div class="card"><h3>Week map</h3><div class="mini" style="margin-bottom:6px">Mon D1 Lower + vert plyos · Tue Z2 90 · Wed D2 Upper · Thu D3 Lower + rot plyos (+opt PZ Max) · Fri kicks → D4 · Sat Z2/PZ Max + Luke Thomas · Sun gap-fill + BJJ + primary KOTG. Lower days never back-to-back; Z2 off hard-leg days; HIIT gated and kept off pre-kick/BJJ days.</div></div>`;
+  h+=`<div class="card"><h3>Week map</h3><div class="mini" style="margin-bottom:6px">Mon D1 Lower + vert/lateral plyos · Tue Z2 90 · Wed D2 Upper · Thu D3 Lower + horizontal/rot plyos (+opt PZ Max) · Fri kicks → D4 · Sat Z2/PZ Max + sprints (wk5+) + Luke Thomas · Sun gap-fill + BJJ + primary KOTG. Lower days never back-to-back; Z2 off hard-leg days; sprints sit before BJJ not before kicks; HIIT gated and kept off pre-kick days.</div></div>`;
   h+=dayStack(w,dow,"preview",false);
   h+=`<div class="card"><h3>Chaos tiers — what to cut first</h3>
   ${["T1","T2","T3"].map(t=>`<div class="klabel"><span class="tiertag ${t}">${t}</span> ${t==="T1"?"Never cut":t==="T2"?"Protect if possible":"Cut first"}</div><ul class="tinylist">${TIERS[t].map(x=>`<li>${x}</li>`).join("")}</ul>`).join("")}</div>`;
