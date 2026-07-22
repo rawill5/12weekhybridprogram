@@ -227,27 +227,36 @@ const RX=[
 const DELOAD_WK=5; /* index of Week 6 — Biolayne's written deload; kept as-written */
 
 /* ---- Core module (built from scratch; Prehab Guys library + medball power; loaded flexion progressed) ---- */
+/* Core rebuilt on the EMG/hypertrophy evidence report (Tier-1 anchors), anterior-biased for
+   aesthetics (#1). Posterior wall (ES/MF/QL) is largely paid by box squat + trap bar — see volume
+   model. Each day: pattern focus + phase-progressed anchor(s) + a swap LIBRARY (report + Prehab Guys)
+   the athlete can rotate in. Loaded-flexion work must ADD LOAD week to week, not just reps/time. */
 const CORE={
- mon:{lbl:"Anti-extension + anti-rotation",tier:"T2",ph:[
-  ["Plank (long-lever) — 3×45–60s","Band Dead Bug, anti-rotation — 3×10/side"],
-  ["Plank Body Saw — 3×8 slow","Half-Kneeling Chop (band) — 3×10/side"],
-  ["Ab-Wheel / Jefferson-Curl eccentric — 3×8 (add load)","Pallof March, arms extended — 3×30s/side"]]},
- wed:{lbl:"Rotation power + loaded flexion",tier:"T2",ph:[
-  ["Split-Stance Medball Rotation Throw — 3×8/side","Rope/Cable Crunch — 3×12 (log load, add weekly)"],
-  ["Medball Scoop Toss — 3×5/side (intent!)","Weighted Decline Sit-Up — 3×10 (add load)"],
-  ["Medball Shot-Put Throw — 4×5/side","Rope Crunch, heavy — 4×10 (top load)"]]},
- thu:{lbl:"Light only — trunk pre-taxed by trap bar",tier:"T3",ph:[
-  ["Suitcase Carry — 3×40yd/side","Side Plank — 2×30s/side"],
-  ["Suitcase Carry, heavier — 3×40yd/side","Side Plank + top-leg lift — 2×25s/side"],
-  ["Front-Rack Carry, unilateral — 3×30yd/side","Side Plank Row (band) — 2×10/side"]]},
- fri:{lbl:"Loaded flexion + anti-lateral + rotation",tier:"T2",ph:[
-  ["Hollow Hold — 3×30s","Adductor Side Plank — 2×20s/side"],
-  ["Hollow Rock — 3×15","Copenhagen Plank (knees) — 2×25s/side","Standing band rotation — 2×10/side"],
-  ["Weighted Hollow Hold — 3×30s","Copenhagen Plank (full) — 2×20s/side","Medball Side Slam — 3×8/side"]]},
- sun:{lbl:"Optional rotation — BJJ prep",tier:"T3",ph:[
-  ["Half-Kneeling Lift (band) — 2×10/side"],
-  ["Split-Stance Medball Rotation, feed-in — 2×8/side"],
-  ["Landmine Rotation — 2×8/side"]]}
+ mon:{lbl:"Anti-extension + anti-rotation",tier:"T2",focus:"RA long-lever + rotary stability",ph:[
+   ["Ab-Wheel Roll-out — from knees, 3×8 (control the extension)","Band Dead Bug, anti-rotation — 3×10/side"],
+   ["Ab-Wheel Roll-out — knees, add ROM/tempo, 3×8","Pallof March, arms extended — 3×30s/side"],
+   ["Ab-Wheel Roll-out — extended-lever/standing progression, 3×6","Half-Kneeling Chop (band) — 3×10/side"]],
+  lib:["Tier-1 anti-ext: roll-out, pike, suspended roll-out plank","Plank / long-lever plank / body saw","Prehab: Bird Dog (band), Tall-Plank Shoulder Tap, Tall→Low Plank","Prehab: Dead Bug, Standing Psoas March (band)"]},
+ wed:{lbl:"Loaded flexion + hip-flexion (aesthetics + iliopsoas)",tier:"T2",focus:"RA hypertrophy + psoas (feeds sprint & kick chamber)",ph:[
+   ["Hanging Knee Raise (PPT) — 3×12","Cable/Rope Crunch — 3×12 (log load, add weekly)"],
+   ["Hanging Leg Raise — 3×10 (straighter lever)","Cable Crunch — 3×10 (heavier)"],
+   ["Weighted Hanging Leg Raise — 3×8","Cable Crunch, top load — 4×8"]],
+  lib:["Tier-1 RA: hanging leg/knee raise, roll-out, pike","Loaded flexion: cable crunch, weighted decline sit-up (controlled)","Psoas: ASLR eccentric, resisted hip flexion (band, 30–60°)","Prehab: Flutter Kick, Oblique Crunch, Curl-Up Segmental"]},
+ thu:{lbl:"Anti-lateral only — trunk pre-taxed by trap bar",tier:"T3",focus:"QL / lateral wall, kept light",ph:[
+   ["Side Plank — 2×30s/side (Tier-1 QL)","Suitcase Carry — 3×40yd/side"],
+   ["Side Plank + top-leg lift — 2×25s/side","Suitcase Carry, heavier — 3×40yd/side"],
+   ["Side Plank Row (band) — 2×10/side","Front-Rack Carry, unilateral — 3×30yd/side"]],
+  lib:["Tier-1 QL/lateral: side plank (toes), side plank row","Carries: suitcase, front-rack, waiter","Prehab: Incline Adductor Side Plank, Copenhagen (knees)"]},
+ fri:{lbl:"Obliques (V-taper) + anti-lateral + rotation",tier:"T2",focus:"EO/IO — pike is Tier-1 (84% MVIC)",ph:[
+   ["Pike (Power-Wheel/Swiss-ball) — 3×10","Adductor Side Plank — 2×20s/side"],
+   ["Pike — 3×12 (or feet-elevated)","Copenhagen Plank (knees) — 2×25s/side","Standing band rotation — 2×10/side"],
+   ["Pike — 4×10 (deficit)","Copenhagen Plank (full) — 2×20s/side","Medball Side Slam — 3×8/side"]],
+  lib:["Tier-1 EO: pike, front plank (brace), side bridge on toes","Rotation: resisted cable/band rotation, medball side slam","Prehab: Plank Oblique Crunch (SB), Hollow Hold/Rock, Copenhagen"]},
+ sun:{lbl:"Optional rotation — BJJ prep",tier:"T3",focus:"transverse-plane power",ph:[
+   ["Half-Kneeling Lift (band) — 2×10/side"],
+   ["Split-Stance Medball Rotation, feed-in — 2×8/side"],
+   ["Landmine Rotation — 2×8/side"]],
+  lib:["Prehab: Half-Kneeling Chop/Lift, Split-Stance Medball Rotation","Medball: scoop toss, shot-put, rotational throw","Landmine rotation / Russian twist (loaded)"]}
 };
 const corePhase=w=>w<4?0:(w<8?1:2);
 
@@ -286,11 +295,32 @@ const PLYO={
 };
 function plyoBlock(k,w){const arr=PLYO[k];const wn=w+1;return arr.find(b=>wn>=b.wk[0]&&wn<=b.wk[1])||arr[arr.length-1];}
 
-/* ---- Conditioning ---- */
+/* ---- Conditioning: Z2 base LOCKED on Tue + Sat (never rotated away). The harder FTP-data efforts
+   ride on Wednesday only — legs-fresh upper day, optional + readiness-gated — so the aerobic base is
+   protected and FTP still calculates from accumulated best-efforts. ---- */
 const COND={
- tue:{t:"Zone 2 — Peloton PZ Endurance 90 min",d:"Conversational. Zones from current FTP. This is aerobic base + recovery support — if it feels like training, it's too hard.",tier:"T2",teal:1},
- thu:{t:"Optional PZ Max (HIIT)",d:"Only if legs are fresh AND readiness ≥4 AND tomorrow's kicks are protected. Otherwise skip — kickboxing + BJJ already supply anaerobic work.",tier:"T3",gate:4,teal:1},
- sat:{t:"Zone 2 — Peloton PZ Endurance 90 min (or PZ Max on FTP-estimation weeks 11–12)",d:"Weeks 11–12: ride ≥1 PZ Max so the block-boundary FTP test has fresh estimation data.",tier:"T2",teal:1}
+ tue:{t:"Zone 2 — Peloton PZ Endurance 90 min",d:"Conversational, zones from current FTP. Aerobic base + recovery. Feeds long-duration power for the FTP curve. Base anchor #1 — protected.",tier:"T2"},
+ sat:{t:"Zone 2 — Peloton PZ Endurance 90 min",d:"Second Z2 anchor. Sits before Sunday BJJ — keep it easy. Base anchor #2 — protected.",tier:"T2"}
+};
+/* Wednesday optional ride types — athlete picks based on which FTP bucket is stalest */
+const WED_RIDE={
+ pz:{t:"Power Zone (standard) — 45–60 min",d:"Threshold / sweet-spot (zone 3–4). Ride the long effort near-max → your ~20-min power anchor.",bucket:20},
+ pzmax:{t:"PZ Max (HIIT) — 30 min",d:"Zone 5–7 short intervals → your best 1–5 min power.",bucket:5}
+};
+
+/* ---- Optional alternative sessions (substitutions / MED-after-miss) ----
+   bag & wave = HIIT-bucket swaps for a PZ Max slot (same intensity budget, never added on top).
+   heavybag = SKILL: home solo Trainor-style rounds, or MED fallback after a missed kick session. */
+const ALT={
+ bulgarian:{name:"Bulgarian Bag — 20-min AMRAP",kind:"HIIT swap",
+  body:["5 movements = 1 round, as many rounds as possible in 20 min:","① Spin 10/side · ② Arm Throw 10/side · ③ Snatch 10 · ④ Front Squat 10 · ⑤ Overhead Press 10","Light bag (~10–12 kg), clean arcs over speed. Rotational/grip conditioning the bike can't give."],
+  note:"Counts as your PZ Max for the week — don't stack it on top of the ride. Some rotational overlap with plyos/core; treat as a substitute."},
+ inertia:{name:"Inertia Wave — 15-min metcon",kind:"HIIT swap",
+  body:["Cycle patterns, ~15s waves → 10–12 reps resistance as active rest:","Tidal wave 15s → Rows 10 · Lateral wave 15s → Squat-row 10 · Crossfire 15s → Curls 10 · Flutter 20s → Press 10","Keep tubes off the floor, trunk braced. Short brutal bouts."],
+  note:"HIIT-bucket swap for a PZ Max slot. High core/shoulder demand — pair-check against core day."},
+ heavybag:{name:"Home Heavy Bag — Trainor solo rounds",kind:"Skill / MED",
+  body:["6×3-min, treat the bag as an opponent (move, feint, then attack):","R1 movement & feel (light, footwork) · R2 single-weapon: rear kick, reset each rep","R3 fixed 3-strike combo, full round · R4 same combo + imagined counter","R5 light–hard mix (touch–touch–power) · R6 high/low chain (head–body–leg)","60–70% intent; power shots only on the static bag."],
+  note:"This is SKILL, not cardio. Best home fallback after a missed Friday kick session (T1 protect), or extra kick volume. Serves the nose-height north star."}
 };
 
 /* ---- GMB tissue prep: 9 classes × 15/30/45. [name, seconds, perSide] ---- */
@@ -430,7 +460,8 @@ const SUNBLOCK=w=>{const p=corePhase(w);return [
 /* Volume landmarks (sets/wk) — masters-adjusted, practical MRV pulled down for kicks/BJJ/plyos at 41 */
 const MUS={quad:["Quads",6,12,16],ham:["Hamstrings",4,10,14],glute:["Glutes",4,10,16],calf:["Calves",6,12,16],
  chest:["Chest",6,12,18],back:["Back (lats/mid)",8,14,20],sdelt:["Side/Front Delts",6,12,18],rdelt:["Rear Delts",4,10,16],
- bicep:["Biceps",5,12,18],tri:["Triceps",5,12,18],abs:["Abs/Core",4,10,16]};
+ bicep:["Biceps",5,12,18],tri:["Triceps",5,12,18],
+ abs_ant:["Anterior core (RA/obliques)",12,16,20],abs_post:["Posterior core (ES/MF/QL)",8,12,16]};
 
 /* ---- Tiers (chaos management) ---- */
 const TIERS={
@@ -455,6 +486,8 @@ Z.se=Z.se||{};                 /* strength-emphasis per-lift toggle */
 Z.down=Z.down||null;           /* {until:dateISO} auto down-week */
 Z.assumeDismiss=Z.assumeDismiss||false;
 Z.coreLoads=Z.coreLoads||{};
+Z.altSel=Z.altSel||{};         /* dateISO -> 'bike'|'bulgarian'|'inertia' for conditioning modality */
+Z.effort=Z.effort||{};         /* durationMin -> {w, date} best-effort power buckets for FTP calc */
 if(!Z.start){ /* default program start = most recent Monday */
   const d=new Date();const dow=(d.getDay()+6)%7;d.setDate(d.getDate()-dow);
   Z.start=d.toISOString().slice(0,10);
@@ -552,10 +585,12 @@ function coreCard(w,dow,dISO,editable){
   const map={0:"mon",2:"wed",3:"thu",4:"fri",6:"sun"};const k=map[dow];if(!k)return "";
   const c=CORE[k],p=corePhase(w);
   const down=isDown()||((readiness(dISO)||5)<=2);
-  const items=down?["Anti-rotation only — Pallof / bird dog, 2 easy sets"]:c.ph[p];
+  const items=down?["Anti-rotation only — Pallof march / bird dog, 2 easy sets"]:c.ph[p];
+  const loadNote=(k==="wed"||k==="fri")?" · loaded work ADDS LOAD weekly (aesthetics #1)":"";
   return `<div class="card spine ${c.tier==="T2"?"t2":""}"><h3>Core — ${c.lbl} <span class="tiertag ${c.tier}">${c.tier}</span></h3>
-  <div class="meta">Circuited between strength sets · Phase ${p+1}${k==="wed"||k==="fri"?" · Loaded-flexion work must add load week-to-week (aesthetics #1)":""}</div>
+  <div class="meta">Circuited between strength sets · Phase ${p+1} · ${c.focus}${loadNote}</div>
   ${items.map(t=>`<div class="row"><div class="nm">${t}</div></div>`).join("")}
+  ${!down?`<details class="corelib"><summary class="mini">Swap library (evidence Tier-1 + Prehab Guys)</summary>${c.lib.map(x=>`<div class="mini" style="opacity:.8">· ${x}</div>`).join("")}</details>`:""}
   ${editable?`<div style="margin-top:8px">${ckHTML(dISO,"core")}<span class="mini" style="margin-left:8px">Done</span></div>`:""}</div>`;
 }
 function gmbCard(dow,dISO,editable){
@@ -617,21 +652,52 @@ function plyoCard(w,dow,dISO,editable){
   <div class="meta">${seqNote} ${blocked?"⛔ Skipped today — readiness/down-week gate.":(optional?"Optional at readiness 3 — quality reps only, cut volume.":"Unlocked (readiness ≥4). Full intent, full rest.")}</div>
   ${blocked?"":`<div class="row"><div class="nm">${body}</div></div><div class="mini" style="margin-top:4px">Cue: ${B.cue}</div>${editable?ckHTML(dISO,"plyo"):""}`}</div>`;
 }
+function nextRideHint(){
+  const meta={"20":["PZ threshold","20-min"],"5":["PZ Max","5-min"],"1":["PZ Max","1-min"]};
+  let worst="20",age=-1;
+  for(const d of ["20","5","1"]){const e=Z.effort[d];
+    const a=e&&e.w?Math.round((Date.parse(todayISO())-Date.parse(e.date))/864e5):999;
+    if(a>age){age=a;worst=d;}}
+  return {d:worst,ride:meta[worst][0],bucket:meta[worst][1],missing:age>=999,stale:age>21};
+}
 function condCard(w,dow,dISO,editable){
-  const k={1:"tue",3:"thu",5:"sat"}[dow];if(!k)return "";
-  const C=COND[k];const r=readiness(dISO);
-  let t=C.t,d=C.d;
-  if(k==="thu"&&(isDown()||(r!==null&&r<4)))return `<div class="card spine"><h3>PZ Max <span class="tiertag T3">T3</span></h3><div class="meta">⛔ Gated today (readiness &lt;4 or down-week). Kickboxing + BJJ cover anaerobic work this week.</div></div>`;
-  if(k==="sat"&&isDown()){t="Zone 2 only — 60–90 min easy";d="Down-week: no PZ Max.";}
-  if(k==="sat"&&(w>=10))t="PZ Max recommended — FTP-estimation week (block test coming)";
-  return `<div class="card spine t2" style="border-left-color:var(--z2)"><h3>${t} <span class="chip teal">Cond</span></h3>
-  <div class="meta">${d}</div>${editable?ckHTML(dISO,"cond_"+k):""}</div>`;
+  const k={1:"tue",2:"wed",5:"sat"}[dow];if(!k)return "";
+  const r=readiness(dISO);
+  /* Tue + Sat — locked Zone 2 base */
+  if(k==="tue"||k==="sat"){const C=COND[k];
+    return `<div class="card spine t2" style="border-left-color:var(--z2)"><h3>Zone 2 — PZ Endurance 90 min <span class="chip teal">Cond · base</span></h3><div class="meta">${C.d}</div>${editable?ckHTML(dISO,"cond_"+k):""}</div>`;}
+  /* Wednesday — optional legs-fresh hard ride; generates FTP data without touching the Z2 base */
+  if(isDown()||(r!==null&&r<4))
+    return `<div class="card spine"><h3>Optional Ride <span class="tiertag T3">T3</span></h3><div class="meta">⛔ Skip today (readiness &lt;4 or down-week). This is a bonus FTP-data ride, not part of the base — the Z2 anchors carry it. Protect Thursday's trap bar.</div></div>`;
+  const hint=nextRideHint();
+  /* selector: pz threshold, or PZ Max via bike / bag / wave */
+  const sel=Z.altSel[dISO]||"";
+  const opts=[["pz","PZ Threshold"],["bike","PZ Max"],["bulgarian","Bulgarian Bag"],["inertia","Inertia Wave"]];
+  const picker=editable?`<div class="seg" style="margin-top:8px;flex-wrap:wrap">${opts.map(([v,l])=>`<button class="${sel===v?"on":""}" onclick="Z.altSel['${dISO}']='${v}';save();render()">${l}</button>`).join("")}</div>`:"";
+  let detail="";
+  if(sel==="pz")detail=`<div class="mini" style="margin-top:6px">${WED_RIDE.pz.d}</div>`;
+  else if(sel==="bike")detail=`<div class="mini" style="margin-top:6px">${WED_RIDE.pzmax.d}</div>`;
+  else if(sel==="bulgarian"||sel==="inertia"){const a=ALT[sel];
+    detail=`<div class="row" style="margin-top:8px"><div class="nm">${a.name} <span class="mini">(${a.kind})</span></div></div>${a.body.map(x=>`<div class="mini" style="opacity:.85">${x}</div>`).join("")}<div class="mini" style="margin-top:4px;opacity:.7">${a.note} Fills the 1–5 min FTP bucket.</div>`;}
+  return `<div class="card spine t2" style="border-left-color:var(--z2)"><h3>Optional Ride — legs-fresh upper day <span class="chip teal">Cond</span></h3>
+  <div class="meta">Optional + readiness-gated. Legs stay fresh (Tue was easy); keep it controlled so Thursday's trap bar isn't compromised. Doesn't touch your Z2 base.</div>
+  <div class="mini" style="margin-top:6px">FTP data: your <b>${hint.bucket}</b> bucket is ${hint.missing?"empty":(hint.stale?"stale":"current")} → ${hint.missing||hint.stale?`ride <b>${hint.ride}</b> today`:"any type; you're covered"}.</div>
+  ${picker}${detail}${editable?ckHTML(dISO,"cond_wed"):""}</div>`;
 }
 function sunLiftCard(w,dISO,editable){
   return `<div class="card spine t2"><h3>Sunday Gap-Fill Lift <span class="tiertag T2">T2</span></h3>
   <div class="meta">Commercial gym, circuit-style between your partner's sets. Minimal + surgical — rear delt is the point. Do NOT add arms/side-delt (already high).</div>
   ${SUNBLOCK(w).map(x=>`<div class="row"><div class="nm">${x.n}<div class="sup">${x.why}</div></div><div class="rx">${x.rx}</div></div>`).join("")}
   ${editable?ckHTML(dISO,"sunlift"):""}</div>`;
+}
+function heavyBagCard(dow,dISO,editable){
+  if(dow!==4&&dow!==5)return "";  /* Fri kick day, Sat MMA day */
+  const a=ALT.heavybag;
+  return `<div class="card spine"><h3>Home Heavy Bag <span class="tiertag T3">T3 · optional</span></h3>
+  <details><summary class="mini">${dow===4?"Fallback if you miss the Friday kick session (T1) — or extra kick volume":"Extra skill volume on the MMA day"}</summary>
+  ${a.body.map(x=>`<div class="mini" style="opacity:.85">${x}</div>`).join("")}
+  <div class="mini" style="margin-top:4px;opacity:.7">${a.note}</div>
+  ${editable?`<div style="margin-top:6px">${ckHTML(dISO,"heavybag")}<span class="mini" style="margin-left:8px">Done</span></div>`:""}</details></div>`;
 }
 function dayStack(w,dow,dISO,editable){
   let h="";
@@ -644,6 +710,7 @@ function dayStack(w,dow,dISO,editable){
   h+=plyoCard(w,dow,dISO,editable);
   h+=condCard(w,dow,dISO,editable);
   if(dow!==4)h+=skillCard(w,dow,dISO,editable);
+  h+=heavyBagCard(dow,dISO,editable);
   const tp=TP_DAY[dow];
   h+=`<div class="card spine"><h3>Tonight's Pick <span class="tiertag T3">T3</span></h3><div class="meta">Base category: ${tp}. <a href="#" onclick="go('night');return false">Open →</a></div></div>`;
   return h;
@@ -683,7 +750,7 @@ function rWeek(){
   <div class="wksel">${Array.from({length:12},(_,i)=>`<button class="${i===w?"on":""}" onclick="wkView=${i};render()">${i+1}</button>`).join("")}</div>
   <div class="daysel">${DAYS.map((d,i)=>`<button class="${i===dow?"on":""}" onclick="wkDay=${i};render()">${d}</button>`).join("")}</div>
   <div class="mini">Preview only — logging happens on Today.</div></div>`;
-  h+=`<div class="card"><h3>Week map</h3><div class="mini" style="margin-bottom:6px">Mon D1 Lower + vert/lateral plyos · Tue Z2 90 · Wed D2 Upper · Thu D3 Lower + horizontal/rot plyos (+opt PZ Max) · Fri kicks → D4 · Sat Z2/PZ Max + sprint drills (wk1–4) → sprints (wk5+) + Luke Thomas · Sun gap-fill + BJJ + primary KOTG. Lower days never back-to-back; Z2 off hard-leg days; sprints sit before BJJ not before kicks; HIIT gated and kept off pre-kick days.</div></div>`;
+  h+=`<div class="card"><h3>Week map</h3><div class="mini" style="margin-bottom:6px">Mon D1 Lower + vert/lateral plyos · Tue Z2 90 (base) · Wed D2 Upper + optional FTP-data ride · Thu D3 Lower + horizontal/rot plyos · Fri kicks → D4 · Sat Z2 90 (base) + sprint drills (wk1–4) → sprints (wk5+) + Luke Thomas · Sun gap-fill + BJJ + primary KOTG. Z2 base locked on Tue + Sat; hard rides only on the fresh-legged upper day; sprints before BJJ not before kicks; lower days never back-to-back.</div></div>`;
   h+=dayStack(w,dow,"preview",false);
   h+=`<div class="card"><h3>Chaos tiers — what to cut first</h3>
   ${["T1","T2","T3"].map(t=>`<div class="klabel"><span class="tiertag ${t}">${t}</span> ${t==="T1"?"Never cut":t==="T2"?"Protect if possible":"Cut first"}</div><ul class="tinylist">${TIERS[t].map(x=>`<li>${x}</li>`).join("")}</ul>`).join("")}</div>`;
@@ -867,9 +934,12 @@ function weeklyVolume(w){
   const p=corePhase(w);
   tot.rdelt+=(p===2?4:3)+3;      /* rev pec deck + face pulls */
   tot.back+=0.75;                 /* face pull spill + CS row partial */
-  /* Core sets → abs */
-  const coreSets={0:5,1:6,2:6}[p];
-  tot.abs+=coreSets*2+3;          /* Mon/Wed/Fri loaded+anti work + Thu light */
+  /* Core, split by wall (evidence report). Anterior = dedicated RA/oblique work, phase-progressed.
+     Posterior = light dedicated lateral/extension + fractional credit from box squat + trap bar. */
+  tot.abs_ant+={0:12,1:14,2:15}[p];
+  const bsqSets=RX[w].d1[0][0]+RX[w].d1[1][0];
+  const tbSets =RX[w].d3[0][0]+RX[w].d3[1][0];
+  tot.abs_post+=4+0.5*(bsqSets+tbSets);   /* 0.5 indirect/heavy compound set (Pelland accounting) */
   return tot;
 }
 function rVol(){
@@ -885,6 +955,7 @@ function rVol(){
     else if(v>mrv){col="var(--t1)";flag=" · over MRV";}
     else if(v>mav){col="var(--t2)";flag=" · MAV→MRV watch";}
     if(k==="rdelt"&&v>=mev)flag=" · Sunday block filling the hole ✓";
+    if(k==="abs_post"&&v>=mev)flag=" · box squat + trap bar credited ✓";
     rows+=`<div class="volrow"><div class="t"><span class="n">${nm}</span><span class="s">${v.toFixed(1)} sets${flag}</span></div>
     <div class="bar"><div class="fill" style="width:${pct}%;background:${col}"></div>
     <div class="tick" style="left:${100*mev/max}%"></div><div class="tick" style="left:${100*mav/max}%"></div><div class="tick" style="left:${100*mrv/max}%"></div></div></div>`;
@@ -893,7 +964,7 @@ function rVol(){
   <div class="meta">Mains + accessories + Sunday block + core, fractional counting. Ticks = MEV / MAV / MRV (masters-adjusted — practical MRV runs lower with kicks, BJJ, and plyos on top). Kicks/BJJ/KOTG are background load not counted here: read quads/glutes conservatively.</div>
   <div class="wksel" style="margin-bottom:12px">${Array.from({length:12},(_,i)=>`<button class="${i===w?"on":""}" onclick="volWk=${i};render()">${i+1}</button>`).join("")}</div>
   ${rows}
-  <div class="mini">Overshoot watch: quads / glutes / arms. Undershoot flag: rear delt — owned by the Sunday block. Chest is adequately covered; monitor, don't force-add.</div></div>`;
+  <div class="mini">Overshoot watch: quads / glutes / arms. Undershoot flag: rear delt — owned by the Sunday block. Core is split by wall: anterior (RA/obliques) is trained directly for aesthetics; posterior (ES/MF/QL) is largely paid by box squat + trap bar, so dedicated low-back work stays minimal.</div></div>`;
 }
 
 /* ---- Tonight's Pick ---- */
@@ -934,7 +1005,7 @@ function rTest(){
   const ftp=Z.ftp[Z.ftp.length-1];
   const wkg=bw?(ftp.w/(bw/2.2046)).toFixed(2):"—";
   el.innerHTML=`
-  ${boundary?`<div class="banner red"><b>Block boundary approaching.</b> Weeks 11–12: keep ≥1 PZ Max in (FTP estimation), then at block end run — AMRAP/e1RM on the three mains · Peloton FTP Test · left-hip IR screen + kick-height check · optional vertical jump (readiness-gated).</div>`:""}
+  ${boundary?`<div class="banner red"><b>Block boundary approaching.</b> Weeks 11–12: make sure recent 1/5/20-min power buckets are fresh (ride PZ Max + a PZ threshold) so FTP calculates cleanly — no formal test required. At block end: AMRAP/e1RM on the three mains · left-hip IR screen + kick-height check · optional vertical jump.</div>`:""}
   <div class="card"><h3>Strength — e1RM (Epley)</h3>
   <div class="meta">Baselines at restart: ${lifts.map(l=>`${l} ${base[l][0]}×${base[l][1]} (e1RM ${e1(base[l][0],base[l][1])})`).join(" · ")}</div>
   ${lifts.map(l=>{const b=best[l];return `<div class="row"><div class="nm">${l}<div class="sup">${b?`PR ${b.w}×${b.r} → e1RM <b>${b.e1}</b> (${b.date})`:"No test logged yet"}</div></div></div>`;}).join("")}
@@ -946,10 +1017,30 @@ function rTest(){
   <div class="meta">Adds 1–2 top sets of 3–5 @ RIR 2–3 on a main, layered on the Biolayne base without overriding it. Best-practice lever for max-strength (goal #2). Off by default. Skip on deload and down-weeks.</div>
   ${[["bsq_top","Box Squat"],["bp_top","Bench"],["tb_top","Trap Bar"]].map(([k,n])=>`<div class="row"><div class="nm">${n}</div>
   <div class="seg" style="width:150px">${[0,1,2].map(v=>`<button class="${(Z.se[k]||0)===v?"on":""}" onclick="Z.se['${k}']=${v}||undefined;save();render()">${v?"+"+v:"off"}</button>`).join("")}</div></div>`).join("")}</div>
-  <div class="card"><h3>Conditioning — FTP</h3>
-  <div class="row"><div class="nm">Current FTP<div class="sup">${ftp.date}</div></div><div class="rx"><b>${ftp.w} W</b> · ${wkg} W/kg</div></div>
-  <div style="display:flex;gap:8px;margin-top:8px"><input type="number" id="ftpw" placeholder="New FTP (W)" inputmode="numeric"><button class="btn sm" onclick="addFTP()">Save</button></div>
-  <div class="mini" style="margin-top:6px">Recalibrate via the Peloton FTP Test class at block boundaries. Updated FTP drives all PZ zone targets.</div></div>
+  <div class="card"><h3>Conditioning — FTP by calculation</h3>
+  <div class="row"><div class="nm">Current FTP<div class="sup">set ${ftp.date}</div></div><div class="rx"><b>${ftp.w} W</b> · ${wkg} W/kg</div></div>
+  ${(()=>{const est=ftpEstimate();
+    const meta={"1":"1-min — Avg Output of a 1-min all-out","5":"5-min — Avg Output of a 5-min max effort","20":"20-min — Avg Output of a 20-min hard ride"};
+    const rows=["1","5","20"].map(d=>{const e=Z.effort[d];
+      if(!e||!e.w)return `<div class="mini" style="opacity:.6">· ${meta[d]}: — no effort logged</div>`;
+      const days=Math.round((Date.parse(todayISO())-Date.parse(e.date))/864e5);
+      const stale=days>21;
+      return `<div class="mini" style="opacity:${stale?.6:.9}">· ${meta[d]}: <b>${e.w} W</b> (${e.date}${stale?` · stale ${days}d — refresh`:""})</div>`;}).join("");
+    const estLine=est.est?`<div class="banner teal" style="margin-top:8px"><b>Estimated FTP ${est.est} W</b>${bw?` · ${(est.est/(bw/2.2046)).toFixed(2)} W/kg`:""} <span class="mini">(${est.method})</span></div>
+      <button class="btn sm" style="margin-top:6px" onclick="setEstFTP(${est.est})">Set as current FTP →</button>`
+      :`<div class="mini" style="margin-top:8px;opacity:.7">Log at least a 20-min effort (or two different durations) to calculate FTP.</div>`;
+    return `<div class="meta" style="margin-top:8px">Log best-effort average watts from your rides — the Tue endurance + Saturday PZ/PZ Max/PZE rotation feed these buckets, so FTP is calculated rather than tested.</div>
+    <div style="margin:8px 0">${rows}</div>${estLine}`;})()}
+  <div style="display:flex;gap:8px;margin-top:10px"><select id="effdur"><option value="1">1-min</option><option value="5">5-min</option><option value="20" selected>20-min</option></select><input type="number" id="effw" placeholder="avg W" inputmode="numeric"><button class="btn sm" onclick="logEffort()">Log effort</button></div>
+  <details style="margin-top:8px"><summary class="mini">How to read the right number off Peloton</summary>
+  <div class="mini" style="opacity:.85;margin-top:4px">
+  · Peloton app → your profile → tap the workout → read <b>Avg Output</b> (watts). That's the only number you need.<br>
+  · <b>Match the effort length to the bucket.</b> A ride/segment's Avg Output is only a true best-effort if it <i>was</i> a sustained max of that length — so log a 20-min hard ride as the 20-min bucket, a 5-min all-out as 5-min, a 1-min all-out as 1-min.<br>
+  · <b>Simplest path:</b> one honest 20-min effort → full FTP (app takes 95%).<br>
+  · <b>No long effort:</b> log a 1-min + a 5-min max on separate days → the Critical-Power fit calculates FTP from the two.<br>
+  · Don't eyeball a "best 5 min" out of a longer class — Peloton doesn't show rolling segment averages. Let the effort's length be the bucket.</div></details>
+  <div class="mini" style="margin-top:6px">Formal Peloton FTP Test also works — enter its 20-min avg output as the 20-min bucket, or set FTP directly below.</div>
+  <div style="display:flex;gap:8px;margin-top:6px"><input type="number" id="ftpw" placeholder="Set FTP directly (W)" inputmode="numeric"><button class="btn sm sec" onclick="addFTP()">Save</button></div></div>
   <div class="card"><h3>Mobility checkpoints</h3>
   <div class="mini">· Left-hip IR screen — seated 90/90 IR angle, photo or goniometer, same setup each block.<br>· Kick-height check — slow chambered roundhouse against a wall target; log the height. North star: <b>nose height by end of block</b>.</div></div>
   <div class="card"><h3>PR history</h3>${Z.prs.length?Z.prs.slice().reverse().map(p=>`<div class="row"><div class="nm">${p.lift}</div><div class="rx">${p.w}×${p.r} → ${p.e1} · ${p.date}</div></div>`).join(""):'<div class="mini">Nothing logged yet.</div>'}</div>`;
@@ -958,6 +1049,18 @@ function addPR(){
   const l=document.getElementById("prl").value,w=+document.getElementById("prw").value,r=+document.getElementById("prr").value;
   if(!w||!r)return;Z.prs.push({lift:l,w,r,e1:e1(w,r),date:todayISO()});save();render();
 }
+function ftpEstimate(){
+  const E=Z.effort,have=k=>E[k]&&E[k].w;
+  if(have("20"))return {est:Math.round(E["20"].w*0.95),method:"0.95 × 20-min power"};
+  const bk=[["1",60],["5",300],["20",1200]].filter(([k])=>have(k));
+  if(bk.length>=2){const [s,l]=bk.slice(-2);
+    const t1=s[1],P1=E[s[0]].w,t2=l[1],P2=E[l[0]].w;
+    const Wp=(P1-P2)*t1*t2/(t2-t1),CP=P1-Wp/t1;
+    return {est:Math.round(CP),method:`Critical-Power fit (${s[0]}+${l[0]} min)`};}
+  return {est:null,method:null};
+}
+function logEffort(){const d=document.getElementById("effdur").value,w=+document.getElementById("effw").value;if(!w)return;Z.effort[d]={w,date:todayISO()};save();render();}
+function setEstFTP(w){if(!w)return;Z.ftp.push({w,date:todayISO()});save();render();}
 function addFTP(){const w=+document.getElementById("ftpw").value;if(!w)return;Z.ftp.push({w,date:todayISO()});save();render();}
 
 /* ---- Log ---- */
