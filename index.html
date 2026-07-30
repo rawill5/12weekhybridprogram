@@ -130,7 +130,7 @@ details[open] summary:after{transform:rotate(-90deg)}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v10.3 · 2026-07-29";
+const BUILD="v10.6 · 2026-07-30";
 const PROGRAM_START="2026-08-03";           /* Monday. Week 1 Day 1. */
 const ONRAMP_START="2026-07-30";            /* Thursday. Revised to 4 days: Tue 28 + Wed 29 were missed. */
 /* Two weeks off. Purpose of these six days is the six baseline numbers,
@@ -651,7 +651,12 @@ Z.screen=Z.screen||[];         /* [{date,irL,irR,ankL,ankR,kickL,kickR}] baselin
 /* Measured by Robert 2026-07-28, seeded once so the block starts from real data.
    NOTE: right (11 deg) is MORE restricted than left (18 deg) — the opposite of the
    standing assumption that the left hip was the limiter. worseSide() reads this. */
-if(!Z.seed0){Z.screen.push({date:"2026-07-28",irL:18,irR:11,ankL:null,ankR:null,kickL:null,kickR:null});Z.seed0=true;}
+if(!Z.seed0){
+  /* Self-measured, prone, gravity-only end range. Kept for method calibration. */
+  Z.screen.push({date:"2026-07-28",method:"self",irL:18,irR:11,erL:null,erR:null,ankL:null,ankR:null,kickL:null,kickR:null});
+  /* PT-measured, passive with overpressure, full rotational arc. THIS is the baseline. */
+  Z.screen.push({date:"2026-07-30",method:"pt",irL:20,irR:25,erL:50,erR:50,ankL:null,ankR:null,kickL:null,kickR:null});
+  Z.seed0=true;}
 Z.de=Z.de||false;              /* dynamic-effort bench on D2, opt-in */
 Z.base=Z.base||null;           /* {boxsq,trap,bench,date} e1RMs from the on-ramp */
 Z.orDone=Z.orDone||{};         /* on-ramp day completion */
@@ -829,11 +834,24 @@ function chaosCard(dISO){
   return h;
 }
 function mkDefaultMed(){Z.mkMedDefault=true;save();render();}
-/* Which hip is actually more restricted, from the most recent screen with both sides. */
+/* Latest screen carrying both IR sides. Prefers a clinician measurement when one exists. */
+function latestScreen(){
+  const withIR=Z.screen.filter(s=>s.irL!=null&&s.irR!=null);
+  if(!withIR.length)return null;
+  const pt=withIR.filter(s=>s.method==="pt");
+  return (pt.length?pt:withIR)[ (pt.length?pt:withIR).length-1 ];
+}
+/* MIN_GAP: below this, a left/right difference is inside measurement noise and
+   biasing on it is false precision. Set at 8 deg because two measurements of the
+   same right hip five days apart differed by 14 deg. */
+const MIN_GAP=8;
 function worseSide(){
-  for(let i=Z.screen.length-1;i>=0;i--){const s=Z.screen[i];
-    if(s.irL!=null&&s.irR!=null)return {side:s.irL<s.irR?"L":"R",l:s.irL,r:s.irR,date:s.date,gap:Math.abs(s.irL-s.irR)};}
-  return null;
+  const s=latestScreen(); if(!s)return null;
+  const gap=Math.abs(s.irL-s.irR);
+  return {side:s.irL<s.irR?"L":"R", l:s.irL, r:s.irR, date:s.date, gap,
+          method:s.method||"self", symmetric:gap<MIN_GAP,
+          erL:s.erL, erR:s.erR,
+          arcL:(s.erL!=null?s.irL+s.erL:null), arcR:(s.erR!=null?s.irR+s.erR:null)};
 }
 const SIDEW=s=>s==="L"?"left":"right";
 function setMkMode(dISO,m){Z.mkMode[dISO]=m;save();render();}
@@ -850,7 +868,8 @@ function setVRate(k,v){
 function orToggle(d,i){Z.orDone[d]=Z.orDone[d]||{};Z.orDone[d][i]=!Z.orDone[d][i];save();render();}
 function saveScreen(){
   const g=id=>{const v=parseFloat((document.getElementById(id)||{}).value);return isNaN(v)?null:v;};
-  const rec={date:todayISO(),irL:g("irL"),irR:g("irR"),ankL:g("ankL"),ankR:g("ankR"),kickL:g("kickL"),kickR:g("kickR")};
+  const mEl=document.getElementById("smeth");
+  const rec={date:todayISO(),method:(mEl&&mEl.value)||"self",irL:g("irL"),irR:g("irR"),erL:g("erL"),erR:g("erR"),ankL:g("ankL"),ankR:g("ankR"),kickL:g("kickL"),kickR:g("kickR")};
   if(rec.irL===null&&rec.irR===null&&rec.ankL===null&&rec.kickL===null)return;
   Z.screen.push(rec);save();render();
 }
@@ -912,8 +931,12 @@ function skillCard(w,dow,dISO,editable){
     h+=`<div class="card spine t2"><h3>Markow Hip — Wk ${w+1} Day ${mdi+1} <span class="tiertag T2">T2</span></h3>
     ${(()=>{const ws=worseSide();
       if(!ws)return `<div class="meta">No hip IR screen on file. Measure before biasing either side.</div>`;
-      return `<div class="meta">Bias reps and holds to the <b>${SIDEW(ws.side)}</b> — measured ${ws.date}: L ${ws.l}° / R ${ws.r}°, gap ${ws.gap}°.</div>
-      ${ws.side==="R"?`<div class="mini" style="color:var(--t2);margin-bottom:6px">⚠ This is the opposite of the long-held assumption that the left hip was the limiter. Markow's coaching notes below are written assuming left-worse — <b>mirror them to the right</b>.</div>`:""}`;})()}
+      if(ws.symmetric)return `<div class="meta">IR restricted <b>bilaterally</b> — ${ws.date} (${ws.method==="pt"?"PT":"self"}): L ${ws.l}° / R ${ws.r}°${ws.arcL!=null?`, total arc ${ws.arcL}° / ${ws.arcR}°`:""}. Gap of ${ws.gap}° is inside measurement noise, so <b>train both sides equally</b> and let in-session feel decide any extra work.</div>
+      <div class="mini" style="margin-bottom:6px">Markow's notes below assume one side is clearly worse. That is not what your data shows. Apply them to whichever side feels tighter that day rather than to a fixed side.</div>`;
+      return `<div class="meta">Bias reps and holds to the <b>${SIDEW(ws.side)}</b> — ${ws.date} (${ws.method==="pt"?"PT":"self"}): L ${ws.l}° / R ${ws.r}°, gap ${ws.gap}°.</div>
+      ${ws.side==="R"?`<div class="mini" style="color:var(--t2);margin-bottom:6px">⚠ Markow's notes below are written assuming left-worse — <b>mirror them to the right</b>.</div>`:""}`;})()}
+    <div class="banner teal"><b>End-feel is firm capsular, bilateral, no guarding (2026-07-30).</b> That changes how you run every item below, not which items they are.
+    <span class="mini">A capsular restriction responds to <b>tension at end range</b>, not to time in a stretch. Everywhere a class says hold, push instead: get to your end range, then contract <i>into</i> it at roughly 7 out of 10 for 10 seconds, then contract <i>out of</i> it — try to pull the shin further into rotation under your own power — for 10 seconds. Two rounds. Relax and you have wasted the rep. Passive hanging is the one thing a capsule ignores.</span></div>
     <div class="seg" style="margin-bottom:8px">
       <button class="${full?"on":""}" onclick="setMkMode('${dISO}','full')">Full</button>
       <button class="${!full?"on":""}" onclick="setMkMode('${dISO}','med')">Short on time</button></div>`;
@@ -926,7 +949,9 @@ function skillCard(w,dow,dISO,editable){
           h+=`<div class="vlink"><span>${v[0]}</span><a href="${v[1]}" target="_blank">Play ▸</a></div>`;
           if(MK_SUB[k])h+=`<div class="mini" style="color:var(--t2);margin:-2px 0 6px 0">⚠ ${MK_SUB[k]}</div>`;
           if(MK_LEFT[k]){const ws=worseSide();
-            h+=`<div class="mini" style="margin:-2px 0 6px 0"><b>Restricted side${ws?" ("+SIDEW(ws.side)+")":""}:</b> ${MK_LEFT[k]}${ws&&ws.side==="R"?` <i>Source says left; apply it to the right.</i>`:""}</div>`;}
+            const lbl=!ws?"Restricted side":(ws.symmetric?"Both sides":"Restricted side ("+SIDEW(ws.side)+")");
+            const note=ws&&ws.symmetric?` <i>Your sides are within noise — apply to whichever is tighter today.</i>`:(ws&&ws.side==="R"?` <i>Source says left; apply it to the right.</i>`:"");
+            h+=`<div class="mini" style="margin:-2px 0 6px 0"><b>${lbl}:</b> ${MK_LEFT[k]}${note}</div>`;}
           h+=vRate(k);
         } else {const t=MK_TXT[k];
           h+=`<div class="row"><div class="nm">${t[0]}<div class="sup">${t[1]}</div></div></div>`;
@@ -934,11 +959,12 @@ function skillCard(w,dow,dISO,editable){
       });
     }
     h+=`${editable?ckHTML(dISO,"markow"):""}</div>`;}
-  if(dow===0||dow===3){
-    h+=`<div class="card spine t2"><h3>Hooklying — pre-lift primer <span class="tiertag T2">T2</span></h3>
-    <div class="meta">Markow prescribes this specifically before lower-body work, not just before mobility.</div>
+  {const lift=(dow===0||dow===3);
+    h+=`<div class="card spine ${lift?"t2":""}"><h3>Hooklying — daily micro-dose${lift?" + pre-lift primer":""} <span class="tiertag ${lift?"T2":"T3"}">${lift?"T2":"T3"}</span></h3>
+    <div class="meta">${lift?"Morning, and again before you lift. Markow prescribes this specifically before lower-body work, not just before mobility.":"Morning. Three minutes. Highest-frequency capsular exposure available and it costs nothing."}</div>
     <div class="row"><div class="nm">Hooklying Low Reach · 3 × 10<div class="sup">On your back, knees bent 90, feet flat hip-width. Exhale fully, let the ribs drop, then reach the arms forward and slightly low as if pushing the ceiling away. Feel the abs switch on. Breathe in without letting the ribs flare. That is one rep.</div></div></div>
-    <div class="mini">Source: "If you struggle with hip flexion / internal rotation try adding 3 sets of hooklying every morning and before any lower body workouts."</div>
+    <div class="mini">Source: "If you struggle with hip flexion / internal rotation try adding 3 sets of hooklying <b>every morning</b> and before any lower body workouts."</div>
+    <div class="mini" style="color:var(--t2)">Not scored on non-lifting days. Missing it never counts against you.</div>
     ${editable?ckHTML(dISO,"hooklying"):""}</div>`;}
   if(dow===4){
     h+=`<div class="card spine t1"><h3>Kickboxing + Pre-Kick Drills <span class="tiertag T1">T1</span></h3>
@@ -1371,10 +1397,18 @@ function rTest(){
   <div class="card spine t1"><h3>Baseline battery — prone hip IR is the north star</h3>
   <div class="meta">Prone hip internal rotation, degrees, <b>left and right recorded separately</b>. The gap is the number that matters. Retest every 4 weeks, same method, same measurer, same time of day. Not weekly.</div>
   <div class="mini" style="margin-bottom:8px"><b>Prone, not seated.</b> The standing-leg pivot happens with the hip near neutral, which is what prone tests. Seated tests it at 90° of hip flexion — a different capsular position and a different number. Never compare across.</div>
-  <div class="mini" style="margin-bottom:8px"><b>Method:</b> best is a PT at your practice, same person every time. Solo: prone, phone overhead on a tripod, hardcover book flat across the sacrum as the pelvic-lift alarm, self-timer photo at passive end range, measure the shin angle off vertical in the photo afterward.</div>
+  <div class="banner amber" style="margin-bottom:8px"><b>Gravity-only self-measurement under-reads a firm capsular end-feel. Do not use it.</b>
+  Confirmed 2026-07-30: end-feel is firm capsular bilaterally, no guarding. A capsular stop only appears when you push into it, so letting the shin fall under its own weight stops short of the real limit — and stops short by an unpredictable amount. That is why the self-measure and the PT agreed within 2° on the left and differed by 14° on the right.</div>
+  <div class="mini" style="margin-bottom:8px"><b>Use one of these instead.</b><br>
+  <b>1. PT, same person every time.</b> The reliable option. Passive with overpressure, hand on the pelvis.<br>
+  <b>2. Solo with overpressure.</b> Prone, knee at 90, loop a strap or belt around the ankle and pull the shin outward with steady tension until you meet a firm stop, not a stretch. Book flat across the sacrum as the pelvic-lift alarm — if it shifts, the rep is void. Tripod photo at the stop, measure the shin angle off vertical afterward. Same strap tension every time, which is the hard part and why option 1 is better.</div>
+  <div class="banner amber" style="margin-bottom:8px"><b>Decision point: week 6 retest (≈ Sep 7).</b> A firm capsular end-feel is trainable. A <i>bony</i> end-feel is not, and at this stage the two are hard to tell apart — 20–25° IR with a normal 50° ER, symmetric, firm, no guarding, is also the classic signature of femoral retroversion or acetabular over-coverage, which is architecture, not tightness.
+  <span class="mini">Six weeks of loaded end-range work is the cheapest test that exists. <b>If IR has moved ≥5° on either side, the restriction is soft tissue and the plan is working — continue.</b> If it has not moved at all, stop spending the block chasing range: ask the PT about morphology, consider an AP pelvis / Dunn view, and shift the kick work toward technique that does not need hip IR — more pelvic rotation and more trunk lean over the standing leg. Both are legitimate paths to a nose-height kick. Only one of them is available to you if the hip is shaped that way.</span></div>
   <div class="grid2">
     <div><label class="f">Hip IR — Left (deg)</label><input type="number" id="irL" inputmode="decimal"></div>
     <div><label class="f">Hip IR — Right (deg)</label><input type="number" id="irR" inputmode="decimal"></div>
+    <div><label class="f">Hip ER — Left (deg)</label><input type="number" id="erL" inputmode="decimal"></div>
+    <div><label class="f">Hip ER — Right (deg)</label><input type="number" id="erR" inputmode="decimal"></div>
     <div><label class="f">Ankle DF — Left (deg)</label><input type="number" id="ankL" inputmode="decimal"></div>
     <div><label class="f">Ankle DF — Right (deg)</label><input type="number" id="ankR" inputmode="decimal"></div>
     <div><label class="f">Kick height — Left</label><input type="number" id="kickL" inputmode="decimal"></div>
@@ -1392,10 +1426,17 @@ function rTest(){
   <div style="margin-top:6px"><b>Rough reference:</b> around 35–45° is unremarkable, under about 30° is genuinely restricted. Same rules as the hip: same time of day, same wall, same landmark on the shin, and log the angle rather than the toe-to-wall distance, since the angle does not change if your stance drifts.</div>
   <div style="margin-top:6px">Why it earns a slot: of every joint in the evidence report, ankle dorsiflexion has the <b>strongest</b> response to eccentric training (g = 1.12), and foam rolling the calves was shown <b>not</b> to improve it. So it is both worth measuring and worth training deliberately rather than hoping mobility work covers it.</div>
   </div></details>
+  <div class="grid2" style="margin-top:6px"><div><label class="f">Measured by</label>
+  <select id="smeth"><option value="pt">PT / clinician</option><option value="self">Self</option></select></div><div></div></div>
   <div style="margin-top:10px"><button class="btn sm" onclick="saveScreen()">Save screen</button></div>
+  <div class="mini" style="margin-top:8px"><b>Measure the whole arc, both directions.</b> Your PT is right that IR alone is the wrong unit. IR and ER trade off against each other, so a hip can look restricted in IR while its total rotational arc is normal — that is a distribution problem, not a capsule problem, and it responds to different work. Log both or the number cannot be interpreted.
+  <br><b>Never mix methods in one trend.</b> Self-measured gravity-only end range and clinician passive-with-overpressure are different protocols and produce different numbers. Tag every entry and compare like with like.</div>
   ${Z.screen.length?`<div style="margin-top:12px">${Z.screen.slice(-6).reverse().map(s=>{
      const gap=(s.irL!=null&&s.irR!=null)?Math.abs(s.irL-s.irR).toFixed(0):"—";
-     return `<div class="row"><div class="nm">${s.date}<div class="sup">Hip IR L ${s.irL??"—"} / R ${s.irR??"—"} · <b>gap ${gap}</b> &nbsp;·&nbsp; Ankle L ${s.ankL??"—"} / R ${s.ankR??"—"} &nbsp;·&nbsp; Kick L ${s.kickL??"—"} / R ${s.kickR??"—"}</div></div></div>`;}).join("")}</div>`
+     const arcL=(s.irL!=null&&s.erL!=null)?s.irL+s.erL:null, arcR=(s.irR!=null&&s.erR!=null)?s.irR+s.erR:null;
+     return `<div class="row"><div class="nm">${s.date} <span class="chip ghost">${(s.method||"self")==="pt"?"PT":"self"}</span>
+     <div class="sup">IR L ${s.irL??"—"} / R ${s.irR??"—"} · gap ${gap}${s.erL!=null?` &nbsp;·&nbsp; ER L ${s.erL} / R ${s.erR}`:""}${arcL!=null?` &nbsp;·&nbsp; <b>arc ${arcL}° / ${arcR}°</b>`:""}
+     ${s.ankL!=null?`<br>Ankle L ${s.ankL} / R ${s.ankR}`:""}${s.kickL!=null?` &nbsp;·&nbsp; Kick L ${s.kickL} / R ${s.kickR}`:""}</div></div></div>`;}).join("")}</div>`
    :`<div class="mini" style="margin-top:10px">No screen recorded yet. Take it cold on on-ramp Day 1.</div>`}
   </div>
   <div class="card"><h3>Dynamic-effort bench — D2 <span class="tiertag T3">opt-in</span></h3>
