@@ -130,41 +130,36 @@ details[open] summary:after{transform:rotate(-90deg)}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v10.1 · 2026-07-28";
+const BUILD="v10.3 · 2026-07-29";
 const PROGRAM_START="2026-08-03";           /* Monday. Week 1 Day 1. */
-const ONRAMP_START="2026-07-28";            /* Tuesday. Six days of re-entry. */
+const ONRAMP_START="2026-07-30";            /* Thursday. Revised to 4 days: Tue 28 + Wed 29 were missed. */
 /* Two weeks off. Purpose of these six days is the six baseline numbers,
    not the training. Every day has a floor and nothing here can be failed. */
 const ONRAMP=[
- {d:"2026-07-28",t:"Assess + upper",floor:"Prone hip IR measurement + one bench triple. 15 min.",items:[
-  ["Baselines — prone hip IR and ankle DF, both sides","Cold, before anything else. Use the Test tab to record. ~10 min."],
-  ["Warm-up — GMB Fundamentals or Shoulders","15 min"],
-  ["TEST · Bench","Work up to a hard triple at RPE 7-8. Not a max. A set of 3 where 1-2 more were clearly available."],
-  ["NEW · Dynamic-effort bench","6 × 3 at 50% of the new e1RM, 45 s rest. Bar speed is the point, not load. If it feels like conditioning the weight is too heavy."],
-  ["Accessory — rear delts and cuff","2-3 sets each, easy"],
-  ["Markow preview — Pelvic Magic Zero","22:44. Anchors Week 1 Day 1, so meet it now."]]},
- {d:"2026-07-29",t:"Zone 2 + hip",floor:"20 minutes of easy riding. That is a complete session.",items:[
-  ["Peloton Zone 2 — 45-60 min","Not the full 90. Re-entry ride. Ride by feel; FTP is stale and the app will not pretend otherwise. No FTP test this week."],
-  ["Markow preview — Week 1 Day 2 pattern","Pelvic rolling (PM 1), then hip rotation CARs."]]},
- {d:"2026-07-30",t:"Lower test 1",floor:"The box squat triple.",items:[
-  ["Warm-up — GMB Prep + hooklying low reach 3 × 10","Markow prescribes hooklying before lower-body work specifically for hip flexion and IR."],
-  ["TEST · Box squat","Hard triple at RPE 7-8."],
-  ["Accessory — glute med activation, then Booty Sprout","2 sets. Log band configuration and reps."],
+ {d:"2026-07-30",t:"Home · ankle screen + box squat",floor:"One box squat triple. That is the day.",items:[
+  ["Ankle dorsiflexion screen, both sides","Weight-bearing lunge with the clinometer on the shin. See the Test tab for the method. Hip IR is already done (Jul 28)."],
+  ["Warm-up — GMB Prep + hooklying low reach 3 × 10","Markow prescribes hooklying specifically before lower-body work."],
+  ["TEST · Box squat","Hard triple at RPE 7-8. Not a max. Belt on — the reason this lift is at home."],
+  ["Accessory — glute med activation, then Booty Sprout 2 sets","Log band counts, reps, any pause. Sets the rep baseline the progression engine reads."],
+  ["Markow preview — Pelvic Magic Zero (22:44)","Optional. Anchors Week 1 Day 1."],
   ["No plyometrics","Deliberate. Not stacking jump work on a detrained system in a test week."]]},
- {d:"2026-07-31",t:"Kickboxing",floor:"Attend class.",items:[
+ {d:"2026-07-31",t:"MMA gym · kickboxing + bench",floor:"Attend class, and mark kick height while warm.",items:[
   ["Pre-class — ballistic leg swings, submaximal, 5 min","The correct and only use of the Luke Thomas ballistic material."],
-  ["Kickboxing as normal",""],
-  ["Post-class — kick height baseline, both legs","While warm. Mark the highest clean contact where the chamber holds and the standing foot pivots. Do not mark a kick you leaned away from."]]},
- {d:"2026-08-01",t:"Lower test 2 + sprint re-entry",floor:"The trap bar triple.",items:[
+  ["Kickboxing lesson as normal",""],
+  ["Kick height baseline, both legs — while warm","Highest clean contact where the chamber holds and the standing foot pivots. Not a kick you leaned away from. Photograph the mark."],
+  ["TEST · Bench","Hard triple at RPE 7-8. Post-kickboxing, so treat the number as a floor rather than a ceiling. It only sets a starting load."],
+  ["NEW · Dynamic-effort bench","6 × 3 at 50% of the new e1RM, 45 s rest. Bar speed is the point. If it feels like conditioning, too heavy."],
+  ["Accessories — machines and dumbbells only","Rear delts, cuff, rows, arms. No belt, no barbell lower work. What the gym is actually good for."]]},
+ {d:"2026-08-01",t:"Home · trap bar, then the ride",floor:"The trap bar triple.",items:[
   ["Warm-up — full lower, hooklying, ankle work",""],
-  ["TEST · Trap bar","Hard triple at RPE 7-8."],
-  ["Sprint — mechanics only","A-skips, wall drills, acceleration posture. No build-ups, no strides, no timed runs. Stage 1 of the ramp is mechanics; starting early defeats it."],
-  ["Optional easy Zone 2, 30-45 min","Only if the trap bar felt good."],
-  ["Markow preview — Pelvic Magic Cross Connect","26:51. Week 1 Day 3's anchor."]]},
- {d:"2026-08-02",t:"BJJ + close out",floor:"Enter the numbers. Even if you train nothing, the week succeeded if the baselines exist.",items:[
+  ["TEST · Trap bar — FIRST, before the ride","Hard triple at RPE 7-8. Lift before cardio so the number is clean. 48 h after box squat, which is the floor of acceptable for submaximal triples."],
+  ["Zone 2 ride, 45-60 min","After the trap bar. Replaces the Wednesday re-entry ride."],
+  ["Sprint — mechanics only","A-skips, wall drills, acceleration posture. No build-ups, no strides, no timed runs."],
+  ["Markow preview — Pelvic Magic Cross Connect (26:51)","Optional. Week 1 Day 3's anchor."]]},
+ {d:"2026-08-02",t:"BJJ + close out",floor:"Press Set as block baselines. Even if you train nothing, the week succeeded.",items:[
   ["BJJ as normal",""],
   ["Markow — Week 1 Day 4 pattern","Hip rotation mini. About 8 minutes."],
-  ["Enter all six baseline numbers in the Test tab","Prone hip IR L/R · ankle DF L/R · kick height L/R · three lift e1RMs"]]}
+  ["Enter remaining numbers, then press Set as block baselines","Kick height, ankle DF, and the three lift e1RMs. This is what Week 1 loads off."]]}
 ];
 const orIndex=iso=>ONRAMP.findIndex(o=>o.d===iso);
 const inOnramp=iso=>iso>=ONRAMP_START&&iso<PROGRAM_START;
@@ -653,6 +648,10 @@ Z.effort=Z.effort||{};         /* durationMin -> {w, date} best-effort power buc
 Z.mkMode=Z.mkMode||{};         /* dateISO -> 'full'|'med' for that day's Markow session */
 Z.vrate=Z.vrate||{};           /* videoKey -> {r:1..5, date, n} difficulty rating */
 Z.screen=Z.screen||[];         /* [{date,irL,irR,ankL,ankR,kickL,kickR}] baseline battery */
+/* Measured by Robert 2026-07-28, seeded once so the block starts from real data.
+   NOTE: right (11 deg) is MORE restricted than left (18 deg) — the opposite of the
+   standing assumption that the left hip was the limiter. worseSide() reads this. */
+if(!Z.seed0){Z.screen.push({date:"2026-07-28",irL:18,irR:11,ankL:null,ankR:null,kickL:null,kickR:null});Z.seed0=true;}
 Z.de=Z.de||false;              /* dynamic-effort bench on D2, opt-in */
 Z.base=Z.base||null;           /* {boxsq,trap,bench,date} e1RMs from the on-ramp */
 Z.orDone=Z.orDone||{};         /* on-ramp day completion */
@@ -705,7 +704,7 @@ function render(){
   document.getElementById("hdrTitle").textContent=TABS.find(t=>t[0]===cur)[1];
   const _dI=todayISO();
   const _phase = _dI<ONRAMP_START ? `Pre-on-ramp · starts Jul 28`
-               : (inOnramp(_dI) ? `On-ramp Day ${orIndex(_dI)+1} of 6` : `Week ${w+1} of 12 · ${isDeloadWeek(w)?"<b style='color:var(--z2)'>Biolayne Deload</b>":phz}`);
+               : (inOnramp(_dI) ? `On-ramp Day ${orIndex(_dI)+1} of ${ONRAMP.length}` : `Week ${w+1} of 12 · ${isDeloadWeek(w)?"<b style='color:var(--z2)'>Biolayne Deload</b>":phz}`);
   document.getElementById("hdrSub").innerHTML=`${_phase}${isDown()?" · <b style='color:var(--t2)'>DOWN-WEEK ACTIVE</b>":""} · <span style="opacity:.55">${BUILD}</span>`;
 }
 
@@ -830,6 +829,13 @@ function chaosCard(dISO){
   return h;
 }
 function mkDefaultMed(){Z.mkMedDefault=true;save();render();}
+/* Which hip is actually more restricted, from the most recent screen with both sides. */
+function worseSide(){
+  for(let i=Z.screen.length-1;i>=0;i--){const s=Z.screen[i];
+    if(s.irL!=null&&s.irR!=null)return {side:s.irL<s.irR?"L":"R",l:s.irL,r:s.irR,date:s.date,gap:Math.abs(s.irL-s.irR)};}
+  return null;
+}
+const SIDEW=s=>s==="L"?"left":"right";
 function setMkMode(dISO,m){Z.mkMode[dISO]=m;save();render();}
 function vRate(k){
   const r=Z.vrate[k];
@@ -904,7 +910,10 @@ function skillCard(w,dow,dISO,editable){
     const mm=Z.mkMode&&Z.mkMode[dISO];
     const full=mm?mm==="full":!Z.mkMedDefault;
     h+=`<div class="card spine t2"><h3>Markow Hip — Wk ${w+1} Day ${mdi+1} <span class="tiertag T2">T2</span></h3>
-    <div class="meta">Left hip IR is the bottleneck. Bias reps and holds left.</div>
+    ${(()=>{const ws=worseSide();
+      if(!ws)return `<div class="meta">No hip IR screen on file. Measure before biasing either side.</div>`;
+      return `<div class="meta">Bias reps and holds to the <b>${SIDEW(ws.side)}</b> — measured ${ws.date}: L ${ws.l}° / R ${ws.r}°, gap ${ws.gap}°.</div>
+      ${ws.side==="R"?`<div class="mini" style="color:var(--t2);margin-bottom:6px">⚠ This is the opposite of the long-held assumption that the left hip was the limiter. Markow's coaching notes below are written assuming left-worse — <b>mirror them to the right</b>.</div>`:""}`;})()}
     <div class="seg" style="margin-bottom:8px">
       <button class="${full?"on":""}" onclick="setMkMode('${dISO}','full')">Full</button>
       <button class="${!full?"on":""}" onclick="setMkMode('${dISO}','med')">Short on time</button></div>`;
@@ -916,7 +925,8 @@ function skillCard(w,dow,dISO,editable){
         if(isV){const v=V[k];
           h+=`<div class="vlink"><span>${v[0]}</span><a href="${v[1]}" target="_blank">Play ▸</a></div>`;
           if(MK_SUB[k])h+=`<div class="mini" style="color:var(--t2);margin:-2px 0 6px 0">⚠ ${MK_SUB[k]}</div>`;
-          if(MK_LEFT[k])h+=`<div class="mini" style="margin:-2px 0 6px 0"><b>Left hip:</b> ${MK_LEFT[k]}</div>`;
+          if(MK_LEFT[k]){const ws=worseSide();
+            h+=`<div class="mini" style="margin:-2px 0 6px 0"><b>Restricted side${ws?" ("+SIDEW(ws.side)+")":""}:</b> ${MK_LEFT[k]}${ws&&ws.side==="R"?` <i>Source says left; apply it to the right.</i>`:""}</div>`;}
           h+=vRate(k);
         } else {const t=MK_TXT[k];
           h+=`<div class="row"><div class="nm">${t[0]}<div class="sup">${t[1]}</div></div></div>`;
@@ -1059,12 +1069,12 @@ function rToday(){
   if(dISO<ONRAMP_START){
     const dd=Math.round((new Date(ONRAMP_START+"T00:00:00")-new Date(dISO+"T00:00:00"))/86400000);
     const o=ONRAMP[0];
-    h+=`<div class="card spine t1"><h3>On-ramp starts ${dd===1?"tomorrow":"in "+dd+" days"} — Tue 2026-07-28</h3>
-    <div class="meta">Today is ${DAYS[dow]} ${dISO}. Nothing is scheduled yet. The six-day on-ramp opens automatically on Jul 28 and hands off to Week 1 on Mon Aug 3.</div>
+    h+=`<div class="card spine t1"><h3>On-ramp starts ${dd===1?"tomorrow":"in "+dd+" days"} — Thu 2026-07-30</h3>
+    <div class="meta">Today is ${DAYS[dow]} ${dISO}. Nothing is scheduled yet. The four-day on-ramp opens automatically on Jul 30 and hands off to Week 1 on Mon Aug 3.</div>
     <div class="klabel" style="margin-top:8px">Day 1 preview — ${o.t}</div>
     ${o.items.map(it=>`<div class="row"><div class="nm">${it[0]}${it[1]?`<div class="sup">${it[1]}</div>`:""}</div></div>`).join("")}
     <div class="banner teal" style="margin-top:10px"><b>Floor:</b> ${o.floor}</div>
-    <div class="mini" style="margin-top:8px">Worth doing before Tuesday: install a clinometer app and find a spot for the tripod photo. The hip IR baseline is taken cold, first thing.</div></div>`;
+    <div class="mini" style="margin-top:8px">Worth doing first: install a clinometer app and find a spot for the tripod photo. The hip IR baseline is taken cold, first thing.</div></div>`;
     el.innerHTML=h;return;
   }
   if(inOnramp(dISO)){
@@ -1073,7 +1083,7 @@ function rToday(){
     <div class="seg">${[1,2,3,4,5].map(v=>`<button class="${r===v?"on":""}" onclick="setReady(${v})">${v}</button>`).join("")}</div></div>`;
     if(o){
       const dn=Z.orDone[dISO]||{};
-      h+=`<div class="card spine t1"><h3>On-ramp · Day ${i+1} of 6 — ${o.t}</h3>
+      h+=`<div class="card spine t1"><h3>On-ramp · Day ${i+1} of ${ONRAMP.length} — ${o.t}</h3>
       <div class="meta">${DAYS[dow]} ${dISO} · full block starts Mon 2026-08-03</div>
       ${o.items.map((it,ix)=>`<div class="row"><div class="nm">${it[0]}${it[1]?`<div class="sup">${it[1]}</div>`:""}</div>
         <button class="btn sm ${dn[ix]?"on":""}" onclick="orToggle('${dISO}',${ix})">${dn[ix]?"✓":"○"}</button></div>`).join("")}
@@ -1365,11 +1375,23 @@ function rTest(){
   <div class="grid2">
     <div><label class="f">Hip IR — Left (deg)</label><input type="number" id="irL" inputmode="decimal"></div>
     <div><label class="f">Hip IR — Right (deg)</label><input type="number" id="irR" inputmode="decimal"></div>
-    <div><label class="f">Ankle DF — Left (cm)</label><input type="number" id="ankL" inputmode="decimal"></div>
-    <div><label class="f">Ankle DF — Right (cm)</label><input type="number" id="ankR" inputmode="decimal"></div>
+    <div><label class="f">Ankle DF — Left (deg)</label><input type="number" id="ankL" inputmode="decimal"></div>
+    <div><label class="f">Ankle DF — Right (deg)</label><input type="number" id="ankR" inputmode="decimal"></div>
     <div><label class="f">Kick height — Left</label><input type="number" id="kickL" inputmode="decimal"></div>
     <div><label class="f">Kick height — Right</label><input type="number" id="kickR" inputmode="decimal"></div>
   </div>
+  <details style="margin-top:8px"><summary class="mini"><b>Ankle dorsiflexion — how to measure it</b></summary>
+  <div class="mini" style="margin-top:6px">Same clinometer, and easier than the hip because you can see everything. This is the <b>weight-bearing lunge test</b>, which is the version the research uses and the one that matters, since it loads the ankle the way squatting and kicking do. Passive seated dorsiflexion measures something you never use.
+  <ol style="margin:6px 0 0 16px;padding:0">
+  <li>Barefoot, facing a wall. Test foot forward, pointing straight at the wall, second toe in line with the knee.</li>
+  <li>Drive the knee forward to touch the wall. <b>The heel must stay flat on the floor.</b> Heel lift ends the rep.</li>
+  <li>Slide the foot back a little at a time until the knee can only just barely reach the wall with the heel still down. That is end range.</li>
+  <li>Rest the phone flat against the front of the shin, over the tibial crest, and read the angle off vertical.</li>
+  <li>Both sides. Hold the back leg out of it — this is a single-leg measurement, do not let the rear leg push you forward.</li>
+  </ol>
+  <div style="margin-top:6px"><b>Rough reference:</b> around 35–45° is unremarkable, under about 30° is genuinely restricted. Same rules as the hip: same time of day, same wall, same landmark on the shin, and log the angle rather than the toe-to-wall distance, since the angle does not change if your stance drifts.</div>
+  <div style="margin-top:6px">Why it earns a slot: of every joint in the evidence report, ankle dorsiflexion has the <b>strongest</b> response to eccentric training (g = 1.12), and foam rolling the calves was shown <b>not</b> to improve it. So it is both worth measuring and worth training deliberately rather than hoping mobility work covers it.</div>
+  </div></details>
   <div style="margin-top:10px"><button class="btn sm" onclick="saveScreen()">Save screen</button></div>
   ${Z.screen.length?`<div style="margin-top:12px">${Z.screen.slice(-6).reverse().map(s=>{
      const gap=(s.irL!=null&&s.irR!=null)?Math.abs(s.irL-s.irR).toFixed(0):"—";
