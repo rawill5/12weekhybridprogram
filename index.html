@@ -130,9 +130,9 @@ details[open] summary:after{transform:rotate(-90deg)}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.7 · 2026-08-04";
+const BUILD="v11.11 · 2026-08-04";
 const PROGRAM_START="2026-08-10";           /* Monday. Week 1 Day 1. */
-const ONRAMP_START="2026-08-04";            /* Thursday. Revised to 4 days: Tue 28 + Wed 29 were missed. */
+const ONRAMP_START="2026-08-04";            /* Tuesday. Six days, Aug 4-9. */
 /* Two weeks off. Purpose of these six days is the six baseline numbers,
    not the training. Every day has a floor and nothing here can be failed. */
 const ONRAMP=[
@@ -737,7 +737,19 @@ Z.gmb=Z.gmb||{dur:15,ov:{}};   /* ov: dateISO->class override; on: dateISO->bool
    protecting.
 
    No toggle. Non-additive by construction: one set out, two in, every time. */
-const HEAVY_BO={sets:2,reps:3,rir:2};   /* ~86% by the same inverse-Epley the app uses */
+/* v11.8 BUG FIX — Robert, 2026-08-04: "Wouldn't 2x3 with two reps in reserve be more
+   weight than 1x3 with three reps in reserve?" Yes. A fixed RIR 2 made the "back-offs"
+   HEAVIER than the top set in 4 of 12 weeks and EQUAL in 6 more — only weeks 5 and 12 were
+   genuinely lighter. Worst case was week 6, the deliberate light week at RIR 4, where the
+   back-offs came out 15 lb ABOVE the top set and would have erased the deload.
+
+   The back-off RIR is now derived from the top set's: one step easier, always. That makes
+   it lighter by construction, ~2% of load, and it inherits the weekly wave and the week-6
+   deload automatically instead of fighting them. */
+function heavyBO(w,dkey){
+  const [,r,rir]=RX[w][dkey][0];
+  return {sets:2,reps:3,rir:(rir==null?2:rir)+1,topReps:r,topRir:rir};
+}
 const HEAVY_BO_DAYS=["d1","d2","d3"];
 /* How many hypertrophy sets come out to pay for the two heavy triples.
    Caught by sweeping all 12 weeks rather than just week 1: the AUTHORED block already
@@ -988,7 +1000,8 @@ function velocityGated(dISO){const r=whoopReady(dISO);
 
 /* ---- v10 additions ---- */
 Z.mkMode=Z.mkMode||{};         /* dateISO -> 'full'|'med' for that day's Markow session */
-if(Z.avail===undefined)Z.avail=null;  /* v10.7 — minutes available today, for the planner */
+if(Z.avail===undefined)Z.avail=null;
+if(Z.orShort===undefined)Z.orShort=null;   /* v11.10 dateISO when the on-ramp day is in short mode */  /* v10.7 — minutes available today, for the planner */
 Z.whoop=Z.whoop||{};           /* v11 dateISO -> {rec, hrv, z4min} from the Whoop export */
 Z.aero=Z.aero||{};             /* v11 dateISO -> minutes above the t4 threshold */
 Z.lo=Z.lo||{};                 /* v11.1 dateISO -> {L:{wt,reps},R:{wt,reps}} hip IR lift-offs */
@@ -1026,6 +1039,11 @@ if(Z.start!==PROGRAM_START&&!Z.startPinned)Z.start=PROGRAM_START;
 function save(){S.v9=Z;localStorage.setItem(KEY,JSON.stringify(S));}
 const iso=d=>d.toISOString().slice(0,10);
 const today=()=>new Date();
+/* v11.10: every user-facing date is now derived. Three separate hardcoded dates from
+   three start-dates ago survived into v11.9 on the pre-on-ramp card and told Robert the
+   on-ramp opened "Thu 2026-07-30". Nothing below may hardcode a date. */
+const fmtD=s=>{const d=new Date(s+"T00:00:00");
+  return isNaN(d)?s:`${["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][(d.getDay()+6)%7]} ${s}`;};
 const todayISO=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);};
 function dayIdx(d){return (d.getDay()+6)%7;} /* Mon=0 */
 function curWeek(){ /* 0..11, clamped */
@@ -1469,7 +1487,7 @@ function strengthCard(w,dkey,dISO,editable){
     const inp=editable?`<input class="win" inputmode="decimal" placeholder="${sg?sg.lb:(lastLoad(e.k,dISO)||"lb")}" value="${(Z.lifts[dISO]&&Z.lifts[dISO][e.k]&&Z.lifts[dISO][e.k].w)||""}" onchange="setLoad('${dISO}','${e.k}',this.value)">`:"";
     const sub2=sg?`${e.tag} · <b>start ~${sg.lb} lb</b> (${sg.pct}% of ${sg.e1}${sg.src&&sg.src!=="on-ramp test"?` — from your ${sg.src} on ${sg.when}`:""}) — then let RIR decide`
                  :(MAINLIFT[e.k]?`${e.tag} · <i>no e1RM yet — test in the on-ramp and this fills in</i>`:e.tag);
-    const useSets=(i===1&&HEAVY_BO_DAYS.includes(dkey))?Math.max(1,s-hboTrade(w)):s;
+    const useSets=(i===1&&HEAVY_BO_DAYS.includes(dkey))?Math.max(1,s-hboTrade(R.i)):s;
     /* dynamic-effort bench sits after the heavy work on D2 */
     if(i===1&&dkey==="d2"&&Z.de){
       const W=workingE1("bench",dISO);
@@ -1480,15 +1498,21 @@ function strengthCard(w,dkey,dISO,editable){
         <div class="rx">${DE.sets}×${DE.reps}</div>
         ${editable?`<input class="win" inputmode="decimal" placeholder="${lb||"lb"}" value="${dv}" onchange="setLoad('${dISO}','bp_de',this.value)">`:""}</div>`;
     }
-    rows+=`<div class="row"><div class="nm">${e.n}${seTxt}<div class="sup">${sub2}${(i===1&&HEAVY_BO_DAYS.includes(dkey))?` · <i>${hboTrade(w)} set${hboTrade(w)===1?"":"s"} fewer than written — traded for the heavy triples above${w>=3?", net-neutral on volume":""}</i>`:""}</div></div><div class="rx">${useSets}×${r}${rir!=null?" · RIR "+rir:""}</div>${inp}</div>`;
+    rows+=`<div class="row"><div class="nm">${e.n}${seTxt}<div class="sup">${sub2}${(i===1&&HEAVY_BO_DAYS.includes(dkey))?` · <i>${hboTrade(R.i)} set${hboTrade(R.i)===1?"":"s"} fewer than written — traded for the heavy triples above${R.i>=3?", net-neutral on volume":""}</i>`:""}</div></div><div class="rx">${useSets}×${r}${rir!=null?" · RIR "+rir:""}</div>${inp}</div>`;
     /* the heavy back-offs sit between the top set and the hypertrophy back-offs */
     if(i===0&&HEAVY_BO_DAYS.includes(dkey)){
       const hk=e.k.replace("_top","_hbo");
-      const hs=suggestLoad(e.k,HEAVY_BO.reps,HEAVY_BO.rir,dISO);
+      /* v11.8: must use R.i, the EARNED week, not w. The rest of this card reads
+         RX[R.i]; deriving the back-off from RX[w] made the two disagree whenever the
+         exposure ledger was behind, and in weeks 5 and 12 that produced a back-off equal
+         to the displayed top set again — the exact bug this fix was for, one layer down. */
+      const HB=heavyBO(R.i,dkey);
+      const hs=suggestLoad(e.k,HB.reps,HB.rir,dISO);
+      const ts=suggestLoad(e.k,r,rir,dISO);
       const hin=editable?`<input class="win" inputmode="decimal" placeholder="${hs?hs.lb:"lb"}" value="${(Z.lifts[dISO]&&Z.lifts[dISO][hk]&&Z.lifts[dISO][hk].w)||""}" onchange="setLoad('${dISO}','${hk}',this.value)">`:"";
       rows+=`<div class="row"><div class="nm">${e.n.replace("Top Set","Heavy Back-offs")}
-        <div class="sup">Main · ${hs?`<b>start ~${hs.lb} lb</b> (${hs.pct}% of ${hs.e1})`:"<i>no e1RM yet</i>"} — the two triples that carry the block</div></div>
-        <div class="rx">${HEAVY_BO.sets}×${HEAVY_BO.reps} · RIR ${HEAVY_BO.rir}</div>${hin}</div>`;
+        <div class="sup">Main · ${hs?`<b>start ~${hs.lb} lb</b> (${hs.pct}% of ${hs.e1})${ts?` — ${ts.lb-hs.lb} lb under the top set`:""}`:"<i>no e1RM yet</i>"} — the two triples that carry the block</div></div>
+        <div class="rx">${HB.sets}×${HB.reps} · RIR ${HB.rir}</div>${hin}</div>`;
     }
   });
   return `<div class="card spine t1"><h3>${names[dkey]} <span class="tiertag T1">T1</span></h3>
@@ -1679,7 +1703,7 @@ function rToday(){
   let h="";
   if(!Z.assumeDismiss){
     h+=`<div class="card"><h3>Confirm v11 assumptions</h3><ul class="assume">
-    <li><b>Block starts Mon 2026-08-10</b>, after a 6-day on-ramp Aug 4&ndash;9. Progression is <b>calendar-driven, not completion-driven</b> — a missed session never stalls the block, nothing repeats, no makeup work.</li>
+    <li><b>Block starts Mon 2026-08-10</b>, after a 6-day on-ramp Aug 4&ndash;9. <b>Two clocks, and this used to be stated wrong.</b> The <b>calendar</b> is calendar-driven — a missed session never stalls the block, nothing repeats, no makeup work. The <b>load</b> is completion-driven — your prescription is indexed to heavy exposures actually completed, so the bar waits for the work even though the calendar does not.</li>
     <li><b>A week succeeds on 3 compound days, not 4.</b> Protected: D1 box squat, D2 bench, D3 trap bar. D4 is the flex day and is made up at the Sunday social lift. This is a published progression dose in your exact population, not a softened standard.</li>
     <li><b>Intensity is the protected variable.</b> Cut frequency, cut volume, cut duration — never cut load. A 2-lift week at 85% beats a 4-lift week at 70%.</li>
     <li><b>North star is kick height</b>, with lift-off height and the rear-view video as diagnostics. Passive hip IR is now a background metric.</li>
@@ -1691,7 +1715,7 @@ function rToday(){
     <li><b>Hip IR test is prone, in degrees, left vs right.</b> Not Prone Capsule CARs — no video exists to teach it and a CAR is a skill, which would confound learning with range.</li>
     <li><b>Luke Thomas / F4F is a warm-up, not a program.</b> Its assessment battery has no internal-rotation test at all, so it cannot see your limiter.</li>
     <li><b>No general-mobility program.</b> Full-ROM lifting raises ROM about as much as stretch training, so the barbell owns that. Total Body Mobility and 5Day Foundation dropped as redundant.</li>
-    <li><b>FTP is stale and not being tested.</b> Ride Peloton by feel; the number recalculates from logged efforts.</li>
+    <li><b>Your existing FTP stands.</b> Ride the Power Zone pack against it. No FTP test is scheduled and the app does not calculate one — Peloton owns that number. You are at the bottom of your current FTP after the layoff, so a retest now would only record the dip; leave it until the block has run.</li>
     <li><b>Dynamic-effort bench on D2 is ON</b> — 6×3 @ 50%, 45 s rest, after the heavy work. Agreed 2026-07-28; it was declared but never wired in until v11.7.</li>
     <li><b>Sex = male</b> for BMR · <b>activity 1.6</b> default · <b>protein on total BW</b> unless BF% &gt; 25%.</li>
     <li><b>Booty Sprout bands are 45 lb and 70 lb, quantity unknown</b>, so the picker takes a count of each. The nominal total orders your progression but is <b>not</b> comparable to barbell load and is excluded from tonnage. Progression stays reps → tempo/pause → tension.</li></ul>
@@ -1700,8 +1724,8 @@ function rToday(){
   if(dISO<ONRAMP_START){
     const dd=Math.round((new Date(ONRAMP_START+"T00:00:00")-new Date(dISO+"T00:00:00"))/86400000);
     const o=ONRAMP[0];
-    h+=`<div class="card spine t1"><h3>On-ramp starts ${dd===1?"tomorrow":"in "+dd+" days"} — Thu 2026-07-30</h3>
-    <div class="meta">Today is ${DAYS[dow]} ${dISO}. Nothing is scheduled yet. The four-day on-ramp opens automatically on Jul 30 and hands off to Week 1 on Mon Aug 3.</div>
+    h+=`<div class="card spine t1"><h3>On-ramp starts ${dd===1?"tomorrow":"in "+dd+" days"} — ${fmtD(ONRAMP_START)}</h3>
+    <div class="meta">Today is ${fmtD(dISO)}. Nothing is scheduled yet. The ${ONRAMP.length}-day on-ramp opens automatically on ${fmtD(ONRAMP_START)} and hands off to Week 1 on ${fmtD(PROGRAM_START)}.</div>
     <div class="klabel" style="margin-top:8px">Day 1 preview — ${o.t}</div>
     ${o.items.map(it=>`<div class="row"><div class="nm">${it[0]}${it[1]?`<div class="sup">${it[1]}</div>`:""}</div></div>`).join("")}
     <div class="banner teal" style="margin-top:10px"><b>Floor:</b> ${o.floor}</div>
@@ -1715,13 +1739,18 @@ function rToday(){
     if(o){
       const dn=Z.orDone[dISO]||{};
       h+=`<div class="card spine t1"><h3>On-ramp · Day ${i+1} of ${ONRAMP.length} — ${o.t}</h3>
-      <div class="meta">${DAYS[dow]} ${dISO} · full block starts Mon 2026-08-03</div>
-      ${o.items.map((it,ix)=>`<div class="row"><div class="nm">${it[0]}${it[1]?`<div class="sup">${it[1]}</div>`:""}</div>
+      <div class="meta">${fmtD(dISO)} · full block starts ${fmtD(PROGRAM_START)}</div>
+      ${Z.orShort===dISO?`<div class="mini" style="margin:6px 0;color:var(--t2)">Showing the floor only. Everything else today is optional.</div>`
+        :o.items.map((it,ix)=>`<div class="row"><div class="nm">${it[0]}${it[1]?`<div class="sup">${it[1]}</div>`:""}</div>
         <button class="btn sm ${dn[ix]?"on":""}" onclick="orToggle('${dISO}',${ix})">${dn[ix]?"✓":"○"}</button></div>`).join("")}
-      <div class="banner teal" style="margin-top:10px"><b>Floor:</b> ${o.floor}<br><span class="mini">Hit the floor and the session counted. Miss the day entirely and Monday is unaffected.</span></div>
+      <div class="seg" style="margin:10px 0 8px">
+        <button class="${Z.orShort!==dISO?"on":""}" onclick="Z.orShort=null;save();render()">Full day</button>
+        <button class="${Z.orShort===dISO?"on":""}" onclick="Z.orShort='${dISO}';save();render()">Short on time</button></div>
+      <div class="banner teal"><b>Floor:</b> ${o.floor}<br><span class="mini">Hit the floor and the session counted. Miss the day entirely and ${fmtD(PROGRAM_START)} is unaffected.</span></div>
+      <div class="mini" style="margin-top:8px">The minutes-planner &mdash; &ldquo;How much time do you actually have?&rdquo; &mdash; needs a programmed day structure to prioritise against, so it starts with Week 1 on ${fmtD(PROGRAM_START)}. During the on-ramp the <b>floor above is the same answer</b>: it is what this day is worth on its own.</div>
       <div class="mini" style="margin-top:8px">Record baselines in the <a href="#" onclick="go('test');return false">Test tab →</a></div></div>`;
     } else {
-      h+=`<div class="card"><h3>Rest before the block</h3><div class="meta">No on-ramp session scheduled for ${dISO}. Week 1 begins Mon 2026-08-03.</div></div>`;
+      h+=`<div class="card"><h3>Rest before the block</h3><div class="meta">No on-ramp session scheduled for ${fmtD(dISO)}. Week 1 begins ${fmtD(PROGRAM_START)}.</div></div>`;
     }
     el.innerHTML=h;return;
   }
@@ -1771,10 +1800,14 @@ function rWeek(){
   h+=dayStack(w,dow,"preview",false);
   h+=`<div class="card"><h3>Chaos tiers — what to cut first</h3>
   ${["T1","T2","T3"].map(t=>`<div class="klabel"><span class="tiertag ${t}">${t}</span> ${t==="T1"?"Never cut":t==="T2"?"Protect if possible":"Cut first"}</div><ul class="tinylist">${TIERS[t].map(x=>`<li>${x}</li>`).join("")}</ul>`).join("")}</div>`;
-  h+=`<div class="card"><h3>Missed-session decision tree</h3>
-  <details><summary>Step 1 — What was missed?</summary><div class="mini">A single component (e.g., plyos) → drop it, don't reshuffle. A full day → go to Step 2. Multiple days → go to Step 3.</div></details>
-  <details><summary>Step 2 — Full day missed</summary><div class="mini">Classify by tier. T1 strength main → slot the top set + primary back-offs into the next non-adjacent day at reduced accessory volume; never stack two lower days back-to-back. T1 skill anchors can't be moved — just resume. T2 → move only if a same-week slot exists without displacing T1. T3 → delete, no makeup.</div></details>
-  <details><summary>Step 3 — End-of-week assessment</summary><div class="mini"><b>Weeks never repeat.</b> Progression is calendar-driven; week 5 follows week 4 regardless. The old rule here said &ldquo;repeat if 2 of 4 strength sessions missed&rdquo; — against your own 7-month record that would have fired in roughly 3 weeks out of 4, inside an app whose stated design is that nothing repeats. It is gone.<br><br>What happens instead: the <b>weekly scorecard</b> on Today grades each domain against its published minimum effective dose, and when a domain sits below its floor for 3 straight weeks the <b>prescription</b> changes — volume drops to the MED and intensity is protected. Load still self-corrects through the wave-hold rule. <b>1&ndash;2 weeks off produces no measurable 1RM loss</b> (Hortob&aacute;gyi 1993), so an ordinary bad week has no physiological claim on the calendar.</div></details></div>`;
+  h+=`<div class="card"><h3>When you miss something</h3>
+  <div class="banner teal"><b>Nothing is owed. There is no makeup work.</b>
+  <span class="mini">Earlier versions had a decision tree here for reshuffling a missed session into a later day. That is gone — it contradicted the design. The load does not need catching up because it never ran ahead: your prescription is indexed to <b>heavy exposures completed</b>, so a missed D1 simply means D1 loads next time from where it actually is. The calendar moves; the barbell waits.</span></div>
+  <div class="mini" style="margin-top:8px"><b>Three layers handle this, on three different clocks:</b></div>
+  <div class="row"><div class="nm">Right now — minutes<div class="sup">&ldquo;How much time do you actually have?&rdquo; on Today. Tap the minutes you have; it returns what fits, in tier order.</div></div></div>
+  <div class="row"><div class="nm">This week — 7 days<div class="sup">The missed-work card on Today. Four or more misses in seven days trips a chaos week: run T1 only, catch up nothing.</div></div></div>
+  <div class="row"><div class="nm">This block — 3 weeks<div class="sup">The scorecard adaptation. A domain below its floor three weeks running gets its prescription cut to the MED with intensity protected.</div></div></div>
+  <details style="margin-top:8px"><summary>End-of-week assessment</summary><div class="mini"><b>Weeks never repeat.</b> Progression is calendar-driven; week 5 follows week 4 regardless. The old rule here said &ldquo;repeat if 2 of 4 strength sessions missed&rdquo; — against your own 7-month record that would have fired in roughly 3 weeks out of 4, inside an app whose stated design is that nothing repeats. It is gone.<br><br>What happens instead: the <b>weekly scorecard</b> on Today grades each domain against its published minimum effective dose, and when a domain sits below its floor for 3 straight weeks the <b>prescription</b> changes — volume drops to the MED and intensity is protected. Load still self-corrects through the wave-hold rule. <b>1&ndash;2 weeks off produces no measurable 1RM loss</b> (Hortob&aacute;gyi 1993), so an ordinary bad week has no physiological claim on the calendar.</div></details></div>`;
   el.innerHTML=h;
 }
 
@@ -1874,7 +1907,7 @@ function weeklyVolume(w){
       if(e.sup)return;
       let sets=RX[w][dk][i][0];
       if(i===1&&HEAVY_BO_DAYS.includes(dk))sets=Math.max(1,sets-hboTrade(w));   /* hypertrophy sets traded out */
-      if(i===0&&HEAVY_BO_DAYS.includes(dk))sets+=HEAVY_BO.sets;        /* two heavy triples in */
+      if(i===0&&HEAVY_BO_DAYS.includes(dk))sets+=heavyBO(w,dk).sets;   /* two heavy triples in */
       Object.keys(e.mus).forEach(m=>tot[m]+=sets*e.mus[m]);
     });
   });
