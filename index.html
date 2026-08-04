@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0F1216">
-<title>Hybrid v9</title>
+<title>Hybrid Training</title>
 <style>
 :root{
   --bg:#0F1216; --panel:#161B21; --panel2:#1E252D; --line:#2A323C;
@@ -119,7 +119,7 @@ details[open] summary:after{transform:rotate(-90deg)}
 </head>
 <body>
 <div class="hdr">
-  <div class="brand">Hybrid Training · v9</div>
+  <div class="brand">Hybrid Training</div>
   <h1 id="hdrTitle">Today</h1>
   <div class="sub" id="hdrSub"></div>
 </div>
@@ -130,7 +130,7 @@ details[open] summary:after{transform:rotate(-90deg)}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.6 · 2026-08-04";
+const BUILD="v11.7 · 2026-08-04";
 const PROGRAM_START="2026-08-10";           /* Monday. Week 1 Day 1. */
 const ONRAMP_START="2026-08-04";            /* Thursday. Revised to 4 days: Tue 28 + Wed 29 were missed. */
 /* Two weeks off. Purpose of these six days is the six baseline numbers,
@@ -647,7 +647,9 @@ const MEDFLOOR={markow:5,str:12,cond_tue:24,cond_sat:24,plyo:0,core:6,hooklying:
 /* Which strength day each weekday runs, for the wave-hold rule. */
 const DKEY={0:"d1",2:"d2",3:"d3",4:"d4"};
 
-function isoBack(dISO,n){const d=new Date(dISO+"T00:00:00");d.setDate(d.getDate()-n);return iso(d);}
+function isoBack(dISO,n){const d=new Date(dISO+"T00:00:00");
+  if(isNaN(d.getTime()))return dISO;          /* never throw on a non-date sentinel */
+  d.setDate(d.getDate()-n);return iso(d);}
 /* Scan the trailing window. Only counts days that are in the past and inside the block. */
 function scanMissed(dISO,days){
   const out=[];
@@ -809,8 +811,18 @@ function pct1RM(reps,rir){return 1/(1+(reps+(rir==null?2:rir))/30);}
    the test. */
 const E1_WINDOW=42;
 const TOPKEY={boxsq:"bsq_top",bench:"bp_top",trap:"tb_top"};
+const ISO_RE=/^\d{4}-\d{2}-\d{2}$/;
 function workingE1(base,dISO){
   if(!base)return null;
+  /* v11.7 CRASH FIX. The Week tab renders with dISO="preview", a sentinel, not a date.
+     isoBack("preview") built an Invalid Date and iso() threw RangeError: Invalid time
+     value, killing the whole render — the Week tab came up blank.
+     rxWeek() already guarded for this; workingE1 did not. Any non-ISO input now falls
+     back to the on-ramp baseline instead of throwing. */
+  if(dISO&&!ISO_RE.test(dISO)){
+    const b0=(Z.base&&Z.base[base])||null;
+    return b0?{e1:b0,src:"on-ramp test",when:(Z.base||{}).date||null}:null;
+  }
   let best=(Z.base&&Z.base[base])||null, src=best?"on-ramp test":null, when=(Z.base||{}).date||null;
   const tk=TOPKEY[base], cut=isoBack(dISO||todayISO(),E1_WINDOW);
   Object.keys(Z.lifts||{}).forEach(k=>{
@@ -849,7 +861,7 @@ function suggestLoad(exKey,reps,rir,dISO){
 const HEAVY_PCT=0.80, PRESCRIBED_TOL=0.97;
 function exposureClass(dISO,dkey){
   const b={d1:"boxsq",d2:"bench",d3:"trap"}[dkey];
-  if(!b)return "unlogged";
+  if(!b||!dISO||!ISO_RE.test(dISO))return "unlogged";
   const W=workingE1(b,dISO); if(!W)return "unlogged";
   const topKey=TOPKEY[b];
   const raw=((Z.lifts[dISO]||{})[topKey]||{}).w;
@@ -992,7 +1004,17 @@ if(!Z.seed0){
   /* PT-measured, passive with overpressure, full rotational arc. THIS is the baseline. */
   Z.screen.push({date:"2026-07-30",method:"pt",irL:20,irR:25,erL:50,erR:50,ankL:null,ankR:null,kickL:null,kickR:null});
   Z.seed0=true;}
-Z.de=Z.de||false;              /* dynamic-effort bench on D2, opt-in */
+/* v11.7: dynamic-effort bench. Agreed 2026-07-28, appears in the on-ramp, and was
+   NEVER WIRED INTO THE BLOCK — Z.de was declared and read by nothing. Now on by default
+   on D2, per Robert 2026-08-04.
+   Westside-style speed work: 6x3 at 50% of e1RM, 45 s rest. Bar speed is the entire point.
+   Deliberately excluded from the volume tab: 18 reps at 50% sits far below any hypertrophy
+   threshold, and counting it would inflate the chest number for stimulus that is not there.
+   Honest note kept in the card: the evidence that DE work adds to a trained lifter's 1RM is
+   equivocal, and at 40-55 FORCE rather than velocity is the limiter of power
+   (Pojednic 2012). It is here for bar speed and because it costs almost nothing. */
+const DE={sets:6,reps:3,pct:0.50,rest:"45 s"};
+Z.de=(Z.de===undefined)?true:Z.de;
 Z.base=Z.base||null;           /* {boxsq,trap,bench,date} e1RMs from the on-ramp */
 Z.orDone=Z.orDone||{};         /* on-ramp day completion */
 Z.mkMedDefault=Z.mkMedDefault||false; /* hip block permanently on the short version */
@@ -1043,7 +1065,7 @@ function render(){
   const w=curWeek(),phz=["Base (Wk 1–4)","Load (Wk 5–8)","Peak (Wk 9–12)"][corePhase(w)];
   document.getElementById("hdrTitle").textContent=TABS.find(t=>t[0]===cur)[1];
   const _dI=todayISO();
-  const _phase = _dI<ONRAMP_START ? `Pre-on-ramp · starts Jul 28`
+  const _phase = _dI<ONRAMP_START ? `Pre-on-ramp · on-ramp starts ${ONRAMP_START}, block starts ${PROGRAM_START}`
                : (inOnramp(_dI) ? `On-ramp Day ${orIndex(_dI)+1} of ${ONRAMP.length}` : `Week ${w+1} of 12 · ${isDeloadWeek(w)?"<b style='color:var(--z2)'>Biolayne Deload</b>":phz}`);
   document.getElementById("hdrSub").innerHTML=`${_phase}${isDown()?" · <b style='color:var(--t2)'>DOWN-WEEK ACTIVE</b>":""} · <span style="opacity:.55">${BUILD}</span>`;
 }
@@ -1448,6 +1470,16 @@ function strengthCard(w,dkey,dISO,editable){
     const sub2=sg?`${e.tag} · <b>start ~${sg.lb} lb</b> (${sg.pct}% of ${sg.e1}${sg.src&&sg.src!=="on-ramp test"?` — from your ${sg.src} on ${sg.when}`:""}) — then let RIR decide`
                  :(MAINLIFT[e.k]?`${e.tag} · <i>no e1RM yet — test in the on-ramp and this fills in</i>`:e.tag);
     const useSets=(i===1&&HEAVY_BO_DAYS.includes(dkey))?Math.max(1,s-hboTrade(w)):s;
+    /* dynamic-effort bench sits after the heavy work on D2 */
+    if(i===1&&dkey==="d2"&&Z.de){
+      const W=workingE1("bench",dISO);
+      const lb=W?Math.round((W.e1*DE.pct)/5)*5:null;
+      const dv=(Z.lifts[dISO]&&Z.lifts[dISO].bp_de&&Z.lifts[dISO].bp_de.w)||"";
+      rows+=`<div class="row"><div class="nm">Bench — Dynamic Effort
+        <div class="sup">Speed · ${lb?`<b>${lb} lb</b> (50% of ${Math.round(W.e1)})`:"<i>no e1RM yet</i>"} · ${DE.rest} rest · every rep an intent to move the bar fast</div></div>
+        <div class="rx">${DE.sets}×${DE.reps}</div>
+        ${editable?`<input class="win" inputmode="decimal" placeholder="${lb||"lb"}" value="${dv}" onchange="setLoad('${dISO}','bp_de',this.value)">`:""}</div>`;
+    }
     rows+=`<div class="row"><div class="nm">${e.n}${seTxt}<div class="sup">${sub2}${(i===1&&HEAVY_BO_DAYS.includes(dkey))?` · <i>${hboTrade(w)} set${hboTrade(w)===1?"":"s"} fewer than written — traded for the heavy triples above${w>=3?", net-neutral on volume":""}</i>`:""}</div></div><div class="rx">${useSets}×${r}${rir!=null?" · RIR "+rir:""}</div>${inp}</div>`;
     /* the heavy back-offs sit between the top set and the hypertrophy back-offs */
     if(i===0&&HEAVY_BO_DAYS.includes(dkey)){
@@ -1461,6 +1493,7 @@ function strengthCard(w,dkey,dISO,editable){
   });
   return `<div class="card spine t1"><h3>${names[dkey]} <span class="tiertag T1">T1</span></h3>
   <div class="meta">4D Hybrid — log top-set loads; blank = last used shown as placeholder.</div>
+  ${dkey==="d2"&&Z.de?`<div class="mini" style="margin-bottom:6px">⚡ <b>Dynamic-effort bench is on.</b> 6×3 at 50%, 45 s rest, after the heavy work. Bar speed is the point — if it feels like conditioning the weight is too heavy. Not counted in the Volume tab: 18 reps at 50% is below any hypertrophy threshold and counting it would flatter the chest number. Honest caveat: evidence that speed work adds to a trained lifter's 1RM is equivocal, and at your age force rather than velocity limits power. It is here because it costs about five minutes and almost no fatigue.</div>`:""}
   ${HEAVY_BO_DAYS.includes(dkey)?`<div class="mini" style="margin-bottom:6px;color:var(--t2)">⚠ <b>Modified from the source, 2026-08-04.</b> Two heavy triples added, one 3×8 set removed. As written this block gave you <b>one</b> set a week above 80%; the study this rests on found a heavy single alone carried only a 6.3% chance of meaningful gain, against 99.6% once heavy back-offs were added. Net cost: about one stimulating rep per week for hypertrophy.</div>`:""}
   ${R.lag>0
     ? `<div class="banner amber"><b>Calendar week ${w+1}. Loading week ${R.i+1}.</b>
@@ -1659,7 +1692,7 @@ function rToday(){
     <li><b>Luke Thomas / F4F is a warm-up, not a program.</b> Its assessment battery has no internal-rotation test at all, so it cannot see your limiter.</li>
     <li><b>No general-mobility program.</b> Full-ROM lifting raises ROM about as much as stretch training, so the barbell owns that. Total Body Mobility and 5Day Foundation dropped as redundant.</li>
     <li><b>FTP is stale and not being tested.</b> Ride Peloton by feel; the number recalculates from logged efforts.</li>
-    <li><b>Dynamic-effort bench on D2 is opt-in</b> and defaults off until you flip it in the Test tab.</li>
+    <li><b>Dynamic-effort bench on D2 is ON</b> — 6×3 @ 50%, 45 s rest, after the heavy work. Agreed 2026-07-28; it was declared but never wired in until v11.7.</li>
     <li><b>Sex = male</b> for BMR · <b>activity 1.6</b> default · <b>protein on total BW</b> unless BF% &gt; 25%.</li>
     <li><b>Booty Sprout bands are 45 lb and 70 lb, quantity unknown</b>, so the picker takes a count of each. The nominal total orders your progression but is <b>not</b> comparable to barbell load and is excluded from tonnage. Progression stays reps → tempo/pause → tension.</li></ul>
     <button class="btn sm" onclick="Z.assumeDismiss=true;save();render()">Confirmed — dismiss</button></div>`;
