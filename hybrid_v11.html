@@ -1,0 +1,2135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0F1216">
+<title>Hybrid Training</title>
+<style>
+:root{
+  --bg:#0F1216; --panel:#161B21; --panel2:#1E252D; --line:#2A323C;
+  --ink:#E8E4DA; --mut:#8A93A0; --dim:#5B6572;
+  --t1:#E5484D; --t2:#E0A458; --t3:#5B6572;
+  --z2:#4FA3A5; --good:#6BBF7B; --warn:#E0A458;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body{padding-bottom:40px}
+.hdr{padding:calc(env(safe-area-inset-top) + 10px) 16px 6px}
+.hdr .brand{font-size:11px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;font-weight:700}
+.hdr h1{margin:2px 0 0;font-size:26px;font-weight:800;letter-spacing:-.01em}
+.hdr .sub{color:var(--mut);font-size:13px;margin-top:2px}
+.chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);color:var(--mut)}
+.chip.red{color:#fff;background:var(--t1);border-color:var(--t1)}
+.chip.amber{color:#171308;background:var(--t2);border-color:var(--t2)}
+.chip.teal{color:#06211f;background:var(--z2);border-color:var(--z2)}
+.chip.ghost{color:var(--mut)}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:10px 16px 12px;position:sticky;top:0;
+  background:linear-gradient(var(--bg) 85%,transparent);z-index:50;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;padding:8px 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);
+  color:var(--mut);font-weight:700;font-size:13px;cursor:pointer;user-select:none}
+.tab.on{background:var(--ink);color:#12161B;border-color:var(--ink)}
+.view{display:none;padding:0 16px}
+.view.on{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.card.spine{border-left:4px solid var(--t3)}
+.card.spine.t1{border-left-color:var(--t1)}
+.card.spine.t2{border-left-color:var(--t2)}
+.card h3{margin:0 0 2px;font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card .meta{color:var(--mut);font-size:12.5px;margin-bottom:8px}
+.klabel{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-weight:800;margin:10px 0 6px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:none}
+.row .nm{flex:1;font-size:14.5px}
+.row .nm .sup{color:var(--dim);font-size:12px}
+.row .rx{color:var(--mut);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.row.done .nm{color:var(--dim);text-decoration:line-through}
+.win{width:62px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:8px;
+  padding:6px 6px;font-size:14px;text-align:center;font-variant-numeric:tabular-nums}
+.ck{width:26px;height:26px;border-radius:8px;border:1.5px solid var(--line);background:var(--panel2);
+  display:flex;align-items:center;justify-content:center;color:transparent;font-weight:900;flex:0 0 auto;cursor:pointer}
+.ck.on{background:var(--good);border-color:var(--good);color:#0c1a10}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;padding:9px 0;border-radius:10px;border:1px solid var(--line);background:var(--panel2);
+  color:var(--mut);font-weight:800;font-size:15px;cursor:pointer}
+.seg button.on{background:var(--ink);color:#12161B;border-color:var(--ink)}
+.banner{border-radius:12px;padding:11px 13px;font-size:13.5px;margin-bottom:12px;border:1px solid}
+.banner.red{background:rgba(229,72,77,.12);border-color:rgba(229,72,77,.5)}
+.banner.amber{background:rgba(224,164,88,.12);border-color:rgba(224,164,88,.5)}
+.banner.teal{background:rgba(79,163,165,.12);border-color:rgba(79,163,165,.5)}
+.banner b{display:block;margin-bottom:2px}
+.btn{display:inline-block;padding:10px 16px;border-radius:11px;background:var(--ink);color:#12161B;
+  font-weight:800;font-size:14px;border:none;cursor:pointer}
+.btn.sec{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:9px}
+.btn.red{background:var(--t1);color:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.stat .v{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+.stat .l{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:700}
+input[type=number],input[type=date],select,input[type=text]{background:var(--panel2);border:1px solid var(--line);
+  color:var(--ink);border-radius:10px;padding:9px 11px;font-size:15px;width:100%}
+label.f{display:block;font-size:12px;color:var(--mut);font-weight:700;margin:10px 0 4px}
+a{color:var(--z2);text-decoration:none;font-weight:600}
+.vlink{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);gap:10px}
+.vlink:last-child{border-bottom:none}
+.vlink.dedupe{opacity:.35;pointer-events:none}
+.bar{height:14px;border-radius:7px;background:var(--panel2);position:relative;overflow:hidden;border:1px solid var(--line)}
+.bar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:7px}
+.bar .tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--dim);opacity:.8}
+.volrow{margin-bottom:11px}
+.volrow .t{display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px}
+.volrow .t .n{font-weight:700}
+.volrow .t .s{color:var(--mut);font-variant-numeric:tabular-nums}
+.timerBig{font-size:64px;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin:6px 0}
+.timerMove{text-align:center;font-size:20px;font-weight:800;min-height:28px}
+.timerNext{text-align:center;color:var(--mut);font-size:13px;min-height:18px}
+.timerPhase{text-align:center}
+.tprog{height:6px;background:var(--panel2);border-radius:3px;margin:14px 0;overflow:hidden}
+.tprog .f{height:100%;background:var(--z2)}
+.trow{display:flex;gap:10px;justify-content:center;margin-top:14px}
+details{margin-bottom:10px}
+details summary{cursor:pointer;font-weight:800;padding:10px 0;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details summary::-webkit-details-marker{display:none}
+details summary:after{content:"›";color:var(--dim);transform:rotate(90deg);font-size:18px}
+details[open] summary:after{transform:rotate(-90deg)}
+.mini{font-size:12.5px;color:var(--mut)}
+.tinylist{font-size:13px;color:var(--mut);padding-left:16px;margin:4px 0}
+.spark{width:100%;height:44px}
+.assume li{margin-bottom:6px;font-size:13.5px}
+.tiertag{font-size:10px;font-weight:900;letter-spacing:.08em;padding:1px 6px;border-radius:5px}
+.tiertag.T1{background:var(--t1);color:#fff}
+.tiertag.T2{background:var(--t2);color:#171308}
+.tiertag.T3{background:var(--panel2);color:var(--mut);border:1px solid var(--line)}
+.hr{height:1px;background:var(--line);margin:12px 0}
+.wksel{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px}
+.wksel button{flex:0 0 auto;width:38px;height:38px;border-radius:10px;border:1px solid var(--line);
+  background:var(--panel2);color:var(--mut);font-weight:800;cursor:pointer}
+.wksel button.on{background:var(--ink);color:#12161B}
+.daysel{display:flex;gap:6px;margin-bottom:10px}
+.daysel button{flex:1;padding:8px 0;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--mut);font-weight:800;font-size:12px;cursor:pointer}
+.daysel button.on{background:var(--ink);color:#12161B}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="brand">Hybrid Training</div>
+  <h1 id="hdrTitle">Today</h1>
+  <div class="sub" id="hdrSub"></div>
+</div>
+<div class="tabs" id="tabbar"></div>
+<div id="views"></div>
+<script>
+/* ================= DATA ================= */
+const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
+const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+/* ================= v10: ON-RAMP + BLOCK START ================= */
+const BUILD="v11.11 · 2026-08-04";
+const PROGRAM_START="2026-08-10";           /* Monday. Week 1 Day 1. */
+const ONRAMP_START="2026-08-04";            /* Tuesday. Six days, Aug 4-9. */
+/* Two weeks off. Purpose of these six days is the six baseline numbers,
+   not the training. Every day has a floor and nothing here can be failed. */
+const ONRAMP=[
+ {d:"2026-08-04",t:"Tue · the ride + Markow D1",floor:"Any ride at all, even 20 minutes.",items:[
+  ["Zone 2 — Peloton PZ Endurance 90","Your hard day. The bike is the right instrument and your own data agrees: 0 of 39 rides ever overran their class by >15 min, while 32 of 82 lifts ran past 90. A ride cannot balloon."],
+  ["Markow — Wk1 D1 pattern","Pelvic Magic Zero + Split Squat Isometric. Short version: hip rotation CARs only, 3 min."],
+  ["Hooklying 3 × 10, morning","Three minutes. Never scored against you."]]},
+ {d:"2026-08-05",t:"Wed · upper body (bench already banked)",floor:"One working set of pressing.",items:[
+  ["Bench baseline is IN — 215 × 3 @ RPE 8 → e1RM 236","No bench test this week. This is training, not measurement."],
+  ["Press — real sets off 236","Nothing heavier than a comfortable 5."],
+  ["NEW · Dynamic-effort bench — 6 × 3 @ 118 lb","50% of e1RM, 45 s rest. Bar speed is the whole point; the load is deliberately trivial. Here so it is familiar Aug 10."],
+  ["Accessories — rear delts, cuff, rows","Rear delt is the standing structural hole."],
+  ["Markow — Wk1 D2 pattern","Rolling for hip rotation + hip rotation CARs."]]},
+ {d:"2026-08-06",t:"Thu · TEST box squat + the ROM battery",floor:"The box squat triple. Fifteen minutes if that is all there is.",items:[
+  ["Warm-up — GMB Prep + hooklying 3 × 10",""],
+  ["TEST · Box squat — hard triple @ RPE 7-8","Not a max. A set of 3 with 1-2 clearly left. Belt on — the reason this lift is at home. Pre-layoff was 285 × 3; do not aim at it. Coming in 10-15% light after time off is normal."],
+  ["NEW · ACTIVE vs PASSIVE hip rotation, both sides","The test that settles the whole mobility question. Measure passive IR and ER with strap overpressure, then measure how far you can hold ACTIVELY with no assistance. A big gap means end-range strength is the limiter and the loaded Markow work is exactly right. A small gap means the ceiling is structural."],
+  ["Ankle dorsiflexion — both sides","Weight-bearing lunge, heel stays down. Method in the Test tab."],
+  ["Accessory — glute med, Booty Sprout 2 sets","Log band config and reps."],
+  ["No plyometrics","Deliberate. Not stacking jump work on a detrained system in a test week."]]},
+ {d:"2026-08-07",t:"Fri · kickboxing — WEAR THE MORPHEUS STRAP",floor:"Attend class. Mark kick height while warm.",items:[
+  ["⚠ MORPHEUS CHEST STRAP — this is the point of today","Whoop in the underwear band lost 22% of the HR trace on the median kickboxing session. The strap is the only clean measurement you can get. Note minutes above 160 bpm."],
+  ["Pre-class — ballistic leg swings, submaximal, 5 min","The correct and only use of the Luke Thomas ballistic material."],
+  ["Kickboxing 6:30 as normal","Your most reliable session — 89% start before 9am, median 06:47. Nothing added."],
+  ["Kick height, both legs, while warm — AND film it","Rear-leg chambered roundhouse at a wall. Phone on a tripod behind you at ~45°. Ten kicks, mark each. The video decides what is actually different about your good ones."],
+  ["If <13 min above 160 bpm → bag backfill before you leave","1 min hard / 1 min light, repeat (deficit + 2) times. Bags are right there and you are already warm."],
+  ["No lift today","No box squat or deadlift at the MMA gym — you would have to bring the belt."]]},
+ {d:"2026-08-08",t:"Sat · TEST trap bar",floor:"The trap bar triple.",items:[
+  ["Warm-up — full lower, hooklying, ankle work",""],
+  ["TEST · Trap bar — FIRST, before any riding","Hard triple @ RPE 7-8. Lift before cardio so the number is clean. 48 h after the box squat. Pre-layoff 305 × 3 — again, do not aim at it."],
+  ["Zone 2 ride, optional, 45-60 min","Only if the trap bar felt good."],
+  ["Sprint — mechanics only","A-skips, wall drills, acceleration posture. No build-ups, no strides, no timed runs."],
+  ["Markow — Wk1 D3 pattern","Pelvic Magic Cross Connect."]]},
+ {d:"2026-08-09",t:"Sun · BJJ + bag rounds (STRAP) + close out",floor:"Press Set as block baselines. Even if you train nothing, the week succeeded.",items:[
+  ["BJJ as normal","Your most reliable day — 87% of Sundays produced training. Strap will not survive grappling; do not try."],
+  ["⚠ AFTER BJJ · bag rounds with the MORPHEUS STRAP","Measurement #2 of 2. 5 rounds: 1 min hard / 1 min light. Record minutes above 160 bpm and peak HR. This plus Friday settles whether the aerobic backfill is occasional or standing."],
+  ["Social lift","Fold in the Sunday block if it fits — rear delt is the hole."],
+  ["Markow — Wk1 D4 pattern","Hip rotation mini, about 8 minutes."],
+  ["Enter the numbers → Set as block baselines","Box squat, trap bar, active/passive ROM, ankle DF, kick height. Bench is already in."],
+  ["Read Monday","Week 1 starts Aug 10. No fifth start date."]]}
+];
+const orIndex=iso=>ONRAMP.findIndex(o=>o.d===iso);
+const inOnramp=iso=>iso>=ONRAMP_START&&iso<PROGRAM_START;
+
+/* ---- 4D Hybrid (source of truth; rendered as written) ---- */
+/* mus: fractional weekly-set contributions for the volume model */
+const EX={
+ d1:[
+  {k:"bsq_top",n:"Box Squat — Top Set",tag:"Main",mus:{quad:1,glute:.5},t1:1},
+  {k:"bsq_bo",n:"Box Squat — Back-offs",tag:"Main",mus:{quad:1,glute:.5},t1:1},
+  {k:"brdl",n:"Banded RDL",tag:"Accessory",mus:{ham:1,glute:.5}},
+  {k:"slext",n:"Single-Leg Extension",tag:"Accessory",mus:{quad:1}},
+  {k:"slcurl",n:"Single-Leg Curl",tag:"Accessory",mus:{ham:1}},
+  {k:"slcalf",n:"SL DB Calf Raise",tag:"Accessory",mus:{calf:1}},
+  {k:"pallof",n:"Pallof Press",tag:"Core",mus:{},sup:1}
+ ],
+ d2:[
+  {k:"bp_top",n:"Bench Press — Top Set",tag:"Main",mus:{chest:1,tri:.5},t1:1},
+  {k:"bp_bo",n:"Bench Press — Back-offs",tag:"Main",mus:{chest:1,tri:.5},t1:1},
+  {k:"mrow",n:"Banded Motorcycle Row",tag:"Accessory",mus:{back:1,bicep:.5,rdelt:.25}},
+  {k:"bapu",n:"Band-Assisted Pull-Up",tag:"Accessory",mus:{back:1,bicep:.5}},
+  {k:"arnold",n:"Arnold Press",tag:"Accessory",mus:{sdelt:.5,tri:.5}},
+  {k:"latr",n:"Lateral Raise",tag:"Accessory",mus:{sdelt:1}},
+  {k:"ezcurl",n:"Standing EZ-Bar Curl",tag:"Accessory",mus:{bicep:1}},
+  {k:"skull",n:"Incline EZ Skull Crusher",tag:"Accessory",mus:{tri:1}}
+ ],
+ d3:[
+  {k:"tb_top",n:"Trap-Bar DL — Top Set",tag:"Main",mus:{ham:.5,glute:.5,quad:.5,back:.5},t1:1},
+  {k:"tb_bo",n:"Trap-Bar DL — Back-offs",tag:"Main",mus:{ham:.5,glute:.5,quad:.5,back:.5},t1:1},
+  {k:"goblet",n:"Heels-Elevated Goblet Squat",tag:"Accessory",mus:{quad:1,glute:.5}},
+  {k:"bss",n:"Bulgarian Split Squat",tag:"Accessory",mus:{quad:1,glute:1}},
+  {k:"sardl",n:"Single-Arm DB RDL",tag:"Accessory",mus:{ham:1,glute:.5}},
+  {k:"scalf",n:"Seated Calf Raise",tag:"Accessory",mus:{calf:1}},
+  {k:"rope",n:"Rope Abdominal Crunch",tag:"Core",mus:{},sup:1},
+  {k:"bht",n:"Banded Hip Thrust",tag:"Accessory",mus:{glute:1}}
+ ],
+ d4:[
+  {k:"incdb",n:"Incline DB Press",tag:"Accessory",mus:{chest:1,tri:.5}},
+  {k:"pec",n:"Pec Deck Machine",tag:"Accessory",mus:{chest:1}},
+  {k:"lpd",n:"Wide-Grip Lat Pulldown",tag:"Accessory",mus:{back:1,bicep:.5}},
+  {k:"macrow",n:"Machine Row",tag:"Accessory",mus:{back:1,bicep:.5,rdelt:.25}},
+  {k:"macsp",n:"Machine Shoulder Press",tag:"Accessory",mus:{sdelt:.5,tri:.5}},
+  {k:"maclat",n:"Machine Lateral Raise",tag:"Accessory",mus:{sdelt:1}},
+  {k:"preach",n:"Machine Preacher Curl",tag:"Accessory",mus:{bicep:1}},
+  {k:"press",n:"Machine Tricep Pressdown",tag:"Accessory",mus:{tri:1}}
+ ]
+};
+/* RX[week 0-11][day d1..d4] = [sets,reps,rir|null] per exercise, transcribed verbatim */
+const RX=[
+ {d1:[[1,3,3],[2,8,4],[2,10,4],[3,12,3],[3,12,3],[3,12,3],[3,10,null]],
+  d2:[[1,3,3],[2,8,4],[2,8,4],[2,12,4],[2,8,4],[2,12,3],[3,10,3],[3,10,3]],
+  d3:[[1,3,3],[2,6,4],[2,12,4],[3,8,3],[3,15,3],[3,15,3],[3,15,null],[2,10,3]],
+  d4:[[2,8,3],[2,15,3],[2,8,3],[2,12,3],[2,8,4],[2,15,3],[3,15,3],[3,15,3]]},
+ {d1:[[1,3,2],[3,8,4],[2,10,3],[3,12,2],[3,12,2],[3,12,2],[3,10,null]],
+  d2:[[1,3,3],[3,8,4],[2,8,3],[2,12,3],[2,8,3],[2,12,2],[3,10,2],[3,10,2]],
+  d3:[[1,3,3],[3,6,4],[2,12,3],[3,8,3],[3,15,2],[3,15,2],[3,15,null],[2,10,2]],
+  d4:[[2,8,2],[2,15,3],[2,8,2],[2,12,3],[2,8,3],[2,15,3],[3,15,2],[3,15,2]]},
+ {d1:[[1,3,2],[3,8,4],[2,10,2],[3,12,2],[3,12,2],[4,12,2],[3,10,null]],
+  d2:[[1,3,2],[3,8,4],[2,8,2],[3,12,2],[2,8,2],[3,12,2],[3,10,2],[3,10,2]],
+  d3:[[1,3,2],[3,6,4],[2,12,2],[3,8,2],[3,15,2],[3,15,2],[3,15,null],[3,10,2]],
+  d4:[[2,8,2],[2,15,2],[2,8,2],[2,12,2],[2,8,3],[2,15,2],[3,15,1],[3,15,1]]},
+ {d1:[[1,3,2],[3,8,3],[3,10,3],[4,12,3],[3,12,2],[4,12,2],[3,10,null]],
+  d2:[[1,3,2],[3,8,3],[3,8,2],[3,12,2],[3,8,2],[3,12,2],[3,10,1],[3,10,1]],
+  d3:[[1,3,2],[3,6,3],[3,12,2],[3,8,2],[3,15,1],[3,15,1],[3,15,null],[3,10,1]],
+  d4:[[2,8,1],[2,15,2],[2,8,1],[2,12,1],[2,8,2],[2,15,1],[4,15,1],[4,15,1]]},
+ {d1:[[1,3,1],[3,8,2],[3,10,1],[4,12,1],[4,12,2],[4,12,1],[3,10,null]],
+  d2:[[1,3,2],[4,8,3],[3,8,2],[4,12,2],[3,8,1],[3,12,1],[4,10,3],[4,10,1]],
+  d3:[[1,3,2],[4,6,3],[3,12,1],[3,8,2],[3,15,1],[3,15,1],[3,15,null],[3,10,1]],
+  d4:[[2,8,1],[2,15,1],[3,8,1],[2,12,1],[2,8,1],[2,15,1],[4,15,1],[4,15,1]]},
+ {d1:[[1,3,4],[3,8,4],[2,10,2],[4,12,3],[3,12,3],[4,12,3],[3,10,null]],
+  d2:[[1,3,3],[3,8,4],[3,8,4],[3,12,3],[2,8,3],[3,12,3],[3,10,3],[3,10,3]],
+  d3:[[1,3,3],[3,6,4],[2,12,3],[3,8,3],[3,15,3],[3,15,2],[3,15,null],[2,10,3]],
+  d4:[[2,8,2],[2,15,2],[2,8,2],[2,12,2],[2,8,2],[2,15,2],[3,15,2],[3,15,2]]},
+ {d1:[[1,3,3],[4,8,4],[3,10,2],[4,12,2],[3,12,2],[4,12,2],[3,10,null]],
+  d2:[[1,3,3],[4,8,4],[3,8,3],[3,12,2],[2,8,2],[2,12,2],[3,10,2],[3,10,2]],
+  d3:[[1,3,2],[3,6,4],[3,12,3],[3,8,2],[3,15,2],[3,15,2],[3,15,null],[2,10,2]],
+  d4:[[3,8,2],[2,15,2],[2,8,1],[2,12,2],[3,8,2],[2,15,2],[4,15,2],[4,15,2]]},
+ {d1:[[2,3,3],[3,8,4],[3,10,2],[4,12,2],[4,12,2],[4,12,2],[3,10,null]],
+  d2:[[2,3,3],[3,8,4],[3,8,2],[3,12,2],[2,8,2],[3,12,2],[3,10,2],[3,10,2]],
+  d3:[[1,3,2],[3,6,3],[3,12,2],[3,8,2],[4,15,2],[4,15,2],[3,15,null],[3,10,2]],
+  d4:[[3,8,1],[2,15,2],[2,8,1],[2,12,1],[3,8,2],[3,15,1],[4,15,1],[4,15,1]]},
+ {d1:[[2,3,2],[3,8,4],[3,10,2],[4,12,1],[4,12,2],[4,12,1],[3,10,null]],
+  d2:[[2,3,2],[3,8,4],[3,8,2],[4,12,2],[3,8,2],[3,12,2],[3,10,1],[3,10,1]],
+  d3:[[2,3,2],[3,6,4],[3,12,2],[3,8,1],[4,15,2],[4,15,2],[3,15,null],[3,10,2]],
+  d4:[[3,8,1],[2,15,1],[3,8,1],[2,12,1],[3,8,1],[3,15,1],[4,15,1],[4,15,1]]},
+ {d1:[[1,3,2],[3,8,4],[2,10,3],[3,12,2],[3,12,2],[3,12,2],[3,10,null]],
+  d2:[[2,3,2],[3,8,3],[4,8,2],[4,12,2],[3,8,2],[3,12,1],[4,10,1],[4,10,1]],
+  d3:[[2,3,2],[3,6,3],[3,12,1],[3,8,1],[3,15,2],[3,15,2],[3,15,null],[3,10,1]],
+  d4:[[3,8,1],[3,15,1],[3,8,1],[3,12,1],[3,8,1],[4,15,1],[4,15,1],[4,15,1]]},
+ {d1:[[2,3,2],[3,8,3],[3,10,1],[4,12,1],[4,12,1],[4,12,1],[4,10,null]],
+  d2:[[2,3,1],[3,8,3],[4,8,2],[4,12,1],[3,8,2],[4,12,1],[4,10,1],[4,10,1]],
+  d3:[[2,3,1],[3,6,3],[4,12,1],[3,8,1],[4,15,1],[4,15,1],[3,15,null],[3,10,1]],
+  d4:[[4,8,1],[3,15,1],[4,8,1],[3,12,1],[4,8,1],[4,15,1],[5,15,1],[5,15,1]]},
+ {d1:[[2,3,1],[4,8,3],[3,10,2],[4,12,1],[4,12,1],[4,12,1],[4,10,null]],
+  d2:[[2,3,1],[4,8,3],[4,8,1],[4,12,1],[4,8,1],[4,12,1],[5,10,1],[5,10,1]],
+  d3:[[2,3,1],[3,6,2],[4,12,1],[4,8,1],[4,15,1],[4,15,1],[4,15,null],[4,10,1]],
+  d4:[[4,8,1],[4,15,1],[4,8,1],[4,12,1],[4,8,1],[5,15,1],[5,15,1],[5,15,1]]}
+];
+const DELOAD_WK=5; /* index of Week 6 — Biolayne's written deload; kept as-written */
+
+/* ---- Core module (built from scratch; Prehab Guys library + medball power; loaded flexion progressed) ---- */
+/* Core rebuilt on the EMG/hypertrophy evidence report (Tier-1 anchors), anterior-biased for
+   aesthetics (#1). Posterior wall (ES/MF/QL) is largely paid by box squat + trap bar — see volume
+   model. Each day: pattern focus + phase-progressed anchor(s) + a swap LIBRARY (report + Prehab Guys)
+   the athlete can rotate in. Loaded-flexion work must ADD LOAD week to week, not just reps/time. */
+const CORE={
+ mon:{lbl:"Anti-extension + anti-rotation",tier:"T2",focus:"RA long-lever + rotary stability",ph:[
+   ["Ab-Wheel Roll-out — from knees, 3×8 (control the extension)","Band Dead Bug, anti-rotation — 3×10/side"],
+   ["Ab-Wheel Roll-out — knees, add ROM/tempo, 3×8","Pallof March, arms extended — 3×30s/side"],
+   ["Ab-Wheel Roll-out — extended-lever/standing progression, 3×6","Half-Kneeling Chop (band) — 3×10/side"]],
+  lib:["Tier-1 anti-ext: roll-out, pike, suspended roll-out plank","Plank / long-lever plank / body saw","Prehab: Bird Dog (band), Tall-Plank Shoulder Tap, Tall→Low Plank","Prehab: Dead Bug, Standing Psoas March (band)"]},
+ wed:{lbl:"Loaded flexion + hip-flexion (aesthetics + iliopsoas)",tier:"T2",focus:"RA hypertrophy + psoas (feeds sprint & kick chamber)",ph:[
+   ["Hanging Knee Raise (PPT) — 3×12","Cable/Rope Crunch — 3×12 (log load, add weekly)"],
+   ["Hanging Leg Raise — 3×10 (straighter lever)","Cable Crunch — 3×10 (heavier)"],
+   ["Weighted Hanging Leg Raise — 3×8","Cable Crunch, top load — 4×8"]],
+  lib:["Tier-1 RA: hanging leg/knee raise, roll-out, pike","Loaded flexion: cable crunch, weighted decline sit-up (controlled)","Psoas: ASLR eccentric, resisted hip flexion (band, 30–60°)","Prehab: Flutter Kick, Oblique Crunch, Curl-Up Segmental"]},
+ thu:{lbl:"Anti-lateral only — trunk pre-taxed by trap bar",tier:"T3",focus:"QL / lateral wall, kept light",ph:[
+   ["Side Plank — 2×30s/side (Tier-1 QL)","Suitcase Carry — 3×40yd/side"],
+   ["Side Plank + top-leg lift — 2×25s/side","Suitcase Carry, heavier — 3×40yd/side"],
+   ["Side Plank Row (band) — 2×10/side","Front-Rack Carry, unilateral — 3×30yd/side"]],
+  lib:["Tier-1 QL/lateral: side plank (toes), side plank row","Carries: suitcase, front-rack, waiter","Prehab: Incline Adductor Side Plank, Copenhagen (knees)"]},
+ fri:{lbl:"Obliques (V-taper) + anti-lateral + rotation",tier:"T2",focus:"EO/IO — pike is Tier-1 (84% MVIC)",ph:[
+   ["Pike (Power-Wheel/Swiss-ball) — 3×10","Adductor Side Plank — 2×20s/side"],
+   ["Pike — 3×12 (or feet-elevated)","Copenhagen Plank (knees) — 2×25s/side","Standing band rotation — 2×10/side"],
+   ["Pike — 4×10 (deficit)","Copenhagen Plank (full) — 2×20s/side","Medball Side Slam — 3×8/side"]],
+  lib:["Tier-1 EO: pike, front plank (brace), side bridge on toes","Rotation: resisted cable/band rotation, medball side slam","Prehab: Plank Oblique Crunch (SB), Hollow Hold/Rock, Copenhagen"]},
+ sun:{lbl:"Optional rotation — BJJ prep",tier:"T3",focus:"transverse-plane power",ph:[
+   ["Half-Kneeling Lift (band) — 2×10/side"],
+   ["Split-Stance Medball Rotation, feed-in — 2×8/side"],
+   ["Landmine Rotation — 2×8/side"]],
+  lib:["Prehab: Half-Kneeling Chop/Lift, Split-Stance Medball Rotation","Medball: scoop toss, shot-put, rotational throw","Landmine rotation / Russian twist (loaded)"]}
+};
+const corePhase=w=>w<4?0:(w<8?1:2);
+
+/* ---- KOTG (carried from v7 unchanged) ---- */
+const KOTG={
+ mon:{t:"KOTG — Tibialis Raises 2×20 + Patrick Steps 2×10/side (home)",tier:"T2"},
+ wed:{t:"KOTG — Tibialis Raises 2×20 + ATG Split Squat 2×8/side",tier:"T2"},
+ fri:{t:"KOTG — Backward treadmill 5 min (MMA gym, optional)",tier:"T3"},
+ sat:{t:"KOTG — Optional outdoor/home backward walk + calf work",tier:"T3"},
+ sun:{t:"KOTG PRIMARY — Backward sled/treadmill 5 min · Slant-board calf raise 2×25 · Elephant walk 2×10/side",tier:"T2"}
+};
+
+/* ---- Baar wrist/elbow micro-dose ---- */
+const BAAR={t:"Baar wrist/elbow isometrics — reverse wrist-curl hold, wrist-flexion hold, pronation hold, supination hold. 4 holds × 10s (30s if a niggle), ~2 min rest between, ~3–5 min total.",
+ note:"Time collagen 15g + vit C ~200mg 30–60 min before. GMB's wrist work today double-counts — skip Baar if you ran a GMB class with the wrist hold."};
+
+/* ---- Plyos ---- */
+/* Phase-driven, plane-organized, each slot primes the lift that follows it.
+   Mon vertical+lateral → box squat · Thu horizontal+rotational → trap bar · Sat sprint → conditioning day. */
+const PLYO={
+ mon:[
+  {wk:[1,4],ph:"Foundation",t:"Pogo hops 3×10 · Box jump 3×3 (step down) · Lateral bound 3×3/side (stick)",cue:"Quiet fast contacts; own every landing. Amplitude low — building tissue."},
+  {wk:[5,8],ph:"Build",t:"Pogo 2×10 (prime) · Depth jump 3×3 from 12–18\" · Lateral bound 3×3/side",cue:"Minimize ground time off the depth jump. Reset a rep if height drops."},
+  {wk:[9,12],ph:"Peak",t:"Depth jump 3×3 max intent · Lateral bound + stick 3×3/side",cue:"Every rep max height. Low volume, full rest."}
+ ],
+ thu:[
+  {wk:[1,4],ph:"Foundation",t:"Broad jump 3×3 (stick landing) · Medball rotational scoop throw 3×5/side",cue:"Distance is a byproduct of clean hip drive — own the landing before chasing range."},
+  {wk:[5,8],ph:"Build",t:"Broad jump 4×3 · Single bound 3×3/side (stick) · Rotational throw 3×5/side",cue:"Full hip extension, absorb the landing. Bounds train single-leg horizontal force."},
+  {wk:[9,12],ph:"Peak",t:"Continuous bound 3×3–4/side · Rotational throw 4×4/side max intent",cue:"Reactive, minimal ground contact. Stop when distance or control drops."}
+ ],
+ sat:[
+  {wk:[1,4],ph:"Drill Ramp",drill:1,t:"① Ankling / pogo — 2×20m (foot & ankle stiffness)\n② Wall drive: march → single exchange → continuous — 2×10/side (acceleration posture)\n③ A-march → A-skip → dribble, low-heel recovery — 2×20m each (mechanics + tissue)\n④ Build-ups to ~70% — 3×20m (accelerate gradually, float, decelerate)\nWork down the ladder as mechanics clean up. No full-effort sprints yet.",cue:"This is where you earn the right to sprint. Clean shin angle, punch the ground back, tall posture. Building tendon tolerance before speed."},
+  {wk:[5,8],ph:"Build",t:"Warm-up first: A-skip + 2 wall exchanges + 1 build-up.\nThen: Sprint build-ups 3×15m @ ~85% (acceleration only).",cue:"Drills prime the pattern, then build-ups. Stay UNDER max velocity. Full recovery between reps. Do all of this BEFORE Z2, not after."},
+  {wk:[9,12],ph:"Peak",t:"Warm-up first: A-skip + build-up ladder.\nThen: Sprint / hill accelerations 4×20m (capped before max velocity).",cue:"Drills every time before accelerations. Sub sled/hill push if any hamstring pull risk. Fresh legs or skip."}
+ ]
+};
+function plyoBlock(k,w){const arr=PLYO[k];const wn=w+1;return arr.find(b=>wn>=b.wk[0]&&wn<=b.wk[1])||arr[arr.length-1];}
+
+/* ---- Conditioning: Z2 base LOCKED on Tue + Sat (never rotated away). The harder FTP-data efforts
+   ride on Wednesday only — legs-fresh upper day, optional + readiness-gated — so the aerobic base is
+   protected and FTP still calculates from accumulated best-efforts. ---- */
+const COND={
+ tue:{t:"Zone 2 — Peloton PZ Endurance 90 min",d:"Conversational, zones from current FTP. Aerobic base + recovery. Feeds long-duration power for the FTP curve. Base anchor #1 — protected.",tier:"T2"},
+ sat:{t:"Zone 2 — Peloton PZ Endurance 90 min",d:"Second Z2 anchor. Sits before Sunday BJJ — keep it easy. Base anchor #2 — protected.",tier:"T2"}
+};
+/* Wednesday optional ride types — athlete picks based on which FTP bucket is stalest */
+const WED_RIDE={
+ pz:{t:"Power Zone (standard) — 45–60 min",d:"Threshold / sweet-spot (zone 3–4). Ride the long effort near-max → your ~20-min power anchor.",bucket:20},
+ pzmax:{t:"PZ Max (HIIT) — 30 min",d:"Zone 5–7 short intervals → your best 1–5 min power.",bucket:5}
+};
+
+/* ---- Optional alternative sessions (substitutions / MED-after-miss) ----
+   bag & wave = HIIT-bucket swaps for a PZ Max slot (same intensity budget, never added on top).
+   heavybag = SKILL: home solo Trainor-style rounds, or MED fallback after a missed kick session. */
+const ALT={
+ bulgarian:{name:"Bulgarian Bag — 20-min AMRAP",kind:"HIIT swap",
+  body:["5 movements = 1 round, as many rounds as possible in 20 min:","① Spin 10/side · ② Arm Throw 10/side · ③ Snatch 10 · ④ Front Squat 10 · ⑤ Overhead Press 10","Light bag (~10–12 kg), clean arcs over speed. Rotational/grip conditioning the bike can't give."],
+  note:"Counts as your PZ Max for the week — don't stack it on top of the ride. Some rotational overlap with plyos/core; treat as a substitute."},
+ inertia:{name:"Inertia Wave — 15-min metcon",kind:"HIIT swap",
+  body:["Cycle patterns, ~15s waves → 10–12 reps resistance as active rest:","Tidal wave 15s → Rows 10 · Lateral wave 15s → Squat-row 10 · Crossfire 15s → Curls 10 · Flutter 20s → Press 10","Keep tubes off the floor, trunk braced. Short brutal bouts."],
+  note:"HIIT-bucket swap for a PZ Max slot. High core/shoulder demand — pair-check against core day."},
+ heavybag:{name:"Home Heavy Bag — Trainor solo rounds",kind:"Skill / MED",
+  body:["6×3-min, treat the bag as an opponent (move, feint, then attack):","R1 movement & feel (light, footwork) · R2 single-weapon: rear kick, reset each rep","R3 fixed 3-strike combo, full round · R4 same combo + imagined counter","R5 light–hard mix (touch–touch–power) · R6 high/low chain (head–body–leg)","60–70% intent; power shots only on the static bag."],
+  note:"This is SKILL, not cardio. Best home fallback after a missed Friday kick session (T1 protect), or extra kick volume. Serves the nose-height north star."}
+};
+
+/* ---- GMB tissue prep: 9 classes × 15/30/45. [name, seconds, perSide] ---- */
+const GMB={
+"Fundamentals":{15:{P:[["Standing Knee to Chest",30,1],["Single Leg Deadlift",30,1],["Tall Kneeling Arm Raises",60,0],["Tall Kneeling Arm Raises to Side",30,1],["Seated Twist",30,1],["Quadruped Spinal Circles",30,1],["Quadruped Wag Tail",60,0],["Quadruped Shoulder Circles",60,1],["Supine Hip Circles",30,1]],R:[["General Kneeling Lunge",30,1],["Modified Pigeon Stretch",30,1],["Wrists — Palms Down, Fingers Facing Knees",60,0]],Y:[["Monkey 180",30,0],["Sumo Frogger",60,0],["Basic Spiderman",60,0]]},
+ 30:{P:[["Standing Knee to Chest",30,1],["Single Leg Deadlift",30,1],["Tall Kneeling Arm Raises",60,0],["Tall Kneeling Arm Raises to Side",30,1],["Seated Twist",30,1],["Quadruped Spinal Circles",30,1],["Quadruped Wag Tail",60,0],["Quadruped Shoulder Circles",60,1],["Supine Hip Circles",30,1]],R:[["General Kneeling Lunge",90,1],["Modified Pigeon Stretch",90,1],["Wrists — Palms Down, Fingers Facing Knees",120,0]],Y:[["Monkey 180",60,0],["Sumo Frogger",120,0],["Basic Spiderman",180,0]]},
+ 45:{P:[["Standing Knee to Chest",30,1],["Single Leg Deadlift",30,1],["Tall Kneeling Arm Raises",60,0],["Tall Kneeling Arm Raises to Side",30,1],["Seated Twist",30,1],["Quadruped Spinal Circles",30,1],["Quadruped Wag Tail",60,0],["Quadruped Shoulder Circles",60,1],["Supine Hip Circles",30,1]],R:[["General Kneeling Lunge",240,1],["Modified Pigeon Stretch",240,1],["Wrists — Palms Down, Fingers Facing Knees",120,0]],Y:[["Monkey 180",120,0],["Sumo Frogger",240,0],["Basic Spiderman",240,0]]}},
+"Hips":{15:{P:[["Standing Knee to Chest",30,1],["Single Leg Deadlift",30,1],["Supine Hip Circles",30,1]],R:[["Modified Pigeon Stretch",60,1],["General Kneeling Lunge",60,1],["Half Frog",30,1],["Butterfly",30,1],["Frog",60,0],["Wrists — Palms Down, Fingers Facing Knees",60,0]],Y:[["Monkey 180",30,0],["Floating Table Top",60,0],["Sumo Frogger",60,0]]},
+ 30:{P:[["Standing Knee to Chest",30,1],["Single Leg Deadlift",30,1],["Supine Hip Circles",30,1]],R:[["Modified Pigeon Stretch",90,1],["General Kneeling Lunge",90,1],["Half Frog",90,1],["Butterfly",90,1],["Frog",180,0],["Wrists — Palms Down, Fingers Facing Knees",120,0]],Y:[["Monkey 180",60,0],["Floating Table Top",90,0],["Sumo Frogger",180,0]]},
+ 45:{P:[["Standing Knee to Chest",30,1],["Single Leg Deadlift",30,1],["Supine Hip Circles",30,1]],R:[["Modified Pigeon Stretch",150,1],["General Kneeling Lunge",150,1],["Half Frog",150,1],["Butterfly",150,1],["Frog",300,0],["Wrists — Palms Down, Fingers Facing Knees",120,0]],Y:[["Monkey 180",150,0],["Floating Table Top",120,0],["Sumo Frogger",300,0]]}},
+"Shoulders":{15:{P:[["Tall Kneeling Arm Raises",60,0],["Tall Kneeling Arm Raises to Side",30,1],["Quadruped Shoulder Circles",60,1]],R:[["Prone Bent Arm Chest Stretch",90,1],["Posterior Shoulder Opener",60,1],["Seated Clasped Hands Extension",120,0],["Crab Walk R&L",120,0],["Wrists — Palms Down, Fingers Facing Knees",60,0]],Y:[["Crab Walk F&B",60,0]]},
+ 30:{P:[["Tall Kneeling Arm Raises",60,0],["Tall Kneeling Arm Raises to Side",30,1],["Quadruped Shoulder Circles",60,1]],R:[["Prone Bent Arm Chest Stretch",180,1],["Posterior Shoulder Opener",120,1],["Seated Clasped Hands Extension",240,0],["Crab Walk R&L",240,0],["Wrists — Palms Down, Fingers Facing Knees",120,0]],Y:[["Crab Walk F&B",180,0]]},
+ 45:{P:[["Tall Kneeling Arm Raises",120,0],["Tall Kneeling Arm Raises to Side",90,1],["Quadruped Shoulder Circles",90,1]],R:[["Prone Bent Arm Chest Stretch",240,1],["Posterior Shoulder Opener",240,1],["Seated Clasped Hands Extension",360,0],["Crab Walk R&L",360,0],["Wrists — Palms Down, Fingers Facing Knees",120,0]],Y:[["Crab Walk F&B",360,0]]}},
+"Spine":{15:{P:[["Standing Knee to Chest",30,1],["Quadruped Wag Tail",60,0],["Quadruped Spinal Circles",30,1],["Tall Kneeling Arm Raises to Side",30,1]],R:[["Half Pancake",90,1],["Quadruped Twist",60,1],["Cobra",60,0],["Extended Side Angle Pose",60,1],["Wrists — Palms Down, Fingers Facing Knees",60,0]],Y:[["Bear",60,0],["Basic Monkey",60,0],["Sumo Frogger",60,0]]},
+ 30:{P:[["Standing Knee to Chest",30,1],["Quadruped Wag Tail",60,0],["Quadruped Spinal Circles",30,1],["Tall Kneeling Arm Raises to Side",30,1]],R:[["Half Pancake",120,1],["Quadruped Twist",90,1],["Cobra",180,0],["Extended Side Angle Pose",120,1],["Wrists — Palms Down, Fingers Facing Knees",120,0]],Y:[["Bear",120,0],["Basic Monkey",120,0],["Sumo Frogger",120,0]]},
+ 45:{P:[["Standing Knee to Chest",30,1],["Quadruped Wag Tail",60,0],["Quadruped Spinal Circles",30,1],["Tall Kneeling Arm Raises to Side",30,1]],R:[["Half Pancake",180,1],["Quadruped Twist",150,1],["Cobra",300,0],["Extended Side Angle Pose",180,1],["Wrists — Palms Down, Fingers Facing Knees",120,0]],Y:[["Bear",300,0],["Basic Monkey",240,0],["Sumo Frogger",240,0]]}},
+"Legs":{15:{P:[["Standing Knee to Chest",30,1],["Single Leg Deadlift",30,1],["Supine Hip Circles",30,1]],R:[["A-Frame to Squat",60,0],["General Kneeling Lunge",30,1],["Seated Hamstring",30,1],["Modified Downward Dog",30,1],["Wrists — Palms Down, Fingers Facing Knees",60,0]],Y:[["Bear",60,0],["Walk Into Squat",60,0],["Sumo Frogger",60,0]]},
+ 30:{P:[["Standing Knee to Chest",30,1],["Single Leg Deadlift",30,1],["Supine Hip Circles",30,1]],R:[["A-Frame to Squat",180,0],["General Kneeling Lunge",90,1],["Seated Hamstring",90,1],["Modified Downward Dog",90,1],["Wrists — Palms Down, Fingers Facing Knees",120,0]],Y:[["Bear",240,0],["Walk Into Squat",120,0],["Sumo Frogger",240,0]]},
+ 45:{P:[["Standing Knee to Chest",30,1],["Single Leg Deadlift",30,1],["Supine Hip Circles",30,1]],R:[["A-Frame to Squat",300,0],["General Kneeling Lunge",150,1],["Seated Hamstring",150,1],["Modified Downward Dog",150,1],["Wrists — Palms Down, Fingers Facing Knees",120,0]],Y:[["Bear",360,0],["Walk Into Squat",240,0],["Sumo Frogger",360,0]]}},
+"Extension":{15:{P:[["Tall Kneeling Arm Raises",60,0],["Tall Kneeling Arm Raises to Side",30,1],["Single Leg Deadlift",30,1],["Quadruped Spinal Circles",30,1]],R:[["General Kneeling Lunge",30,1],["Cobra",120,0],["Wrists — Palms Down, Fingers Facing Knees",60,0],["Floating Table Top",120,0],["Camel",120,0]],Y:[["Bear",120,0]]},
+ 30:{P:[["Tall Kneeling Arm Raises",60,0],["Tall Kneeling Arm Raises to Side",30,1],["Single Leg Deadlift",30,1],["Quadruped Spinal Circles",30,1]],R:[["General Kneeling Lunge",90,1],["Cobra",300,0],["Wrists — Palms Down, Fingers Facing Knees",120,0],["Floating Table Top",180,0],["Camel",300,0]],Y:[["Bear",240,0]]},
+ 45:{P:[["Tall Kneeling Arm Raises",90,0],["Tall Kneeling Arm Raises to Side",60,1],["Single Leg Deadlift",60,1],["Quadruped Spinal Circles",60,1]],R:[["General Kneeling Lunge",240,1],["Cobra",360,0],["Wrists — Palms Down, Fingers Facing Knees",120,0],["Floating Table Top",180,0],["Camel",360,0]],Y:[["Bear",360,0]]}},
+"Flexion":{15:{P:[["Standing Knee to Chest",30,1],["Single Leg Deadlift",30,1],["Supine Hip Circles",30,1]],R:[["A-Frame to Squat",60,0],["Modified Pigeon Stretch",60,1],["Seated Hamstring",30,1],["Seated Forward Fold",60,0],["Wrists — Palms Down, Fingers Facing Knees",60,0]],Y:[["Basic Spiderman",90,0],["Walk Into Squat",90,0],["Sumo Frogger",90,0]]},
+ 30:{P:[["Standing Knee to Chest",30,1],["Single Leg Deadlift",30,1],["Supine Hip Circles",30,1]],R:[["A-Frame to Squat",180,0],["Modified Pigeon Stretch",120,1],["Seated Hamstring",120,1],["Seated Forward Fold",180,0],["Wrists — Palms Down, Fingers Facing Knees",120,0]],Y:[["Basic Spiderman",180,0],["Walk Into Squat",90,0],["Sumo Frogger",120,0]]},
+ 45:{P:[["Standing Knee to Chest",30,1],["Single Leg Deadlift",30,1],["Supine Hip Circles",30,1]],R:[["A-Frame to Squat",300,0],["Modified Pigeon Stretch",180,1],["Seated Hamstring",180,1],["Seated Forward Fold",300,0],["Wrists — Palms Down, Fingers Facing Knees",120,0]],Y:[["Basic Spiderman",300,0],["Walk Into Squat",90,0],["Sumo Frogger",360,0]]}},
+"Rotation & Sidebending":{15:{P:[["Tall Kneeling Arm Raises",60,0],["Tall Kneeling Arm Raises to Side",30,1],["Quadruped Wag Tail",60,0]],R:[["Quadruped Twist",30,1],["Seated Twist",30,1],["Extended Side Angle Pose",60,1],["Half Pancake",60,1],["Wrists — Palms Down, Fingers Facing Knees",60,0],["Basic Spiderman",60,0]],Y:[["Sumo Frogger",60,0],["Monkey 180",30,0]]},
+ 30:{P:[["Tall Kneeling Arm Raises",60,0],["Tall Kneeling Arm Raises to Side",30,1],["Quadruped Wag Tail",60,0]],R:[["Quadruped Twist",60,1],["Seated Twist",60,1],["Extended Side Angle Pose",90,1],["Half Pancake",90,1],["Wrists — Palms Down, Fingers Facing Knees",60,0],["Basic Spiderman",120,0]],Y:[["Sumo Frogger",180,0],["Monkey 180",180,0]]},
+ 45:{P:[["Tall Kneeling Arm Raises",60,0],["Tall Kneeling Arm Raises to Side",30,1],["Quadruped Wag Tail",60,0]],R:[["Quadruped Twist",120,1],["Seated Twist",120,1],["Extended Side Angle Pose",150,1],["Half Pancake",150,1],["Wrists — Palms Down, Fingers Facing Knees",120,0],["Basic Spiderman",240,0]],Y:[["Sumo Frogger",240,0],["Monkey 180",300,0]]}},
+"Combined":{15:{P:[["Standing Knee to Chest",30,1],["Single Leg Deadlift",30,1],["Supine Hip Circles",30,1]],R:[["Seated Hamstring",60,1],["Seated Twist",30,1],["Extended Side Angle Pose",60,1],["Wrists — Palms Down, Fingers Facing Knees",60,0],["Basic Spiderman",90,0]],Y:[["Walk Into Squat",60,0],["Sumo Frogger",90,0]]},
+ 30:{P:[["Standing Knee to Chest",30,1],["Single Leg Deadlift",30,1],["Supine Hip Circles",30,1]],R:[["Seated Hamstring",120,1],["Seated Twist",120,1],["Extended Side Angle Pose",120,1],["Wrists — Palms Down, Fingers Facing Knees",120,0],["Basic Spiderman",240,0]],Y:[["Walk Into Squat",120,0],["Sumo Frogger",240,0]]},
+ 45:{P:[["Standing Knee to Chest",60,1],["Single Leg Deadlift",60,1],["Supine Hip Circles",60,1]],R:[["Seated Hamstring",180,1],["Seated Twist",180,1],["Extended Side Angle Pose",180,1],["Wrists — Palms Down, Fingers Facing Knees",120,0],["Basic Spiderman",360,0]],Y:[["Walk Into Squat",180,0],["Sumo Frogger",360,0]]}}
+};
+const GMB_AUTO=["Hips","Spine","Shoulders","Hips","Hips","Flexion","Rotation & Sidebending"]; /* Mon..Sun */
+const GMB_ALT ={4:"Rotation & Sidebending",3:"Legs",5:"Hips"}; /* Fri alt, Thu alt, Sat alt */
+
+/* ---- Video library (Drive URLs verified against Mobility_Video_File_List.md) ---- */
+const V={
+ hipir1:["Hip IR start here","https://drive.google.com/file/d/1tkoR64fU8grGqW0M7sHwsybJ7UUQbEZA/view?usp=drive_link"],
+ hipir2:["Hip IR progress here","https://drive.google.com/file/d/1tgYi1d4USNZZs5ng5bnyqCXhLef-ISpN/view?usp=drive_link"],
+ hipir3:["Hip IR progress part 2","https://drive.google.com/file/d/1ld9dELRtkjU2TZ6ONh9tyumz8z51kmf4/view?usp=drive_link"],
+ hircars:["Hip rotation CARS","https://drive.google.com/file/d/1txpRH0EX1iUAVP3f_t_z9PiklYp3elVc/view?usp=drive_link"],
+ lbcars:["Lower body CARS","https://drive.google.com/file/d/1ElTKdw9HeR6gqp4hGFfTffza35NSgzvU/view?usp=drive_link"],
+ stick:["Hip rotation, stick-mobility style","https://drive.google.com/file/d/1bv-FlWnmG8umACfF34AABCm9lu04NK8H/view?usp=drive_link"],
+ p9090:["The path to 90/90","https://drive.google.com/file/d/1f-Cw9qrSPItyTv8Cd4QNhhuYof-i3_7P/view?usp=drive_link"],
+ d9090:["Dynamic 90/90","https://drive.google.com/file/d/1juWpZuhfOd0SjD0KI7UG-V3LW8SVMTYR/view?usp=drive_link"],
+ f9090:["90/90 funeral","https://drive.google.com/file/d/1uFxrgGJdjJBVbaSZ40wbG5QzvD8xj0e4/view?usp=drive_link"],
+ x9090:["90/90 death","https://drive.google.com/file/d/1lIki5hUxDJI8h5vvO4c6Wd5XwsmzTdPh/view?usp=drive_link"],
+ pm0:["Pelvic Magic Zero","https://drive.google.com/file/d/1uwu263uiYE8sTesfgZ_37IJE19cHLush/view?usp=drive_link"],
+ pm1:["PM 1","https://drive.google.com/file/d/1amIbDgWRE3ce8-PhezCX4yJmpbLyHxse/view?usp=drive_link"],
+ pm2:["PM 2","https://drive.google.com/file/d/1anO-4f1EQtBChX9-c_HRRudcnhShDkkW/view?usp=drive_link"],
+ pm3:["PM 3","https://drive.google.com/file/d/1cBmW-0EgeKtKhBNjNFKCGs6ARBZZkk0K/view?usp=drive_link"],
+ pm4:["PM 4","https://drive.google.com/file/d/111R25UfZpLvjyu_nhul7semAC23tlRvX/view?usp=drive_link"],
+ pm5:["PM 5","https://drive.google.com/file/d/10Y9vQlVA0DfYcdrgOGMCmXYg_oz-d_Cq/view?usp=drive_link"],
+ smoosh:["Side smoosh","https://drive.google.com/file/d/1L3jG_StO9W2in417tk5xaEU1JslrIi9J/view?usp=drive_link"],
+ slide:["Sliding and gliding","https://drive.google.com/file/d/1l9HWmTJSXh9Kqe7ylLbntp-hqARY0es0/view?usp=drive_link"],
+ kick:["Kickstand hinge","https://drive.google.com/file/d/1iafLEck-cKC_kCvHlU7Fz-DZ_hR01D4q/view?usp=drive_link"],
+ cross:["Cross Connect","https://drive.google.com/file/d/11Q6hmpmJ2uh9bC-trH7NxDBacert_-yc/view?usp=drive_link"],
+ hhg:["Hip hiker's guide to the galaxy","https://drive.google.com/file/d/1xozZeLv2cACPuSBm1dYeSiNXo8CPi-Zh/view?usp=drive_link"],
+ qhw:["Quick hip warm up","https://drive.google.com/file/d/1n9G_ZtA7Ylb0gtxcdEY29UC9bqZMh6Q8/view?usp=drive_link"],
+ groin:["Groin","https://drive.google.com/file/d/1-oYVnuVRtIay15T_2lIxY_XhMoCWKykg/view?usp=drive_link"],
+ addc:["Adductor city","https://drive.google.com/file/d/1vz-bStBfH1mH6mx0lotQ-G6UDVuc5ShD/view?usp=drive_link"],
+ glob:["Global Mobility","https://drive.google.com/file/d/1CErTCe6aHElADq6YuKRhG-ukcjfWkwxu/view?usp=drive_link"],
+ rot:["Rotational athlete","https://drive.google.com/file/d/1bKpd5vZUhcMSHCcL2F9edxNL0eT07XbF/view?usp=drive_link"],
+ udr:["Ultimate daily routine (CARs)","https://drive.google.com/file/d/12SPLdqCLDWFi29j_1RqTXMIYEvk0dY42/view?usp=drive_link"],
+ ham:["Hamstrings","https://drive.google.com/file/d/1NgA9W1b6_l7kL3o7R73-0Om5BH0zQoaf/view?usp=drive_link"],
+ hflex:["Hip flexion","https://drive.google.com/file/d/1SKDcJZ8Pq96fX2gCEsOI4iGWVItnJIIs/view?usp=drive_link"],
+ her:["Hip ER start here","https://drive.google.com/file/d/1EMkQQwct6yofl2rhWod5bS6ZPwqPkIRW/view?usp=drive_link"],
+ slg:["Straight leg groin mini","https://drive.google.com/file/d/19jtPRU2arhf6fWR_RZK9YE-qEFWNroQR/view?usp=drive_link"],
+ sp1:["Spine 1","https://drive.google.com/file/d/1Md_B085IaXJ8c5tpC3OdQ5Nm8vWTdn4r/view?usp=drive_link"],
+ sp2:["Spine 2","https://drive.google.com/file/d/1d6mZwG-oik91Hcv0NgNoZQQCiTQp0LcQ/view?usp=drive_link"],
+ ribr:["Ribcage rotation","https://drive.google.com/file/d/1igF7tDXuHIYBnEzCRFvRw2J67Ruj74fO/view?usp=drive_link"],
+ tspine:["Thoracic spine — upper back mobility","https://drive.google.com/file/d/1VKBof3itM25kGU_CF93RwBTLWMWi2QNn/view?usp=drive_link"],
+ shtri:["Shoulder tri set","https://drive.google.com/file/d/1TQLEaqOQjbwwE9n7bNeDdt7R3unL68HA/view?usp=drive_link"],
+ blades:["That spot between your shoulder blades","https://drive.google.com/file/d/1KLb9ZXImaczVQ07RpyA_JOq4H36k71UP/view?usp=drive_link"],
+ benchmob:["Bench press mobility","https://drive.google.com/file/d/14Q0fHXFvk_kLoIrHP0qTeHcPX_aqqKZl/view?usp=drive_link"],
+ elev:["Elevator Breathing","https://drive.google.com/file/d/1q2UxydjVw_taRy27MHMCad9bDgfQZc8H/view?usp=drive_link"],
+ side:["Sidelying Breathing","https://drive.google.com/file/d/1pN83QfJWfl1QcCUBFnyTY74H0QzWSD0V/view?usp=drive_link"],
+ tranq:["Tranquilo time","https://drive.google.com/file/d/1WgA-UcmkAtozfIAs9C5osGJb3a-VhYaw/view?usp=drive_link"],
+ airway:["Open your airway","https://drive.google.com/file/d/1R1syOsjDB1uKv83PkE7o6cpeLZOokAkP/view?usp=drive_link"],
+ neckt:["Neck Tranquilizer","https://drive.google.com/file/d/1Sc4cvIP9QUWD8xHvHYUienIKyF_77tf9/view?usp=drive_link"],
+ bk2:["Bootleg Kinstretch #2 — Full Body Fab","https://drive.google.com/file/d/1urzLpuQ7aSm_HGL_BsicBznzGGA9RtEl/view?usp=drive_link"],
+ bk3:["Bootleg Kinstretch #3 — Hip-O-Rama","https://drive.google.com/file/d/1f1gX_RaJdtM33HmZu1wCaXQ38vLc2x56/view?usp=drive_link"],
+ lt1:["LT 1 — Lower Body Flexibility","https://drive.google.com/file/d/1WQppKwuvvXj0NPH4PZueHamlEgGFJtGD/view?usp=drive_link"],
+ lt2:["LT 2 — Lower Body Mobility","https://drive.google.com/file/d/1ak9Dy2jpBl76ggT1-N5YMhtXXss3tYp2/view?usp=drive_link"],
+ lt3:["LT 3 — Functional Kicking Strength","https://drive.google.com/file/d/11SrfSQdBhfuzeXbFkboWuPraHns00s4Z/view?usp=drive_link"],
+ lt5:["LT 5 — Hip Mobility","https://drive.google.com/file/d/1qfKcGkuuvk-cWc0wwpHhV-pQhb5ePvIa/view?usp=drive_link"],
+ lt12:["LT 12 — Functional Kicking Strength (Intermediate)","https://drive.google.com/file/d/1Ps_qGLmKDx000je4tYAgZ2kenl-DJQ66/view?usp=drive_link"],
+ lt23:["LT 23 — Lower Body Active Flexibility","https://drive.google.com/file/d/1pgUm9w-kEJRV2Ndj9TypyM6hdClE3YO7/view?usp=drive_link"],
+ /* added v10 — classes the authored Markow plan calls for */
+ qhs:["Quick hamstring strength","https://drive.google.com/file/d/1tzEGQRsRL98VQmAVNJfhqricgHfJ-qRt/view?usp=drive_link"],
+ ankfoot:["Ankle & foot mini","https://drive.google.com/file/d/1Pl-PeWcIHKxYldpZT_4nDDOmFCNVASQu/view?usp=drive_link"],
+ glutsol:["Gluteus soleus","https://drive.google.com/file/d/18y0rCygAthLRaIzlljiNiC215M83kYWQ/view?usp=drive_link"],
+ squat2:["Stay in the elevator squat","https://drive.google.com/file/d/1H7A_kGpCgn1BI7LB51DJ_27PoXLDWTgZ/view?usp=drive_link"]
+};
+
+/* ============ MARKOW — Beginner Hip Mobility, 12wk x 4d ============
+   v10: DERIVED by reading all 48 sessions of "Beginner Hip mobility Plan.pdf"
+   (c) 2025 Markow Training Systems. The v9 rotation was invented; this is not.
+   The author's STRUCTURE is reproduced exactly. Video keys are the closest
+   asset actually owned — every substitution is labelled in the UI with why.
+   Platform access is gone and the class titles never matched the video titles
+   even when it existed, so this gap is permanent, not a lookup failure. */
+
+/* Text-only items: authored classes with no video anywhere in the library. */
+const MK_TXT={
+ ssi:["Split Squat Isometric","Heel heavy throughout. Regress by staying higher with a more vertical shin. Progress by sinking down and slightly forward without losing the heavy heel. Keep the 1st and 5th metatarsal down on the back foot. Stuck in the front of the hip: turn the belt buckle away from it. Too much weight on the back foot and no inner thigh on the front: turn it toward.","No video exists in the library. Zero hits for \"split squat\" across the whole Drive."],
+ ir2:["Hip IR Kinstretch — 2nd weekly dose","Replaces the plan's Lower Body Strength here. Markow's own note: \"if you can get this in 1-2 times a week for 6-8 weeks it will be a game-changer\", so a second dose is inside his stated range.","Lower Body Strength cut as redundant with 4D Hybrid — your call, 2026-07-28."]
+};
+
+/* Why each substituted video is standing in for an authored class. */
+const MK_SUB={
+ pm1:"Authored class is <b>Rolling For Hip Rotation</b>, on 20 of 48 days and the most frequent class in the plan. No video of that name exists. Matched to PM 1 from Markow's own coaching text — foam-roller pelvic rolling — which is corroborated across three of his documents.",
+ hircars:"Authored class is <b>Hip Rotation Mini</b>. No exact title. Closest owned asset by content and length.",
+ hipir2:"Authored class is <b>Hip IR Kinstretch Class 1</b>. Library uses plain titles, not FRC jargon.",
+ hipir3:"Authored class is <b>Hip IR Kinstretch Class 2</b>.",
+ slide:"Authored class is <b>Scissor Slide Routine</b>. <b>Uncertain match</b> — named on the \"slide\" token only. Treat with suspicion.",
+ side:"Authored class is <b>Breathing For Hip Rotation &amp; CARs</b>. No such class exists; the entire Breathing tree is generic. Paired here with Hip rotation CARS to reconstruct it.",
+ squat2:"Authored class is <b>Squat Class 2</b>. <b>Uncertain match.</b> Note the library does use explicit \"class 2\" naming elsewhere and not here. Kept because the authored notes are clearly mobility, not loading: relaxed nasal breathing, \"don't force ass to grass\", 90 degrees is fine."
+};
+
+/* Items are "v:<videoKey>" or "t:<textKey>". MARKOW[w] = [D1,D2,D3,D4]. */
+const _w123=[["v:pm0","t:ssi"],["v:pm1","v:hircars"],["v:cross","t:ssi"],["v:smoosh"]];
+const _w45 =[["v:smoosh","t:ssi"],["v:pm1","v:hircars"],["v:pm1","v:cross"],["v:qhs","t:ssi"]];
+const _w78 =[["v:pm1","v:hipir2","t:ssi"],["v:ankfoot","v:glutsol"],["v:side","v:slide"],["v:lbcars","t:ir2"]];
+const _w912=[["v:pm1","v:hipir2","t:ssi"],["v:ankfoot","v:glutsol"],["v:side","v:slide"],["v:squat2"]];
+const MARKOW=[
+ [["v:pm0","t:ssi"],["v:pm1","v:hircars"],["v:cross"],["v:hircars"]],   /* wk1 — deliberately light, D3+D4 single-item */
+ _w123, _w123,                                                           /* wk2-3 */
+ _w45, _w45,                                                             /* wk4-5 — Side Smoosh promoted to D1, QHS enters D4 */
+ [["v:pm1","v:hipir2","t:ssi"],["v:ankfoot","v:glutsol"],["v:side","v:slide"],["v:lbcars","v:qhs","t:ssi"]], /* wk6 — Kinstretch block opens */
+ _w78, _w78,                                                             /* wk7-8 */
+ _w912, _w912, _w912, _w912                                              /* wk9-12 — Squat Class 2 owns D4 */
+];
+/* Minimum effective dose per Markow day. Robert asked for a floor on every session. */
+const MARKOW_MED=[
+ "Hip rotation CARs only — 5 slow reps each side, left side first. 3 min.",
+ "Rolling / PM 1 only — pelvis back, then turn side to side. Extra reps rolling right-to-left. 6 min.",
+ "10 slow breaths in 90/90 with internal rotation, then 10 hip CARs. 5 min.",
+ "Hip rotation CARs, 5 reps each side. 3 min."];
+/* D1..D4 land on Tue, Wed, Fri, Sun. Mon and Thu are heavy lower-body lifting
+   days and stay clear of hip volume; Sat belongs to sprint + Luke Thomas. */
+const MARKOW_DOW={1:0,2:1,4:2,6:3};
+/* Verbatim left-hip-IR guidance from the source, keyed by video. */
+const MK_LEFT={
+ pm0:"\"If your left hip is less mobile then double down on the sidelying walkovers with your left side down. Use a bigger towel.\"",
+ pm1:"\"I prefer rolling right to left first for most people. If you have poor left hip IR and flexion consider adding extra reps of rolling right to left.\"",
+ smoosh:"\"A lot of us need the lateral strider and side-lying split squat laying on our left side. If you struggle with leg hip IR especially add some extra sets of the one that feels the best for you.\"",
+ side:"\"If you have great external rotation double down on the internal rotation.\"",
+ hipir2:"Set up 10-15 degrees beyond your active range, never into a painful spot.",
+ hipir3:"Set up 10-15 degrees beyond your active range, never into a painful spot."};
+/* Flatten a week's video keys, for the Tonight's Pick dedupe. */
+function mkWeekKeys(w){const out=[];(MARKOW[w]||[]).forEach(d=>d.forEach(it=>{if(it.startsWith("v:"))out.push(it.slice(2));}));return out;}
+/* Luke Thomas Saturday rotation (6 retained kick-flex videos) */
+const LT_SAT=["lt1","lt2","lt3","lt5","lt23","lt1","lt12","lt2","lt3","lt23","lt12","lt5"];
+/* Friday pre-kick drills + standing-leg pivot progression (4 levels) */
+const PIVOT=[
+ "Level 1 — Wall-supported heel-sweep pivot, 2×5/side (slow, heel sweeps fully outward)",
+ "Level 2 — Unsupported slow pivot on ball of foot, 2×5/side",
+ "Level 3 — Pivot + chamber hold 3s at the top, 2×4/side",
+ "Level 4 — Pivot into full slow chambered roundhouse at a rising target, 2×3/side"];
+const pivotLvl=w=>w<3?0:(w<6?1:(w<9?2:3));
+const FRIKICK=w=>["Dynamic leg swings — 10/side, front + lateral planes",
+ "Hip-IR wall prep — 5 slow reps/side (left hip: extra 3)",
+ "Standing-leg pivot drill: "+PIVOT[pivotLvl(w)],
+ "3 slow chambers/side at current comfortable height"];
+
+/* Tonight's Pick */
+const TP={
+ Lower:{vids:["ham","hflex","her","slg","addc","groin","lt23","lt1"],min:15},
+ Upper:{vids:["shtri","blades","tspine","benchmob"],min:12},
+ Spine:{vids:["sp1","sp2","ribr","tspine"],min:15},
+ Global:{vids:["glob","rot","udr","bk2","bk3"],min:20},
+ Breathing:{vids:["elev","side","tranq","airway","neckt"],min:10}
+};
+const TP_DAY=["Lower","Spine","Upper","Lower","Breathing","Lower","Breathing"]; /* Mon..Sun */
+
+/* Sunday gap-fill block (programmed; commercial gym) */
+const SUNBLOCK=w=>{const p=corePhase(w);return [
+ {n:"Reverse Pec Deck (or Rear-Delt DB Fly)",rx:(p===2?4:3)+"×12–15 · RIR 1–2",why:"Rear delt — the structural hole. Always present."},
+ {n:"Face Pull (rope, high cable)",rx:"3×12–15 · RIR 1–2",why:"Rear delt + mid-trap double-count."},
+ {n:"Chest-Supported Row",rx:"2×10–12 · RIR 2",why:"Only if the Volume tab shows upper back under target this week."},
+ {n:"Cable External Rotation",rx:"2×12–15 · RIR 2 (optional)",why:"Cuff insurance under heavy pressing + BJJ."}];};
+
+/* Volume landmarks (sets/wk) — masters-adjusted, practical MRV pulled down for kicks/BJJ/plyos at 41 */
+const MUS={quad:["Quads",6,12,16],ham:["Hamstrings",4,10,14],glute:["Glutes",4,10,16],calf:["Calves",6,12,16],
+ chest:["Chest",6,12,18],back:["Back (lats/mid)",8,14,20],sdelt:["Side/Front Delts",6,12,18],rdelt:["Rear Delts",4,10,16],
+ bicep:["Biceps",5,12,18],tri:["Triceps",5,12,18],
+ abs_ant:["Anterior core (RA/obliques)",12,16,20],abs_post:["Posterior core (ES/MF/QL)",8,12,16]};
+
+/* ================= v10.1: MISSED-SESSION ENGINE =================
+   Over ~13 weeks sessions get missed. The default answer is NOT makeup work.
+   Cramming a missed session into an already-full week compresses recovery
+   exactly when life is already the reason you missed it, and this program has
+   no scheduled deloads to absorb that. So most misses are absorbed on purpose.
+   Four things do warrant action, and only four. Rules below. */
+
+/* What each weekday is supposed to produce. [blockId, tier, domain] */
+const EXPECT={
+ 0:[["str","T1","strength"],["plyo","T2","power"],["core","T2","core"],["hooklying","T2","hip"]],
+ 1:[["cond_tue","T2","z2"],["markow","T2","hip"]],
+ 2:[["str","T1","strength"],["core","T2","core"],["markow","T2","hip"]],
+ 3:[["str","T1","strength"],["plyo","T2","power"],["core","T2","core"],["hooklying","T2","hip"]],
+ 4:[["kick","T1","skill"],["str","T1","strength"],["markow","T2","hip"]],
+ 5:[["cond_sat","T2","z2"],["plyo","T2","power"],["lt","T2","skill"]],
+ 6:[["bjj","T1","skill"],["sunlift","T2","strength"],["markow","T2","hip"]]
+};
+const BLK={str:"Strength session",plyo:"Plyos / sprint",core:"Core",hooklying:"Hooklying primer",
+ markow:"Markow hip",cond_tue:"Zone 2 (Tue)",cond_sat:"Zone 2 (Sat)",kick:"Kickboxing",
+ lt:"Luke Thomas kick-flex",bjj:"BJJ",sunlift:"Sunday lift"};
+const DOMAIN={strength:"Strength",power:"Power",core:"Core",hip:"Hip mobility",z2:"Zone 2",skill:"Skill"};
+
+/* ============ MEASURED DURATIONS — from Toggl, 2026-01-01 → 2026-08-02 ============
+   339 training entries, 213 days, zero untagged, one 5h BJJ outlier excluded.
+   Recency-weighted (last 120 days count double). med/p25/p75 in minutes.
+   src:"m" = measured from your own log. src:"e" = my estimate, NO Toggl tag exists.
+   Held-out validation on the final 6 weeks (n=46): median abs error 9.3 min overall;
+   mobility 1–2 min, lifting and Peloton ~27 min. Trust the mobility numbers. Treat
+   the lifting and cardio numbers as a centre with a wide, real spread. */
+const MEAS={
+ str:      {med:85,p25:65,p75:105,n:46,src:"m",tag:"Lifting (solo) — varies a lot by day, see STR_DOW"},
+ sunlift:  {med:83,p25:71,p75:100,n:23,src:"m",tag:"Sunday lift with friends"},
+ markow:   {med:21,p25:17,p75:25, n:139,src:"m",tag:"one mobility class — multiply by items"},
+ cond_tue: {med:64,p25:49,p75:94, n:39,src:"m",tag:"Peloton — class length + setup"},
+ cond_sat: {med:64,p25:49,p75:94, n:39,src:"m",tag:"Peloton — class length + setup"},
+ kick:     {med:61,p25:45,p75:65, n:28,src:"m",tag:"kickboxing"},
+ bjj:      {med:60,p25:55,p75:77, n:20,src:"m",tag:"BJJ"},
+ lt:       {med:12,p25:10,p75:15, n:5, src:"m",tag:"kick mobility"},
+ hooklying:{med:4, p25:3, p75:5,  n:0, src:"e",tag:"3 sets, timed by hand"},
+ plyo:     {med:0, p25:0, p75:0,  n:20,src:"b",tag:"bundled into the lift — you don't task-switch"},
+ core:     {med:15,p25:10,p75:20, n:0, src:"e",tag:"no Toggl tag exists"}
+};
+/* Solo lifting is NOT one number. Measured medians by weekday.
+   CAVEAT, and it matters: this data is from AD-HOC training, not from this program.
+   Robert has never completed a 12-week block; the Toggl range covers self-directed
+   lifting, sometimes Biolayne-like and sometimes not. So these durations describe
+   "Robert lifts on a Monday", NOT "Robert runs D1". A programmed session with fixed
+   accessory volume may well run longer.
+   RETRACTED 2026-08-03: an earlier version claimed Mon/Thu run long because the
+   program's plyo days are bundled in. The program was not running. The weekday
+   difference is real (Mon+Thu median 92 vs Wed 69) but the causal story was invented.
+   Robert does bundle plyos into lifting as a general habit, which remains the most
+   likely explanation — it is just no longer evidence. */
+const STR_DOW={
+ 0:{med:97,p25:89,p75:105,n:14,plyo:true},   /* Mon — longest lifting day on record */
+ 2:{med:69,p25:59,p75:80, n:9, plyo:false},  /* Wed — shortest; the clean baseline */
+ 3:{med:74,p25:68,p75:80, n:6, plyo:true},   /* Thu — thin sample, treat with suspicion */
+ 4:{med:104,p25:60,p75:121,n:17,plyo:false}  /* Fri — widest spread you have, 60 to 121 */
+};
+/* Revealed reliability: share of that weekday, across 30–31 chances, on which ANY
+   training happened / any lifting happened. This is the single best predictor of
+   whether a programmed day will survive contact. */
+const DOW_REL={
+ 0:{train:50,lift:47,n:30},1:{train:30,lift:0,n:30},2:{train:30,lift:30,n:30},
+ 3:{train:39,lift:19,n:31},4:{train:81,lift:77,n:31},5:{train:39,lift:6,n:31},
+ 6:{train:87,lift:84,n:31}};
+/* Peloton is a DISCRETE variable, not continuous. Classes come in fixed lengths and a
+   "66 minute median" describes a ride you have never taken. Measured overhead between
+   logged time and class length: median 3.8 min, p25 1.6, p75 5.4, and never negative
+   across all 39 rides. So logged = class + ~4.
+   Your observed mix: 90 min 46%, 60 min 31%, 30 min 10%, 45 min 8%, 75 min 5%.
+   Last 120 days the mode moved from 90 to 60 — that is class SELECTION changing,
+   not sessions being cut short. */
+const PZ_CLASSES=[20,30,45,60,75,90];
+const PZ_OVERHEAD=4;
+function pzFit(mins){const c=PZ_CLASSES.filter(x=>x+PZ_OVERHEAD<=mins);return c.length?c[c.length-1]:null;}
+function blockMin(blk,w,dow){
+  const m=MEAS[blk]; if(!m)return null;
+  if(blk==="markow"){const mdi=MARKOW_DOW[dow];
+    const items=(mdi===undefined?1:(MARKOW[w]||MARKOW[0])[mdi].length);
+    return {med:m.med*items,p25:m.p25*items,p75:m.p75*items,n:m.n,src:m.src,items:items,tag:m.tag};}
+  if(blk==="str"&&STR_DOW[dow]){const s=STR_DOW[dow];
+    return {med:s.med,p25:s.p25,p75:s.p75,n:s.n,src:"m",plyo:s.plyo,
+            tag:s.plyo?"Lifting — plyos bundled in":"Lifting"};}
+  return m;
+}
+const MEDFLOOR={markow:5,str:12,cond_tue:24,cond_sat:24,plyo:0,core:6,hooklying:4,lt:6,kick:null,bjj:null,sunlift:12};
+/* Which strength day each weekday runs, for the wave-hold rule. */
+const DKEY={0:"d1",2:"d2",3:"d3",4:"d4"};
+
+function isoBack(dISO,n){const d=new Date(dISO+"T00:00:00");
+  if(isNaN(d.getTime()))return dISO;          /* never throw on a non-date sentinel */
+  d.setDate(d.getDate()-n);return iso(d);}
+/* Scan the trailing window. Only counts days that are in the past and inside the block. */
+function scanMissed(dISO,days){
+  const out=[];
+  for(let i=1;i<=days;i++){
+    const d=isoBack(dISO,i);
+    if(d<PROGRAM_START)continue;
+    const dw=(new Date(d+"T00:00:00").getDay()+6)%7;
+    const done=Z.done[d]||{};
+    (EXPECT[dw]||[]).forEach(([b,t,dom])=>{ if(!done[b]) out.push({date:d,dow:dw,blk:b,tier:t,dom,age:i}); });
+  }
+  return out;
+}
+/* RULE 2 conflict guard: never place a displaced session where it collides. */
+function canDisplace(blk,dow,targetDow){
+  if(targetDow===4||targetDow===6)return false;                 /* Fri kickboxing, Sun BJJ are anchors */
+  if(blk==="str"){
+    const heavy=[0,3];                                          /* Mon box squat, Thu trap bar */
+    if(heavy.includes(dow)){                                    /* a heavy lower day being moved */
+      if(heavy.includes(targetDow))return false;                /* never onto the other heavy day */
+      if(heavy.some(h=>Math.abs(h-targetDow)<=1))return false;  /* nor within 48h of one */
+    }
+  }
+  if(blk==="plyo"&&[0,3,5].includes(targetDow))return false;    /* plyos already live there */
+  return true;
+}
+const DOWN=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+function displaceTargets(blk,dow){
+  const t=[];for(let i=0;i<7;i++){if(i!==dow&&canDisplace(blk,dow,i))t.push(DOWN[i]);}
+  return t;
+}
+/* RULE 3: same strength day missed twice in a rolling 14 → hold that lift's wave. */
+function waveHolds(dISO){
+  const m=scanMissed(dISO,14).filter(x=>x.blk==="str");
+  const cnt={};m.forEach(x=>{const k=DKEY[x.dow];if(k)cnt[k]=(cnt[k]||0)+1;});
+  return Object.keys(cnt).filter(k=>cnt[k]>=2);
+}
+/* RULE 4: a domain under 50% over the trailing 21 days is a dose or slot problem. */
+function domainDrift(dISO){
+  const exp={},miss={};
+  for(let i=1;i<=21;i++){
+    const d=isoBack(dISO,i);if(d<PROGRAM_START)continue;
+    const dw=(new Date(d+"T00:00:00").getDay()+6)%7;const done=Z.done[d]||{};
+    (EXPECT[dw]||[]).forEach(([b,t,dom])=>{exp[dom]=(exp[dom]||0)+1;if(!done[b])miss[dom]=(miss[dom]||0)+1;});
+  }
+  return Object.keys(exp).filter(k=>exp[k]>=4&&(miss[k]||0)/exp[k]>0.5)
+    .map(k=>({dom:k,pct:Math.round(100-((miss[k]||0)/exp[k])*100),n:exp[k]}));
+}
+/* RULE 5: 4+ misses in 7 days is a chaos week. Stop catching up. */
+function chaosWeek(dISO){return scanMissed(dISO,7).length>=4;}
+
+/* ---- Tiers (chaos management) ---- */
+const TIERS={
+ T1:["Biolayne strength mains (top set + primary back-offs)","Friday kickboxing + pre-kick drills","Sunday BJJ","Daily protein target"],
+ T2:["Strength accessories","≥1 Zone 2 ride","Markow hip mobility","Core (loaded flexion + anti-rotation)","Sunday primary KOTG"],
+ T3:["GMB tissue prep","Baar micro-dose","2nd Zone 2","PZ Max (except FTP-test weeks)","Optional KOTG days","Tonight's Pick","Non-essential accessories","Sunday gap-fill extras"]};
+
+/* ================= STATE ================= */
+const KEY="hybrid_v6_state";
+let S={};
+try{S=JSON.parse(localStorage.getItem(KEY)||"{}")||{};}catch(e){S={};}
+if(!S.v9)S.v9={};
+const Z=S.v9;
+Z.readiness=Z.readiness||{};   /* dateISO -> 1..5 */
+Z.done=Z.done||{};             /* dateISO -> {blockId:true} */
+Z.lifts=Z.lifts||{};           /* dateISO -> {exKey:{w,ok}} */
+Z.prs=Z.prs||[];               /* {lift,w,r,e1,date} */
+
+Z.nut=Z.nut||{hist:[],app:"maint",act:1.6};
+Z.gmb=Z.gmb||{dur:15,ov:{}};   /* ov: dateISO->class override; on: dateISO->bool */
+/* ============ v11.5: HEAVY BACK-OFFS ============
+   The 4D Hybrid block as authored delivers ONE working set per lift per week above 80%
+   (1x3 @ 83-88%), with 3x8 @ 71-75% behind it. Androulakis-Korakakis 2021, in
+   intermediate-advanced powerlifters: a heavy single ALONE gave +11.4 kg on the PL total
+   with only a 6.3% probability the gain was meaningful; the same single plus 2x3 @ 80%
+   gave +33.7 kg at 99.6%. The whole difference was two heavy back-off triples.
+
+   So the block now inserts 2x3 @ 80% and removes one 3x8 set on D1/D2/D3.
+   DELIBERATE DEVIATION from the authored program — Robert's call, 2026-08-04.
+
+   Cost, computed against the app's own fractional accounting: total sets/lift/wk 4 -> 5,
+   sets above 80% 1 -> 3. Hypertrophy cost is roughly ONE stimulating rep per lift per week
+   (a set of 8 @ RIR 3 carries ~3, a set of 3 @ RIR 2 carries ~1). In an energy deficit the
+   goal is lean-mass retention, which is cheap and intensity-driven (Bickel 2011 held
+   hypertrophy 32 weeks at 1/9 volume) — so the heavy sets are precisely the ones worth
+   protecting.
+
+   No toggle. Non-additive by construction: one set out, two in, every time. */
+/* v11.8 BUG FIX — Robert, 2026-08-04: "Wouldn't 2x3 with two reps in reserve be more
+   weight than 1x3 with three reps in reserve?" Yes. A fixed RIR 2 made the "back-offs"
+   HEAVIER than the top set in 4 of 12 weeks and EQUAL in 6 more — only weeks 5 and 12 were
+   genuinely lighter. Worst case was week 6, the deliberate light week at RIR 4, where the
+   back-offs came out 15 lb ABOVE the top set and would have erased the deload.
+
+   The back-off RIR is now derived from the top set's: one step easier, always. That makes
+   it lighter by construction, ~2% of load, and it inherits the weekly wave and the week-6
+   deload automatically instead of fighting them. */
+function heavyBO(w,dkey){
+  const [,r,rir]=RX[w][dkey][0];
+  return {sets:2,reps:3,rir:(rir==null?2:rir)+1,topReps:r,topRir:rir};
+}
+const HEAVY_BO_DAYS=["d1","d2","d3"];
+/* How many hypertrophy sets come out to pay for the two heavy triples.
+   Caught by sweeping all 12 weeks rather than just week 1: the AUTHORED block already
+   runs above the app's own MRV line on quads from week 4 (20.5 vs 16 by week 12) and on
+   glutes from week 8. A flat one-set trade compounded that in exactly the weeks with no
+   headroom left. So the trade is +1 net set while volume is low, and NET-NEUTRAL from
+   week 4 on, where it is not — the authored quad volume crosses MRV at week 4, not week 8.
+   Caveat worth keeping in view: MRV is the weakest-evidenced number in this whole
+   framework — an Israetel/RP practitioner heuristic, not peer-reviewed, and Pelland 2025
+   found no clear recoverability cliff. This is prudence under a caloric deficit with kicks
+   and BJJ on top, not a hard physiological limit. */
+function hboTrade(w){return w>=3?2:1;}
+Z.down=Z.down||null;           /* {until:dateISO} auto down-week */
+Z.assumeDismiss=Z.assumeDismiss||false;
+Z.coreLoads=Z.coreLoads||{};
+Z.altSel=Z.altSel||{};         /* dateISO -> 'bike'|'bulgarian'|'inertia' for conditioning modality */
+Z.sm=Z.sm||"self";             /* v11.1 who measured the screen */
+/* ============ v11: MED ENGINE ============
+   Every threshold below is a published dose, not a target derived from Robert's
+   own behaviour. Full citations in the project doc
+   minimum-effective-dose-evidence-2026-08-03.md. The universal rule across all
+   six domains: cut frequency, cut volume, cut duration — NEVER cut intensity. */
+const MED={
+ strength:{k:"strength",n:"Strength",
+   maintain:{v:1,u:"heavy exposure per lift",note:"1 session/lift/wk, 1-3 sets at \u226580% 1RM holds your 1RM up to 32 weeks (Spiering 2021). Every-other-week does NOT (R\u00f8nnestad 2011)."},
+   progress:{v:3,u:"heavy compound days",note:"3-6 sets/lift/wk >80%, RPE 7.5-9.5. In intermediate-advanced powerlifters this added +34 kg to the PL total in 6 weeks (Androulakis-Korakakis 2021)."},
+   decay:"1-2 weeks off = no measurable 1RM loss. Decay accelerates after 3-4 weeks."},
+ aerobic:{k:"aerobic",n:"Hard aerobic",
+   maintain:{v:2,u:"exposures \u226513 min at intensity",note:"2 sessions/wk of 13-26 min at UNREDUCED intensity holds VO2max \u226515 weeks (Hickson 1981). Cutting intensity by a third lost VO2max even with volume intact."},
+   progress:{v:3,u:"interval sessions",note:"3 interval sessions/wk for 3-6 weeks."},
+   decay:"VO2max -7% at 21 days. The fastest-decaying quality you have."},
+ hip:{k:"hip",n:"Hip / ROM",
+   maintain:{v:2,u:"sessions",note:"2-3 sessions/wk. Staying athletically active alone may suffice \u2014 only inactive participants lost ROM (Konrad 2025)."},
+   progress:{v:4,u:"sessions",note:"Loaded full-ROM work raises ROM at ES 0.73, equal to stretching. Bodyweight-only does NOT \u2014 external load is required (Alizadeh 2023). Use the ankle weights."},
+   decay:"After 2-6 weeks off, ROM still sits ES +0.55 above baseline. Very durable."},
+ power:{k:"power",n:"Power / plyo",
+   maintain:{v:60,u:"foot contacts",note:"60 contacts/wk maintained every jump and sprint gain for \u22657 further weeks (Moran 2024)."},
+   progress:{v:120,u:"foot contacts",note:"120 contacts in ONE session per week builds. Two sessions was not better than one, volume-matched."},
+   decay:"Power is NOT lost faster than strength \u2014 over 7 weeks detraining, strength fell 14.5% and power 0.4% (McMaster 2013). The opposite claim is about decades of ageing, not weeks."},
+ skill:{k:"skill",n:"Skill",
+   maintain:{v:2,u:"sessions",note:"The 'what' survives weeks. TIMING degrades at every interval tested including 3 days (Savion-Lemieux 2004). 2\u00d7/wk is the floor for sharp."},
+   progress:{v:3,u:"sessions",note:"Random/interleaved, not blocked. The effect is ~2\u00d7 larger at your age than in young athletes."},
+   decay:"Timing is the second-fastest-decaying quality after aerobic capacity."}
+};
+/* Domain status for a week: 2 = progressing, 1 = maintaining, 0 = below floor. */
+function medStatus(dom,count){const m=MED[dom];if(!m)return null;
+  return count>=m.progress.v?2:(count>=m.maintain.v?1:0);}
+const MEDLBL=["Below floor","Maintaining","Progressing"];
+
+/* ============ v11.2: LOAD PRESCRIPTION FROM e1RM ============
+   Robert asked whether the app tells him what to load after the test, or whether he is
+   still guessing by RPE. Answer through v11.1 was: still guessing. Now it suggests.
+
+   Inverse-Epley on effective reps (reps + RIR) gives the working %1RM:
+     %1RM = 1 / (1 + (reps + RIR)/30)
+   Checked against the Helms RPE chart: 3 reps @ RIR 2 -> 85.7% here vs 86.3% published;
+   8 @ RIR 2 -> 75.0% vs 74.0%; 12 @ RIR 3 -> 66.7% vs 65.0%. Close enough to open a set on.
+
+   THE SUGGESTION IS A STARTING POINT, NOT A COMMAND. RIR still governs the actual set —
+   that is the point of autoregulation and it is how the 4D Hybrid source is written. */
+const MAINLIFT={bsq_top:"boxsq",bsq_bo:"boxsq",bp_top:"bench",bp_bo:"bench",tb_top:"trap",tb_bo:"trap"};
+function pct1RM(reps,rir){return 1/(1+(reps+(rir==null?2:rir))/30);}
+/* Rolling e1RM. Every logged top set is itself an e1RM estimate:
+     e1 = weight / %1RM(reps, RIR)
+   so the suggestion tracks strength as it is gained instead of waiting on a retest.
+   Best of the trailing 42 days, floored at the on-ramp baseline — a light day should not
+   drag the estimate down, because e1RM is a statement about capacity, not about average
+   effort. There is therefore NO separate strength retest — weeks 4/8/12 are measurement-only
+   screens. Robert, 2026-08-04: "I can't retest on weeks 4, 8, and 12 as extra lifting volume
+   on top of a high-volume program." Correct, and unnecessary: the programmed top sets are
+   the test. */
+const E1_WINDOW=42;
+const TOPKEY={boxsq:"bsq_top",bench:"bp_top",trap:"tb_top"};
+const ISO_RE=/^\d{4}-\d{2}-\d{2}$/;
+function workingE1(base,dISO){
+  if(!base)return null;
+  /* v11.7 CRASH FIX. The Week tab renders with dISO="preview", a sentinel, not a date.
+     isoBack("preview") built an Invalid Date and iso() threw RangeError: Invalid time
+     value, killing the whole render — the Week tab came up blank.
+     rxWeek() already guarded for this; workingE1 did not. Any non-ISO input now falls
+     back to the on-ramp baseline instead of throwing. */
+  if(dISO&&!ISO_RE.test(dISO)){
+    const b0=(Z.base&&Z.base[base])||null;
+    return b0?{e1:b0,src:"on-ramp test",when:(Z.base||{}).date||null}:null;
+  }
+  let best=(Z.base&&Z.base[base])||null, src=best?"on-ramp test":null, when=(Z.base||{}).date||null;
+  const tk=TOPKEY[base], cut=isoBack(dISO||todayISO(),E1_WINDOW);
+  Object.keys(Z.lifts||{}).forEach(k=>{
+    if(k<cut||k>(dISO||todayISO()))return;
+    const rec=(Z.lifts[k]||{})[tk]; const wt=rec&&Number(rec.w);
+    if(!wt)return;
+    const d=new Date(k+"T00:00:00"), wk=Math.floor((d-new Date(PROGRAM_START+"T00:00:00"))/6048e5);
+    const dk={boxsq:"d1",bench:"d2",trap:"d3"}[base];
+    if(wk<0||wk>11||DKEY[dayIdx(d)]!==dk)return;
+    const [,r,rir]=RX[Math.max(0,Math.min(11,wk))][dk][0];
+    const est=wt/pct1RM(r,rir);
+    if(est>best){best=est;src="logged "+wt+" lb";when=k;}
+  });
+  return best?{e1:best,src,when}:null;
+}
+function suggestLoad(exKey,reps,rir,dISO){
+  const b=MAINLIFT[exKey]; if(!b)return null;
+  const W=workingE1(b,dISO); if(!W)return null;
+  const raw=W.e1*pct1RM(reps,rir);
+  return {lb:Math.round(raw/5)*5, pct:Math.round(100*pct1RM(reps,rir)),
+          e1:Math.round(W.e1), src:W.src, when:W.when};
+}
+/* A "heavy exposure" for the MED scorecard means >=80% 1RM — not merely a ticked box.
+   Returns "heavy" | "light" | "unlogged" so the scorecard can be honest about which. */
+/* Robert's catch, 2026-08-04: an 80% floor imported from the MED strength literature was
+   being applied to a program written to different specs. If the block ever prescribed a
+   top set below 80%, executing it correctly would have been scored as a miss.
+   Empirically it never does — all 36 prescribed top sets across 12 weeks come out 81-88% —
+   but the rule should not depend on that luck.
+
+   A session is a heavy exposure if EITHER:
+     (a) it reached >=80% of the working e1RM (the MED threshold), OR
+     (b) it reached >=97% of what the program prescribed that day (you did the work).
+   The 3% tolerance absorbs rounding to the nearest 5 lb. You can never be marked down for
+   following the program. */
+const HEAVY_PCT=0.80, PRESCRIBED_TOL=0.97;
+function exposureClass(dISO,dkey){
+  const b={d1:"boxsq",d2:"bench",d3:"trap"}[dkey];
+  if(!b||!dISO||!ISO_RE.test(dISO))return "unlogged";
+  const W=workingE1(b,dISO); if(!W)return "unlogged";
+  const topKey=TOPKEY[b];
+  const raw=((Z.lifts[dISO]||{})[topKey]||{}).w;
+  if(raw==null||raw==="")return "unlogged";
+  const w=Number(raw);
+  if(w/W.e1>=HEAVY_PCT)return "heavy";
+  const d=new Date(dISO+"T00:00:00");
+  const wk=Math.max(0,Math.min(11,Math.floor((d-new Date(PROGRAM_START+"T00:00:00"))/6048e5)));
+  const [,r,rir]=RX[wk][dkey][0];
+  const target=W.e1*pct1RM(r,rir);
+  return (w>=target*PRESCRIBED_TOL)?"heavy":"light";
+}
+
+/* ============ v11.1: HIP IR LIFT-OFFS ============
+   Tracked as a LOADED EXERCISE, not as a range measurement — which is how Markow
+   himself progresses it ("add ankle weight as a progression"). Load x reps is far
+   more reliable to self-measure than a lift-off height in inches, and it is the
+   metric that can improve while passive ROM does not move at all. */
+function loSet(dISO,side,k,v){Z.lo[dISO]=Z.lo[dISO]||{};Z.lo[dISO][side]=Z.lo[dISO][side]||{};
+  Z.lo[dISO][side][k]=(v===""||v==null)?null:Number(v);save();render();}
+function loLast(side){const ks=Object.keys(Z.lo).sort();
+  for(let i=ks.length-1;i>=0;i--){const r=(Z.lo[ks[i]]||{})[side];if(r&&r.reps!=null)return {...r,date:ks[i]};}
+  return null;}
+/* CORRECTED 2026-08-04 after Robert asked whether this was extra work. It was.
+   v11.3 put lift-offs on a fixed Tue/Fri from week 1. Reading the Beginner Hip Mobility
+   source: Lift Offs appear ONLY inside "Hip IR Kinstretch Class 1/2", which does not enter
+   the plan until WEEK 6 DAY 1. They are not in any Pelvic Magic class, which is why Robert
+   has no memory of doing them.
+
+   They are also not a standalone drill. Markow's own sequence is
+   Prone Capsule CARs -> SideLying IR PAILs/RAILs -> Lift Offs, and his note is:
+   "We must save the work... This is you expressing the new range of motion we earned
+   through our P.A.I.L.'s R.A.I.L.'s." Cold lift-offs with no PAILs/RAILs in front of them
+   are a different exercise measuring a different thing.
+
+   So the card now appears only on days whose Markow session actually contains the
+   Kinstretch class — weeks 6-12 Tuesdays, plus the second weekly dose on weeks 7-8
+   Sundays. Zero added volume anywhere.
+   Markow also confirms the tracking method: "You can progress with height and ankle
+   weights also." */
+const LO_KEYS=["hipir1","hipir2","hipir3","ir2"];
+function isLiftOffDay(w,dow){
+  const mdi=MARKOW_DOW[dow]; if(mdi===undefined)return false;
+  const day=(MARKOW[w]||[])[mdi]||[];
+  return day.some(it=>LO_KEYS.includes(it.slice(2)));
+}
+function liftOffCard(dISO,editable,w,dow){
+  const due=isLiftOffDay(w,dow);
+  if(!due)return "";
+  const L=loLast("L"),R=loLast("R"),cur=Z.lo[dISO]||{};
+  const row=(side,last)=>{const c=cur[side]||{};
+    return `<div class="row"><div class="nm">${side==="L"?"Left":"Right"} hip
+      <div class="sup">${last?`last: ${last.wt||0} lb \u00d7 ${last.reps} reps \u00b7 ${last.date}`:"no data yet"}</div></div>
+      ${editable?`<input class="win" style="width:64px" inputmode="decimal" placeholder="lb" value="${c.wt??""}" onchange="loSet('${dISO}','${side}','wt',this.value)">
+      <input class="win" style="width:56px" inputmode="decimal" placeholder="reps" value="${c.reps??""}" onchange="loSet('${dISO}','${side}','reps',this.value)">`:""}</div>`;};
+  return `<div class="card spine t2"><h3>Hip IR Lift-Offs <span class="tiertag T2">LOG TODAY</span></h3>
+  <div class="banner teal"><b>Inside today's Hip IR Kinstretch class \u2014 no extra work.</b> Markow's sequence is Prone Capsule CARs \u2192 SideLying IR PAILs/RAILs \u2192 <b>Lift Offs, 5\u201310 reps</b>. Record what you get on the lift-offs; the class is the session.</div>
+  <div class="meta"><b>This is an exercise, not a test, and it is already in the class.</b> The load &times; reps you achieve <i>is</i> the measurement &mdash; the same way your bench number comes from benching. The Test tab only displays it; you never enter it there.</div>
+  <div class="mini" style="margin-bottom:6px">Markow on why they exist: <i>&ldquo;We must save the work. This is you expressing the new range of motion we earned through our P.A.I.L.&rsquo;s R.A.I.L.&rsquo;s.&rdquo;</i> They only mean anything after the PAILs/RAILs &mdash; done cold they measure something else. On progression: <i>&ldquo;You can progress with height and ankle weights also.&rdquo;</i></div>
+  <details style="margin-bottom:6px"><summary class="mini"><b>How to do it and what to record</b></summary>
+  <div class="mini" style="margin-top:6px">
+  <b>1.</b> Side-lying, bottom leg straight, top hip and knee bent to about 90&deg;, top knee supported on a foam roller or pillow so the femur stays level.<br>
+  <b>2.</b> Rotate the top shin <b>downward</b> toward the floor. That is internal rotation. Go to your end range.<br>
+  <b>3.</b> Keep the knee exactly where it is and <b>lift the foot off its support</b> under your own power. No momentum, no pelvis rolling back.<br>
+  <b>4.</b> Record the <b>ankle weight</b> and the number of <b>controlled reps</b> you can hold the lift-off for. That pair is the metric.<br><br>
+  <b>Progression, per Markow:</b> add reps first, then add ankle weight. A rep only counts if the foot actually leaves the support and the pelvis does not roll.<br>
+  <b>Zero is a real number.</b> If you cannot lift off at all, record 0 lb \u00d7 0 reps \u2014 that is a clean baseline and the most informative starting point there is.</div></details>
+  ${row("L",L)}${row("R",R)}
+  <div class="mini" style="margin-top:6px"><b>Record:</b> ankle weight in lb (0 if bodyweight) and the number of controlled reps you can hold the lift-off for. Left and right separately \u2014 they will not match and the difference is information.</div></div>`;
+}
+
+/* ============ v11.1: EXPOSURE LEDGER ============
+   Robert's objection, 2026-08-03, and it was correct: grading the week does not
+   stop the LOAD running ahead. RX[] was indexed purely on calendar week, so week 8
+   prescribed week-8 loads whether or not weeks 5-7 happened.
+
+   The resolution is that these are two different clocks and conflating them was
+   the bug:
+     THE CALENDAR is calendar-driven — week 8 arrives on week 8, nothing repeats,
+     nothing is owed. That protects him from the felt-failure spiral.
+     THE LOAD is exposure-driven — the weight on the bar reflects how many heavy
+     exposures that lift has actually had.
+   Grace of 1 week because 1-2 weeks off produces no measurable 1RM loss
+   (Hortobagyi 1993) — the ledger should hold, not punish. */
+const RX_GRACE=1;
+function liftExposures(dkey,dISO){
+  let n=0;const start=new Date(PROGRAM_START+"T00:00:00"),end=new Date(dISO+"T00:00:00");
+  for(let d=new Date(start);d<end;d.setDate(d.getDate()+1)){
+    const k=iso(d);
+    if(DKEY[dayIdx(d)]!==dkey)continue;
+    if((Z.done[k]||{}).str)n++;
+  }
+  return n;
+}
+/* Returns the RX row this lift has EARNED, plus how far behind the calendar it is. */
+function rxWeek(dkey,w,dISO){
+  if(!dISO||dISO==="preview")return {i:w,lag:0,exp:w,cal:w};
+  const exp=liftExposures(dkey,dISO);
+  const i=Math.max(0,Math.min(w,exp+RX_GRACE));
+  return {i,lag:w-i,exp,cal:w};
+}
+
+/* ---- Aerobic qualification. Absolute bpm, never Whoop zone labels — Whoop
+   recalibrated its max-HR estimate around Q1 2025 and the zone boundaries moved
+   under 6 quarters of data. Karvonen off the CURRENT 30-day RHR so an elevated
+   resting HR does not silently lower the bar. ---- */
+const HRMAX=195;                  /* Whoop-derived. The observed 203 was a motion
+                                     artifact: avg HR 138, only 3% of session in Z5. */
+function hrThreshold(){const rhr=(Z.rhr||77);
+  return {t4:Math.round(rhr+0.70*(HRMAX-rhr)), t5:Math.round(rhr+0.85*(HRMAX-rhr)), rhr:rhr};}
+const AERO_MIN=13;                /* minutes above t4 for a session to qualify */
+function aeroQualify(mins){return (mins||0)>=AERO_MIN;}
+function bagBlocks(minsSoFar){const d=Math.max(0,AERO_MIN-(minsSoFar||0));
+  return d===0?0:d+2;}            /* 1 min hard / 1 min light; +2 for the ramp */
+
+/* ---- Whoop readiness gate. Thresholds from HIS OWN 12-month distribution
+   (recovery p10 = 28, median 57), not Whoop's generic bands, so the brake fires
+   at ~10% of days rather than whatever Whoop's colour scheme implies. ---- */
+const REC_GATE=28, REC_GREEN=57;
+function whoopReady(dISO){const r=(Z.whoop||{})[dISO];return r&&r.rec!=null?r.rec:null;}
+function velocityGated(dISO){const r=whoopReady(dISO);
+  if(r!=null)return r<REC_GATE;              /* real data wins */
+  const s=readiness(dISO); return isDown()||(s!==null&&s<=2);}  /* fall back to self-report */
+
+/* ---- v10 additions ---- */
+Z.mkMode=Z.mkMode||{};         /* dateISO -> 'full'|'med' for that day's Markow session */
+if(Z.avail===undefined)Z.avail=null;
+if(Z.orShort===undefined)Z.orShort=null;   /* v11.10 dateISO when the on-ramp day is in short mode */  /* v10.7 — minutes available today, for the planner */
+Z.whoop=Z.whoop||{};           /* v11 dateISO -> {rec, hrv, z4min} from the Whoop export */
+Z.aero=Z.aero||{};             /* v11 dateISO -> minutes above the t4 threshold */
+Z.lo=Z.lo||{};                 /* v11.1 dateISO -> {L:{wt,reps},R:{wt,reps}} hip IR lift-offs */
+if(Z.rhr===undefined)Z.rhr=77; /* v11 rolling 30-day resting HR. Was 69 before Apr 2026. */
+Z.vrate=Z.vrate||{};           /* videoKey -> {r:1..5, date, n} difficulty rating */
+Z.screen=Z.screen||[];         /* [{date,irL,irR,ankL,ankR,kickL,kickR}] baseline battery */
+/* Measured by Robert 2026-07-28, seeded once so the block starts from real data.
+   NOTE: right (11 deg) is MORE restricted than left (18 deg) — the opposite of the
+   standing assumption that the left hip was the limiter. worseSide() reads this. */
+if(!Z.seed0){
+  /* Self-measured, prone, gravity-only end range. Kept for method calibration. */
+  Z.screen.push({date:"2026-07-28",method:"self",irL:18,irR:11,erL:null,erR:null,ankL:null,ankR:null,kickL:null,kickR:null});
+  /* PT-measured, passive with overpressure, full rotational arc. THIS is the baseline. */
+  Z.screen.push({date:"2026-07-30",method:"pt",irL:20,irR:25,erL:50,erR:50,ankL:null,ankR:null,kickL:null,kickR:null});
+  Z.seed0=true;}
+/* v11.7: dynamic-effort bench. Agreed 2026-07-28, appears in the on-ramp, and was
+   NEVER WIRED INTO THE BLOCK — Z.de was declared and read by nothing. Now on by default
+   on D2, per Robert 2026-08-04.
+   Westside-style speed work: 6x3 at 50% of e1RM, 45 s rest. Bar speed is the entire point.
+   Deliberately excluded from the volume tab: 18 reps at 50% sits far below any hypertrophy
+   threshold, and counting it would inflate the chest number for stimulus that is not there.
+   Honest note kept in the card: the evidence that DE work adds to a trained lifter's 1RM is
+   equivocal, and at 40-55 FORCE rather than velocity is the limiter of power
+   (Pojednic 2012). It is here for bar speed and because it costs almost nothing. */
+const DE={sets:6,reps:3,pct:0.50,rest:"45 s"};
+Z.de=(Z.de===undefined)?true:Z.de;
+Z.base=Z.base||null;           /* {boxsq,trap,bench,date} e1RMs from the on-ramp */
+Z.orDone=Z.orDone||{};         /* on-ramp day completion */
+Z.mkMedDefault=Z.mkMedDefault||false; /* hip block permanently on the short version */
+Z.bs=Z.bs||{};                 /* dateISO -> {b45,b70,reps,pause} Booty Sprout band config */
+/* v10: the block start is a fixed calendar date, not "most recent Monday".
+   Progression is calendar-driven on purpose — missing sessions never stalls it. */
+Z.start=Z.start||PROGRAM_START;
+if(Z.start!==PROGRAM_START&&!Z.startPinned)Z.start=PROGRAM_START;
+function save(){S.v9=Z;localStorage.setItem(KEY,JSON.stringify(S));}
+const iso=d=>d.toISOString().slice(0,10);
+const today=()=>new Date();
+/* v11.10: every user-facing date is now derived. Three separate hardcoded dates from
+   three start-dates ago survived into v11.9 on the pre-on-ramp card and told Robert the
+   on-ramp opened "Thu 2026-07-30". Nothing below may hardcode a date. */
+const fmtD=s=>{const d=new Date(s+"T00:00:00");
+  return isNaN(d)?s:`${["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][(d.getDay()+6)%7]} ${s}`;};
+const todayISO=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);};
+function dayIdx(d){return (d.getDay()+6)%7;} /* Mon=0 */
+function curWeek(){ /* 0..11, clamped */
+  const s=new Date(Z.start+"T00:00:00");const n=today();
+  const w=Math.floor((n-s)/(7*86400000));
+  return Math.max(0,Math.min(11,w));
+}
+function ageYears(){const n=new Date();let a=n.getFullYear()-DOB.getFullYear();
+  const m=n.getMonth()-DOB.getMonth();if(m<0||(m===0&&n.getDate()<DOB.getDate()))a--;return a;}
+function readiness(dISO){return Z.readiness[dISO]||null;}
+function isDown(){return Z.down&&todayISO()<=Z.down.until;}
+function downSuggest(){ /* ≥3 consecutive declining days OR avg<3 over last 5 logged */
+  const ks=Object.keys(Z.readiness).sort();if(ks.length<3)return false;
+  const last=ks.slice(-5).map(k=>Z.readiness[k]);
+  const l3=last.slice(-3);
+  const declining=l3.length===3&&l3[0]>=l3[1]&&l3[1]>=l3[2]&&l3[0]>l3[2];
+  const avg=last.length>=5&&(last.reduce((a,b)=>a+b,0)/last.length)<3;
+  return declining||avg;
+}
+function isDeloadWeek(w){return w===DELOAD_WK;}
+function e1(w,r){return Math.round(w*(1+r/30));}
+function fmtT(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
+const esc=t=>String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+/* ================= TABS ================= */
+const TABS=[["today","Today"],["week","Week"],["gmb","GMB"],["vol","Volume"],["night","Night"],["test","Test"],["log","Log"]];
+let cur="today";
+function buildTabs(){
+  const tb=document.getElementById("tabbar");
+  tb.innerHTML=TABS.map(t=>`<div class="tab ${t[0]===cur?"on":""}" onclick="go('${t[0]}')">${t[1]}</div>`).join("");
+  const vs=document.getElementById("views");
+  vs.innerHTML=TABS.map(t=>`<div class="view ${t[0]===cur?"on":""}" id="v_${t[0]}"></div>`).join("");
+}
+function go(t){cur=t;buildTabs();render();window.scrollTo(0,0);}
+function render(){
+  ({today:rToday,week:rWeek,gmb:rGMB,vol:rVol,night:rNight,test:rTest,log:rLog})[cur]();
+  const w=curWeek(),phz=["Base (Wk 1–4)","Load (Wk 5–8)","Peak (Wk 9–12)"][corePhase(w)];
+  document.getElementById("hdrTitle").textContent=TABS.find(t=>t[0]===cur)[1];
+  const _dI=todayISO();
+  const _phase = _dI<ONRAMP_START ? `Pre-on-ramp · on-ramp starts ${ONRAMP_START}, block starts ${PROGRAM_START}`
+               : (inOnramp(_dI) ? `On-ramp Day ${orIndex(_dI)+1} of ${ONRAMP.length}` : `Week ${w+1} of 12 · ${isDeloadWeek(w)?"<b style='color:var(--z2)'>Biolayne Deload</b>":phz}`);
+  document.getElementById("hdrSub").innerHTML=`${_phase}${isDown()?" · <b style='color:var(--t2)'>DOWN-WEEK ACTIVE</b>":""} · <span style="opacity:.55">${BUILD}</span>`;
+}
+
+/* ================= AUTOREGULATION ================= */
+function regBanner(dISO){
+  const r=readiness(dISO);let h="";
+  if(downSuggest()&&!isDown()){
+    h+=`<div class="banner amber"><b>Readiness trend is down.</b> ≥3 declining days or 5-day avg &lt;3. Suggest a self-directed down-week: barbell base stays as written, everything the app owns offloads — trim non-Biolayne volume 40–50%, Z2 only, easy GMB, light core, no plyos. <button class="btn sm red" style="margin-top:6px" onclick="startDown()">Start 7-day down-week</button></div>`;
+  }
+  if(isDown())h+=`<div class="banner teal"><b>Down-week through ${Z.down.until}.</b> App-owned volume trimmed. Barbell base unchanged (source of truth). <button class="btn sm sec" onclick="endDown()">End early</button></div>`;
+  if(r===null)h+=`<div class="banner teal"><b>Log readiness first.</b> It is the only brake on fatigue in this program — no scheduled deloads means honest logging is the safety mechanism.</div>`;
+  else if(r<=2)h+=`<div class="banner red"><b>Readiness ${r} — heavy offload.</b> Barbell → DB/machine at reduced load · skip plyos · PZ Max → Z2 · core → anti-rotation only · GMB → 15-min global · trim accessory sets.</div>`;
+  else if(r===3)h+=`<div class="banner amber"><b>Readiness 3 — moderate.</b> Cap or skip extra top sets · plyos optional · Z2 not HIIT · keep core light.</div>`;
+  return h;
+}
+function startDown(){const d=new Date();d.setDate(d.getDate()+7);Z.down={until:iso(d)};save();render();}
+function endDown(){Z.down=null;save();render();}
+function setReady(v){Z.readiness[todayISO()]=v;save();render();}
+
+/* ================= BLOCK RENDER HELPERS ================= */
+function ckHTML(dISO,id){
+  const on=Z.done[dISO]&&Z.done[dISO][id];
+  return `<div class="ck ${on?"on":""}" onclick="tog('${dISO}','${id}')">✓</div>`;
+}
+function tog(dISO,id){Z.done[dISO]=Z.done[dISO]||{};Z.done[dISO][id]=!Z.done[dISO][id];save();render();}
+function lastLoad(exKey,beforeISO){
+  const ks=Object.keys(Z.lifts).sort().filter(k=>k<beforeISO);
+  for(let i=ks.length-1;i>=0;i--){const v=Z.lifts[ks[i]][exKey];if(v&&v.w)return v.w;}
+  return "";
+}
+/* ---- v10 helpers ---- */
+/* ===== Booty Sprout =====
+   Bands on hand: 45 lb and 70 lb nominal. Exact count of each is unknown, so the
+   picker takes a quantity of each rather than assuming an inventory.
+   IMPORTANT: the printed rating is NOMINAL. A band delivers its rated tension only
+   at one stretch length; on a Sprout, lockout tension is far above bottom tension.
+   So this number is an ORDINAL marker for progression, not a real load. It is
+   deliberately kept out of barbell tonnage and out of the volume model's load math.
+   Sets still count normally toward the horizontal glute vector. */
+const BS_BANDS=[45,70];
+function bsLoad(c){return (c.b45||0)*45+(c.b70||0)*70;}
+function bsLabel(c){const p=[];if(c.b45)p.push(`${c.b45}×45`);if(c.b70)p.push(`${c.b70}×70`);
+  return p.length?p.join(" + ")+` = ${bsLoad(c)} lb nominal`:"no bands set";}
+function bsLast(beforeISO){const ks=Object.keys(Z.bs).filter(d=>d<beforeISO).sort();
+  return ks.length?Z.bs[ks[ks.length-1]]:null;}
+function bsSet(dISO,f,v){Z.bs[dISO]=Z.bs[dISO]||{b45:0,b70:0,reps:"",pause:""};
+  Z.bs[dISO][f]=(f==="reps"||f==="pause")?v:Math.max(0,(+v||0));save();render();}
+/* Progression order is the author's: reps first, then tempo and pauses, then band tension. */
+function bsNextStep(cur,prev){
+  if(!prev)return "First logged session. Establish a rep baseline before changing anything.";
+  const dL=bsLoad(cur)-bsLoad(prev);
+  if(dL>0)return `Tension went up (${bsLoad(prev)} → ${bsLoad(cur)} nominal). Hold here and rebuild reps before adding more.`;
+  const pr=parseInt(prev.reps)||0,cr=parseInt(cur.reps)||0;
+  if(cr>pr)return "Reps are climbing. Keep going on reps until they stall.";
+  if(cr&&cr<=pr&&!cur.pause)return "Reps have stalled. Next lever is tempo or a pause at lockout, not more band.";
+  if(cr&&cr<=pr&&cur.pause)return `Reps stalled with a pause already in. Now add tension: next step up is ${bsLoad(cur)+45} or ${bsLoad(cur)+70} nominal.`;
+  return "Log reps to get a progression call.";
+}
+function bootyRow(dISO,s,r,rir,editable){
+  const cur=Z.bs[dISO]||{b45:0,b70:0,reps:"",pause:""},prev=bsLast(dISO);
+  if(!editable)return `<div class="row"><div class="nm">Banded Hip Thrust — Booty Sprout<div class="sup">${bsLabel(cur)}</div></div><div class="rx">${s}×${r}${rir!=null?" · RIR "+rir:""}</div></div>`;
+  return `<div class="row" style="display:block"><div class="nm">Banded Hip Thrust — Booty Sprout
+    <div class="sup">${prev?`Last: ${bsLabel(prev)} · ${prev.reps||"—"} reps${prev.pause?" · "+prev.pause:""}`:"No prior session logged"}</div></div>
+  <div class="rx" style="margin:4px 0">${s}×${r}${rir!=null?" · RIR "+rir:""}</div>
+  <div class="grid2" style="margin-top:6px">
+    <div><label class="f">45 lb bands</label><input type="number" min="0" inputmode="numeric" value="${cur.b45||0}" onchange="bsSet('${dISO}','b45',this.value)"></div>
+    <div><label class="f">70 lb bands</label><input type="number" min="0" inputmode="numeric" value="${cur.b70||0}" onchange="bsSet('${dISO}','b70',this.value)"></div>
+    <div><label class="f">Reps</label><input type="number" min="0" inputmode="numeric" value="${cur.reps||""}" onchange="bsSet('${dISO}','reps',this.value)"></div>
+    <div><label class="f">Pause / tempo</label><input type="text" placeholder="e.g. 2s lockout" value="${cur.pause||""}" onchange="bsSet('${dISO}','pause',this.value)"></div>
+  </div>
+  <div class="mini" style="margin-top:6px"><b>${bsLabel(cur)}</b></div>
+  <div class="mini" style="color:var(--t2)">→ ${bsNextStep(cur,prev)}</div>
+  <div class="mini">Nominal rating only. Band tension varies through the range, so this orders your progression but is not comparable to barbell load and is excluded from tonnage.</div>
+  </div>`;
+}
+/* ===== Missed-session triage card ===== */
+function chaosCard(dISO){
+  const missed=scanMissed(dISO,7),holds=waveHolds(dISO),drift=domainDrift(dISO),chaos=chaosWeek(dISO);
+  if(!missed.length&&!holds.length&&!drift.length)
+    return `<div class="card"><h3>Nothing missed <span class="chip ghost">last 7 days</span></h3>
+    <div class="mini">When something does get missed, the plan for it appears here. Default is to absorb it, not make it up.</div></div>`;
+  let h=`<div class="card spine ${chaos?"t1":"t2"}"><h3>Missed work — what to actually do</h3>`;
+
+  if(chaos){
+    h+=`<div class="banner red"><b>Chaos week.</b> ${missed.length} sessions missed in 7 days. <b>Do not try to catch any of it up.</b>
+    Run T1 only for the next 7 days: strength mains, Friday kickboxing, Sunday BJJ, protein. Everything else is optional.
+    <br><b>Low-readiness swap, home edition:</b> not machines \u2014 you do not own any. Drop to the <b>maintenance dose</b>: one heavy triple at \u226580%, skip the back-offs, done in ~12 minutes. That provably holds the lift for weeks (Spiering 2021). If even that is wrong, trap bar instead of box squat drops the technical and spinal demand without dropping load.
+    Then resume the calendar where it stands. The block still ends on schedule.</div>`;
+  }
+
+  const t1=missed.filter(m=>m.tier==="T1"),t2=missed.filter(m=>m.tier!=="T1");
+  if(t1.length&&!chaos){
+    h+=`<div class="klabel" style="margin-top:8px">T1 missed — the only tier worth displacing</div>`;
+    t1.forEach(m=>{
+      const tg=displaceTargets(m.blk,m.dow);
+      const fresh=m.age<=2;
+      h+=`<div class="row"><div class="nm">${BLK[m.blk]||m.blk} · ${DOWN[m.dow]} ${m.date}
+      <div class="sup">${fresh
+        ? (tg.length?`Displace once into <b>${tg.join(" or ")}</b>, replacing that day's T3 work. Never stack it on top of a full day.`
+                    :`No safe slot this week without colliding with a heavy lower day or an anchor. <b>Absorb it.</b>`)
+        : `More than 48 h old. <b>Absorb it</b> — the stimulus window has passed and catching up now just costs recovery.`}</div></div></div>`;
+    });
+  }
+  if(t2.length&&!chaos){
+    h+=`<div class="klabel" style="margin-top:10px">T2/T3 missed — absorb, no action</div>
+    <div class="row"><div class="nm">${t2.map(m=>`${BLK[m.blk]||m.blk} (${DOWN[m.dow]})`).join(" · ")}
+    <div class="sup">Not made up. One missed accessory or mobility session costs almost nothing; a week spent catching up costs more. Nothing repeats.</div></div></div>`;
+  }
+
+  if(holds.length){
+    h+=`<div class="banner amber" style="margin-top:10px"><b>Wave hold — ${holds.join(", ").toUpperCase()}.</b>
+    That day has been missed twice in the last 14. Do <b>not</b> advance its prescribed load this week; repeat the last load you actually completed on that lift.
+    <br><span class="mini">Only the load holds. The calendar does not — the block still ends on schedule and no week repeats.</span></div>`;
+  }
+
+  drift.forEach(d=>{
+    h+=`<div class="banner teal" style="margin-top:10px"><b>${DOMAIN[d.dom]} is at ${d.pct}% over 3 weeks.</b>
+    That is not a discipline problem, it is a dose or a slot problem. Two honest options: move it to a different day, or drop it to the short version permanently and actually hit it.
+    ${d.dom==="hip"?`<br><button class="btn sm" style="margin-top:6px" onclick="mkDefaultMed()">Make Markow default to the short version</button>`:""}</div>`;
+  });
+
+  h+=`<div class="mini" style="margin-top:10px"><b>Why most of this says absorb.</b> This program has no scheduled deloads by design — readiness logging is the only brake. Makeup work removes that brake precisely when you are already under load.</div></div>`;
+  return h;
+}
+function mkDefaultMed(){Z.mkMedDefault=true;save();render();}
+/* Latest screen carrying both IR sides. Prefers a clinician measurement when one exists. */
+/* Newest screen regardless of who measured. latestScreen() below deliberately prefers
+   PT for the PASSIVE left/right comparison; but the active-vs-passive gap is self-measured
+   by design, so the "where you stand" view must not hide today's screen behind July's PT visit. */
+function latestAny(){return Z.screen.length?Z.screen[Z.screen.length-1]:null;}
+function latestScreen(){
+  const withIR=Z.screen.filter(s=>s.irL!=null&&s.irR!=null);
+  if(!withIR.length)return null;
+  const pt=withIR.filter(s=>s.method==="pt");
+  return (pt.length?pt:withIR)[ (pt.length?pt:withIR).length-1 ];
+}
+/* MIN_GAP: below this, a left/right difference is inside measurement noise and
+   biasing on it is false precision. Set at 8 deg because two measurements of the
+   same right hip five days apart differed by 14 deg. */
+const MIN_GAP=8;
+function worseSide(){
+  const s=latestScreen(); if(!s)return null;
+  const gap=Math.abs(s.irL-s.irR);
+  return {side:s.irL<s.irR?"L":"R", l:s.irL, r:s.irR, date:s.date, gap,
+          method:s.method||"self", symmetric:gap<MIN_GAP,
+          erL:s.erL, erR:s.erR,
+          arcL:(s.erL!=null?s.irL+s.erL:null), arcR:(s.erR!=null?s.irR+s.erR:null)};
+}
+const SIDEW=s=>s==="L"?"left":"right";
+function setMkMode(dISO,m){Z.mkMode[dISO]=m;save();render();}
+/* ============ TIME-AVAILABLE PLANNER ============
+   Built for the real problem: the morning slot fails and the session has to be
+   re-slotted into whatever gap exists. Answers "I have N minutes, what do I do"
+   using measured durations rather than intended ones. */
+const AVAIL_OPTS=[15,25,40,60,90,120];
+function setAvail(v){Z.avail=(Z.avail===v?null:v);save();render();}
+function planDay(w,dow,mins){
+  const exp=EXPECT[dow]||[];
+  const rank={T1:0,T2:1,T3:2};
+  const list=exp.map((e,i)=>{const b=blockMin(e[0],w,dow)||{med:10,p25:8,p75:14,src:"e"};
+    return {id:e[0],tier:e[1],domain:e[2],name:BLK[e[0]]||e[0],ord:i,...b};})
+    .filter(x=>x.src!=="b")   /* plyos are bundled into the lift — never a separate line */
+    .sort((a,b)=>(rank[a.tier]-rank[b.tier])||(a.ord-b.ord));
+  let used=0;const fit=[],cut=[];
+  list.forEach(x=>{
+    /* Peloton: pick the largest real class that fits, not a fictional average */
+    if(x.id==="cond_tue"||x.id==="cond_sat"){
+      const c=pzFit(mins-used);
+      if(c){fit.push({...x,mode:"class",cls:c,use:c+PZ_OVERHEAD});used+=c+PZ_OVERHEAD;}
+      else cut.push(x);
+      return;}
+    if(used+x.med<=mins){fit.push({...x,mode:"full"});used+=x.med;return;}
+    const fl=MEDFLOOR[x.id];
+    if(fl&&used+fl<=mins){fit.push({...x,mode:"floor",use:fl});used+=fl;return;}
+    cut.push(x);});
+  return {fit,cut,used,total:list.reduce((s,x)=>s+x.med,0),list};
+}
+function plannerCard(w,dow,dISO){
+  const mins=Z.avail;
+  const full=(EXPECT[dow]||[]).reduce((s,e)=>{const b=blockMin(e[0],w,dow);return s+(b?b.med:0);},0);
+  let h=`<div class="card spine t2"><h3>How much time do you actually have?</h3>
+  <div class="meta">Today as written runs about <b>${Math.round(full)} min</b> end to end, using your measured durations — not my estimates. Your real median training day over the last 7 months was <b>151 min</b>, so this is normal for you.</div>
+  <div class="seg" style="margin:8px 0">${AVAIL_OPTS.map(v=>`<button class="${mins===v?"on":""}" onclick="setAvail(${v})">${v}m</button>`).join("")}</div>`;
+  if(!mins){h+=`<div class="mini">Tap a number when the day has gone sideways and you need to know what still fits.</div></div>`;return h;}
+  const p=planDay(w,dow,mins);
+  h+=`<div class="banner teal"><b>In ${mins} minutes:</b> ${Math.round(p.used)} min of work planned.</div>
+  <div style="margin-top:6px">`;
+  p.fit.forEach(x=>{
+    const t=(x.mode==="floor"||x.mode==="class")?x.use:Math.round(x.med);
+    const mark=x.mode==="floor"?"⤵ ":"✓ ";
+    let sub=`${Math.round(t)} min`;
+    if(x.mode==="class")sub=`take the <b>${x.cls}-minute</b> class · ${x.cls} + ${PZ_OVERHEAD} min setup`;
+    else if(x.mode==="full"&&x.p25)sub+=` · usually ${Math.round(x.p25)}–${Math.round(x.p75)}`;
+    if(x.src==="e")sub+=` · <i>estimated, no log data</i>`;
+    if(x.plyo)sub+=` · <b>plyos are inside this</b>, not a separate block`;
+    h+=`<div class="row"><div class="nm">${mark}${x.name}${x.mode==="floor"?` <span class="mini">— floor version only</span>`:""}
+    <div class="sup">${sub}</div></div>
+    <span class="tiertag ${x.tier}">${x.tier}</span></div>`;});
+  if(p.cut.length){
+    h+=`</div><div class="mini" style="margin-top:8px;color:var(--t2)"><b>Dropped:</b> ${p.cut.map(x=>x.name).join(", ")}. Gone, not owed. Nothing repeats and the block does not stall.</div>`;
+  } else {h+=`</div><div class="mini" style="margin-top:8px">Everything fits.</div>`;}
+  h+=`<div class="mini" style="margin-top:8px">Ordered T1 → T2 → T3, strength ahead of conditioning ahead of power, per the block's priority stack. Floor versions count as complete.</div></div>`;
+  return h;
+}
+function setWhoop(dISO,k,v){Z.whoop[dISO]=Z.whoop[dISO]||{};
+  Z.whoop[dISO][k]=(v===""||v==null)?null:Number(v);save();render();}
+function setAero(dISO,v){if(v===""||v==null)delete Z.aero[dISO];else Z.aero[dISO]=Number(v);save();render();}
+function setRHR(v){if(v!==""&&v!=null)Z.rhr=Number(v);save();render();}
+function whoopCard(dISO){
+  const r=(Z.whoop||{})[dISO]||{},H=hrThreshold(),gate=velocityGated(dISO);
+  const rec=r.rec;
+  let band="",cls="";
+  if(rec!=null){
+    if(rec<REC_GATE){band="High-velocity work is gated today.";cls="red";}
+    else if(rec<REC_GREEN){band="Proceed. Plyos optional, not required.";cls="amber";}
+    else {band="Green light \u2014 everything including maximal-velocity work.";cls="teal";}
+  }
+  return `<div class="card spine t2"><h3>Whoop this morning <span class="tiertag T2">T2</span></h3>
+  <div class="grid2">
+    <div><label class="f">Recovery %</label><input type="number" inputmode="decimal" value="${rec??""}" onchange="setWhoop('${dISO}','rec',this.value)"></div>
+    <div><label class="f">HRV (ms)</label><input type="number" inputmode="decimal" value="${r.hrv??""}" onchange="setWhoop('${dISO}','hrv',this.value)"></div>
+    <div><label class="f">Min above ${H.t4} bpm (after training)</label><input type="number" inputmode="decimal" value="${(Z.aero||{})[dISO]??""}" onchange="setAero('${dISO}',this.value)"></div>
+    <div><label class="f">30-day resting HR</label><input type="number" inputmode="decimal" value="${Z.rhr}" onchange="setRHR(this.value)"></div>
+  </div>
+  ${rec!=null?`<div class="banner ${cls}" style="margin-top:8px"><b>Recovery ${rec}%.</b> ${band}</div>`:
+    `<div class="mini" style="margin-top:8px">No recovery entered. The gate falls back to your self-reported 1\u20135.</div>`}
+  <div class="mini" style="margin-top:6px">Gate thresholds are <b>your own</b> 12-month distribution \u2014 p10 = ${REC_GATE}, median = ${REC_GREEN} \u2014 not Whoop\u2019s generic colours, so the brake fires ~10% of days.</div>
+  <div class="mini" style="margin-top:6px;opacity:.8">Your RHR stepped from 69 to 77 between Mar and Apr 2026 and is still climbing (Jul median 79), with HRV down 5 ms and sleep unchanged. Whoop\u2019s recovery score rebaselined and hid it. Keep this field current \u2014 the bpm threshold above is computed from it.</div></div>`;
+}
+
+/* ============ v11: WEEKLY MED SCORECARD ============
+   Counts INTENSITY-QUALIFIED exposures, not sessions. A heavy triple at 85%
+   counts; four sets at 70% does not. Protected compounds are D1 box squat,
+   D2 bench, D3 trap bar — Robert's call 2026-08-03. D4 machine/hypertrophy is
+   the flex day and is made up at the Sunday social lift. */
+const COMPOUND=["d1","d2","d3"];
+function weekBounds(dISO){const d=new Date(dISO+"T00:00:00");const off=(d.getDay()+6)%7;
+  const s=new Date(d);s.setDate(d.getDate()-off);const out=[];
+  for(let i=0;i<7;i++){const x=new Date(s);x.setDate(s.getDate()+i);out.push(iso(x));}return out;}
+function weekScore(dISO){
+  const days=weekBounds(dISO);
+  let heavy=0,heavyV=0,heavyU=0,d4=0,aero=0,hipD=0,skill=0,plyo=0;
+  days.forEach(k=>{
+    const c=Z.done[k]||{};
+    const dk=DKEY[dayIdx(new Date(k+"T00:00:00"))];
+    if(c.str&&dk&&COMPOUND.includes(dk)){
+      const cl=exposureClass(k,dk);
+      if(cl==="heavy")heavyV++;          /* verified >=80% */
+      else if(cl==="unlogged")heavyU++;  /* no load logged — counted, but not verified */
+      if(cl!=="light")heavy++;           /* a logged sub-80% session does NOT count as heavy */
+    }
+    if(c.str&&dk==="d4")d4++;
+    if(c.sunlift)d4++;                        /* D4 made up at the Sunday social lift — his call 2026-08-03 */
+    if(c.markow)hipD++;
+    if(c.kick)skill++; if(c.bjj)skill++;
+    if(c.plyo)plyo+=60;                       /* one plyo block ~ 60 contacts */
+    if(aeroQualify((Z.aero||{})[k]))aero++;
+  });
+  const st={strength:medStatus("strength",heavy),aerobic:medStatus("aerobic",aero),
+            hip:medStatus("hip",hipD),power:medStatus("power",plyo),skill:medStatus("skill",skill)};
+  /* Tier. HELD is the literature's maintenance floor — hitting it means you
+     provably lost nothing, which is a real thing to be told on a bad week. */
+  let tier="MISSED";
+  if(heavy>=3&&aero>=2&&skill>=2)tier="FULL";
+  else if(heavy>=2&&aero>=1&&skill>=1)tier="SOLID";
+  else if(heavy>=1)tier="HELD";
+  return {days,heavy,heavyV,heavyU,d4,aero,hipD,skill,plyo,st,tier,
+          counts:{strength:heavy,aerobic:aero,hip:hipD,power:plyo,skill:skill}};
+}
+const TIERTXT={
+ FULL:["Full week","3 compound days, 2 hard aerobic, 2 skill. Everything progressing."],
+ SOLID:["Solid week","Above the maintenance floor everywhere that matters. This is a good week, not a compromise."],
+ HELD:["Held","At least one heavy exposure. Per the evidence you lost nothing measurable — 1-2 weeks at this level costs no 1RM at all."],
+ MISSED:["Below floor","No heavy exposure this week. One heavy triple at 80% is 12 minutes and fixes it."]};
+
+/* ---- Adaptive layer. Replaces \"repeat the week\" with \"change next week.\"
+   Weeks never repeat — progression is calendar-driven by design. What adapts is
+   the prescription. ---- */
+function domainTrend(dISO,dom,weeks){
+  const out=[];for(let i=0;i<weeks;i++){out.push(weekScore(isoBack(dISO,i*7)).st[dom]);}return out;}
+function adaptations(dISO){
+  const A=[];
+  ["strength","aerobic","hip","skill"].forEach(dom=>{
+    const tr=domainTrend(dISO,dom,3);
+    if(tr.length===3&&tr.every(x=>x===0))
+      A.push({dom,act:"floor",msg:`<b>${MED[dom].n}</b> has been below its maintenance floor 3 weeks running. Next week this domain drops to the MED only — <i>${MED[dom].maintain.v} ${MED[dom].maintain.u}</i> — and the intensity is protected. Prescribing volume that is not happening is what makes a block feel like failure.`});
+    else if(tr.length===3&&tr.every(x=>x===2))
+      A.push({dom,act:"raise",msg:`<b>${MED[dom].n}</b> has been at its progression dose 3 weeks running. Room to add.`});
+  });
+  return A;
+}
+function scoreCard(dISO){
+  const w=weekScore(dISO),T=TIERTXT[w.tier];
+  const cls=w.tier==="FULL"?"teal":(w.tier==="SOLID"?"teal":(w.tier==="HELD"?"amber":"red"));
+  let h=`<div class="card spine t1"><h3>This week — ${T[0]}</h3>
+  <div class="banner ${cls}"><b>${T[0]}.</b> ${T[1]}</div>
+  <div class="mini" style="margin:8px 0 4px">Counted as <b>intensity-qualified exposures</b>, not sessions. Doses are published minimums, not targets from your own history.</div>`;
+  ["strength","aerobic","hip","power","skill"].forEach(k=>{
+    const m=MED[k],s=w.st[k],c=w.counts[k];
+    const dot=["\u25cf","\u25cf","\u25cf"][s], col=s===2?"var(--ok,#3a7)":(s===1?"var(--t2,#c93)":"var(--bad,#c44)");
+    h+=`<div class="row"><div class="nm"><span style="color:${col}">${dot}</span> ${m.n}
+      <div class="sup">${c} / ${m.maintain.v} to maintain · ${m.progress.v} to progress ${m.maintain.u.includes("contact")?"(contacts)":""}</div></div>
+      <div class="rx" style="color:${col}">${MEDLBL[s]}</div></div>`;});
+  h+=`<div class="mini" style="margin-top:6px">Strength detail: <b>${w.heavyV}</b> verified at &ge;80% of e1RM${w.heavyU?`, <b>${w.heavyU}</b> counted but no load logged`:""}. A logged set under 80% does not count as a heavy exposure &mdash; that is the whole point of the intensity rule.</div>`;
+  h+=`<div class="mini" style="margin-top:8px">D4 this week: ${w.d4?"done":"not done \u2014 fold it into Sunday\u2019s social lift. That is the designed makeup, not a failure."}</div>`;
+  const A=adaptations(dISO);
+  if(A.length)h+=A.map(a=>`<div class="banner amber" style="margin-top:8px">${a.msg}</div>`).join("");
+  h+=`<div class="mini" style="margin-top:8px"><b>Weeks never repeat.</b> Progression is calendar-driven. When a domain stalls, the prescription changes \u2014 the calendar does not.</div></div>`;
+  return h;
+}
+/* ---- Aerobic quota card ---- */
+function aeroCard(dISO){
+  const w=weekScore(dISO),H=hrThreshold(),mins=(Z.aero||{})[dISO];
+  const bb=mins!=null?bagBlocks(mins):null;
+  let h=`<div class="card spine t2"><h3>Hard aerobic — ${w.aero} of 2 this week <span class="tiertag T2">T2</span></h3>
+  <div class="meta">A session qualifies at <b>\u226513 min above ${H.t4} bpm</b>. Any source counts: sparring, bag rounds, PZ Max, a Peloton HIIT. Nothing is scheduled \u2014 the week just needs two.</div>
+  <div class="mini" style="margin-bottom:6px">Threshold is Karvonen off your current 30-day RHR (${H.rhr}) and a max of ${HRMAX}. Hard bursts: <b>${H.t5}+ bpm</b>. Stated in bpm on purpose \u2014 Whoop moved its own zone boundaries under six quarters of your data.</div>`;
+  if(mins==null){
+    h+=`<div class="mini" style="color:var(--t2)"><b>No HR minutes logged for today.</b> Enter them after the session and the app will tell you the exact backfill.</div>`;
+  } else if(aeroQualify(mins)){
+    h+=`<div class="banner teal"><b>${mins} min above ${H.t4} \u2014 qualified.</b> No backfill. Go home.</div>`;
+  } else {
+    h+=`<div class="banner amber"><b>${mins} min above ${H.t4}. Short by ${AERO_MIN-mins}.</b><br>
+    Bag backfill: <b>${bb} blocks of 1 min hard / 1 min light.</b> ~${bb*2} minutes.<br>
+    <span class="mini">The one-minute rest is the trick \u2014 you are already warm, so HR will not fall out of zone, and nearly all elapsed time counts. A 3-min round with a full standing minute wastes that. The hard minute should be hard enough you could not get a sentence out.</span></div>`;
+  }
+  /* Any-day entry — you will not always log on the day you trained. */
+  h+=`<details style="margin-top:8px"><summary class="mini"><b>Log a different day</b> — Peloton, a PZ Max, a session you forgot</summary>
+  <div class="mini" style="margin:6px 0">Any source counts. Enter minutes above ${H.t4} bpm for any day this week.</div>
+  ${weekBounds(dISO).map(k=>{const v=(Z.aero||{})[k];const q=aeroQualify(v);
+    return `<div class="row"><div class="nm">${DAYS[(new Date(k+"T00:00:00").getDay()+6)%7]} <span class="sup">${k}</span></div>
+    <div class="rx" style="color:${v==null?"var(--dim)":(q?"var(--ok,#3a7)":"var(--t2)")}">${v==null?"—":(q?"\u2713 "+v:v+" min")}</div>
+    <input class="win" inputmode="decimal" value="${v??""}" onchange="setAero('${k}',this.value)"></div>`;}).join("")}
+  </details>`;
+  h+=`<div class="mini" style="margin-top:8px"><b>Measurement:</b> Morpheus chest strap for kickboxing and bag work. Whoop in the underwear band lost a median 22% of the HR trace on your kickboxing sessions versus 4% on the wrist during Spin \u2014 it cannot be trusted for this. BJJ is unmeasurable and nothing is gated on it.</div></div>`;
+  return h;
+}
+/* ---- What your own log says about when you actually train ---- */
+function realityCard(dow){
+  const R={
+   0:["Monday","evening","median start 18:20 · 3% of Monday sessions start before 9am · median 166 min across the day"],
+   1:["Tuesday","night","median start 20:55 · your lightest real day, median 111 min"],
+   2:["Wednesday","evening","median start 19:47 · <b>0%</b> of Wednesday sessions have ever started before 9am"],
+   3:["Thursday","evening","median start 19:15 · 5% before 9am · median 133 min"],
+   4:["Friday","morning","median start 07:54 · <b>68% before 9am</b> — your only genuine morning day, and the 6:30 class is why"],
+   5:["Saturday","evening","median start 17:57 · median 109 min, your shortest day"],
+   6:["Sunday","midday","median start 13:24 · anchored by BJJ at 13:41 · median 161 min"]}[dow];
+  if(!R)return "";
+  const rel=DOW_REL[dow];
+  const risk=rel.train<40?"red":(rel.train<60?"amber":"teal");
+  const verdict=rel.train>=80?"Your most reliable day. Historically this one just happens."
+    :rel.train>=50?"Middling. Shows up about half the time."
+    :"<b>Fragile.</b> Over 7 months this weekday produced training less than 40% of the time.";
+  return `<div class="card"><div class="klabel">What you actually do on ${R[0]}s</div>
+  <div class="mini">Slot: <b>${R[1]}</b>. ${R[2]}.</div>
+  <div class="banner ${risk}" style="margin-top:8px"><b>${rel.train}% of ${R[0]}s produced any training. ${rel.lift}% produced a lift.</b>
+  <span class="mini">${verdict} ${rel.lift===0?"You have <b>never</b> lifted on a "+R[0]+" in the logged range — the program puts no lift here either, so that is consistent.":""}</span></div>
+  <div class="mini" style="opacity:.75;margin-top:4px">From 339 logged sessions over ${rel.n} ${R[0]}s, Jan–Aug 2026. This is ad-hoc training, not a completed block — you have not finished a 12-week program in this range.</div></div>`;
+}
+function vRate(k){
+  const r=Z.vrate[k];
+  return `<div class="mini" style="margin:-2px 0 8px 0">Difficulty${r?` · <b>${r.r}</b>/5 (${r.n} rating${r.n>1?"s":""})`:""}
+  <span class="seg" style="display:inline-flex;margin-left:6px;vertical-align:middle">${[1,2,3,4,5].map(v=>`<button style="padding:2px 7px;font-size:11px" class="${r&&r.r===v?"on":""}" onclick="setVRate('${k}',${v})">${v}</button>`).join("")}</span></div>`;
+}
+function setVRate(k,v){
+  const p=Z.vrate[k];
+  Z.vrate[k]=p?{r:Math.round(((p.r*p.n)+v)/(p.n+1)),n:p.n+1,date:todayISO()}:{r:v,n:1,date:todayISO()};
+  save();render();
+}
+function orToggle(d,i){Z.orDone[d]=Z.orDone[d]||{};Z.orDone[d][i]=!Z.orDone[d][i];save();render();}
+function saveScreen(){
+  const g=id=>{const v=parseFloat((document.getElementById(id)||{}).value);return isNaN(v)?null:v;};
+  const mEl=document.getElementById("smeth");
+  const rec={date:todayISO(),method:(mEl&&mEl.value)||Z.sm||"self",
+    irL:g("irL"),irR:g("irR"),erL:g("erL"),erR:g("erR"),
+    airL:g("airL"),airR:g("airR"),aerL:g("aerL"),aerR:g("aerR"),   /* v11.1 active ROM */
+    ankL:g("ankL"),ankR:g("ankR"),kickL:g("kickL"),kickR:g("kickR")};
+  if(Object.keys(rec).every(k=>k==="date"||k==="method"||rec[k]===null))return;
+  Z.screen.push(rec);save();render();
+}
+function setBaseFromPRs(){
+  const best={};Z.prs.forEach(p=>{if(!best[p.lift]||p.e1>best[p.lift].e1)best[p.lift]=p;});
+  Z.base={boxsq:(best["Box Squat"]||{}).e1||null,trap:(best["Trap Bar DL"]||{}).e1||null,
+          bench:(best["Bench Press"]||{}).e1||null,date:todayISO()};
+  save();render();
+}
+function setLoad(dISO,exKey,val){Z.lifts[dISO]=Z.lifts[dISO]||{};
+  Z.lifts[dISO][exKey]=Z.lifts[dISO][exKey]||{};Z.lifts[dISO][exKey].w=val;save();}
+function strengthCard(w,dkey,dISO,editable){
+  const R=rxWeek(dkey,w,dISO);
+  const exs=EX[dkey],rx=RX[R.i][dkey];
+  const names={d1:"D1 · Lower — Box Squat",d2:"D2 · Upper — Bench",d3:"D3 · Lower — Trap Bar",d4:"D4 · Upper Hypertrophy (MMA gym)"};
+  let rows="";
+  exs.forEach((e,i)=>{
+    const [s,r,rir]=rx[i];
+    if(e.sup){rows+=`<div class="row"><div class="nm" style="color:var(--dim)">${e.n} <span class="sup">— suppressed; replaced by the Core block</span></div></div>`;return;}
+    const seTxt="";
+    if(e.k==="bht"){rows+=bootyRow(dISO,s,r,rir,editable);return;}
+    const sg=suggestLoad(e.k,r,rir,dISO);
+    const inp=editable?`<input class="win" inputmode="decimal" placeholder="${sg?sg.lb:(lastLoad(e.k,dISO)||"lb")}" value="${(Z.lifts[dISO]&&Z.lifts[dISO][e.k]&&Z.lifts[dISO][e.k].w)||""}" onchange="setLoad('${dISO}','${e.k}',this.value)">`:"";
+    const sub2=sg?`${e.tag} · <b>start ~${sg.lb} lb</b> (${sg.pct}% of ${sg.e1}${sg.src&&sg.src!=="on-ramp test"?` — from your ${sg.src} on ${sg.when}`:""}) — then let RIR decide`
+                 :(MAINLIFT[e.k]?`${e.tag} · <i>no e1RM yet — test in the on-ramp and this fills in</i>`:e.tag);
+    const useSets=(i===1&&HEAVY_BO_DAYS.includes(dkey))?Math.max(1,s-hboTrade(R.i)):s;
+    /* dynamic-effort bench sits after the heavy work on D2 */
+    if(i===1&&dkey==="d2"&&Z.de){
+      const W=workingE1("bench",dISO);
+      const lb=W?Math.round((W.e1*DE.pct)/5)*5:null;
+      const dv=(Z.lifts[dISO]&&Z.lifts[dISO].bp_de&&Z.lifts[dISO].bp_de.w)||"";
+      rows+=`<div class="row"><div class="nm">Bench — Dynamic Effort
+        <div class="sup">Speed · ${lb?`<b>${lb} lb</b> (50% of ${Math.round(W.e1)})`:"<i>no e1RM yet</i>"} · ${DE.rest} rest · every rep an intent to move the bar fast</div></div>
+        <div class="rx">${DE.sets}×${DE.reps}</div>
+        ${editable?`<input class="win" inputmode="decimal" placeholder="${lb||"lb"}" value="${dv}" onchange="setLoad('${dISO}','bp_de',this.value)">`:""}</div>`;
+    }
+    rows+=`<div class="row"><div class="nm">${e.n}${seTxt}<div class="sup">${sub2}${(i===1&&HEAVY_BO_DAYS.includes(dkey))?` · <i>${hboTrade(R.i)} set${hboTrade(R.i)===1?"":"s"} fewer than written — traded for the heavy triples above${R.i>=3?", net-neutral on volume":""}</i>`:""}</div></div><div class="rx">${useSets}×${r}${rir!=null?" · RIR "+rir:""}</div>${inp}</div>`;
+    /* the heavy back-offs sit between the top set and the hypertrophy back-offs */
+    if(i===0&&HEAVY_BO_DAYS.includes(dkey)){
+      const hk=e.k.replace("_top","_hbo");
+      /* v11.8: must use R.i, the EARNED week, not w. The rest of this card reads
+         RX[R.i]; deriving the back-off from RX[w] made the two disagree whenever the
+         exposure ledger was behind, and in weeks 5 and 12 that produced a back-off equal
+         to the displayed top set again — the exact bug this fix was for, one layer down. */
+      const HB=heavyBO(R.i,dkey);
+      const hs=suggestLoad(e.k,HB.reps,HB.rir,dISO);
+      const ts=suggestLoad(e.k,r,rir,dISO);
+      const hin=editable?`<input class="win" inputmode="decimal" placeholder="${hs?hs.lb:"lb"}" value="${(Z.lifts[dISO]&&Z.lifts[dISO][hk]&&Z.lifts[dISO][hk].w)||""}" onchange="setLoad('${dISO}','${hk}',this.value)">`:"";
+      rows+=`<div class="row"><div class="nm">${e.n.replace("Top Set","Heavy Back-offs")}
+        <div class="sup">Main · ${hs?`<b>start ~${hs.lb} lb</b> (${hs.pct}% of ${hs.e1})${ts?` — ${ts.lb-hs.lb} lb under the top set`:""}`:"<i>no e1RM yet</i>"} — the two triples that carry the block</div></div>
+        <div class="rx">${HB.sets}×${HB.reps} · RIR ${HB.rir}</div>${hin}</div>`;
+    }
+  });
+  return `<div class="card spine t1"><h3>${names[dkey]} <span class="tiertag T1">T1</span></h3>
+  <div class="meta">4D Hybrid — log top-set loads; blank = last used shown as placeholder.</div>
+  ${dkey==="d2"&&Z.de?`<div class="mini" style="margin-bottom:6px">⚡ <b>Dynamic-effort bench is on.</b> 6×3 at 50%, 45 s rest, after the heavy work. Bar speed is the point — if it feels like conditioning the weight is too heavy. Not counted in the Volume tab: 18 reps at 50% is below any hypertrophy threshold and counting it would flatter the chest number. Honest caveat: evidence that speed work adds to a trained lifter's 1RM is equivocal, and at your age force rather than velocity limits power. It is here because it costs about five minutes and almost no fatigue.</div>`:""}
+  ${HEAVY_BO_DAYS.includes(dkey)?`<div class="mini" style="margin-bottom:6px;color:var(--t2)">⚠ <b>Modified from the source, 2026-08-04.</b> Two heavy triples added, one 3×8 set removed. As written this block gave you <b>one</b> set a week above 80%; the study this rests on found a heavy single alone carried only a 6.3% chance of meaningful gain, against 99.6% once heavy back-offs were added. Net cost: about one stimulating rep per week for hypertrophy.</div>`:""}
+  ${R.lag>0
+    ? `<div class="banner amber"><b>Calendar week ${w+1}. Loading week ${R.i+1}.</b>
+       This lift has had <b>${R.exp} heavy exposure${R.exp===1?"":"s"}</b>, so the prescription is <b>${R.lag} week${R.lag===1?"":"s"} behind the calendar</b> — deliberately.
+       <span class="mini">The calendar never stalls and nothing is owed. The <i>load</i> waits for the work. Progressing the bar on weeks you did not train is how a block starts prescribing numbers you have no business hitting, and failing them reads as failure. One free week is built in, because 1&ndash;2 weeks off costs no measurable 1RM.</span></div>`
+    : `<div class="mini" style="margin-bottom:6px">Week ${R.i+1} loading, on schedule — ${R.exp} heavy exposure${R.exp===1?"":"s"} logged for this lift.</div>`}
+  ${rows}
+  ${editable?`<div style="margin-top:8px">${ckHTML(dISO,"str")}<span class="mini" style="margin-left:8px">Session complete</span></div>`:""}</div>`;
+}
+function coreCard(w,dow,dISO,editable){
+  const map={0:"mon",2:"wed",3:"thu",4:"fri",6:"sun"};const k=map[dow];if(!k)return "";
+  const c=CORE[k],p=corePhase(w);
+  const down=isDown()||((readiness(dISO)||5)<=2);
+  const items=down?["Anti-rotation only — Pallof march / bird dog, 2 easy sets"]:c.ph[p];
+  const loadNote=(k==="wed"||k==="fri")?" · loaded work ADDS LOAD weekly (aesthetics #1)":"";
+  return `<div class="card spine ${c.tier==="T2"?"t2":""}"><h3>Core — ${c.lbl} <span class="tiertag ${c.tier}">${c.tier}</span></h3>
+  <div class="meta">Circuited between strength sets · Phase ${p+1} · ${c.focus}${loadNote}</div>
+  ${items.map(t=>`<div class="row"><div class="nm">${t}</div></div>`).join("")}
+  ${!down?`<details class="corelib"><summary class="mini">Swap library (evidence Tier-1 + Prehab Guys)</summary>${c.lib.map(x=>`<div class="mini" style="opacity:.8">· ${x}</div>`).join("")}</details>`:""}
+  ${editable?`<div style="margin-top:8px">${ckHTML(dISO,"core")}<span class="mini" style="margin-left:8px">Done</span></div>`:""}</div>`;
+}
+function gmbCard(dow,dISO,editable){
+  const cls=(Z.gmb.ov&&Z.gmb.ov[dISO])||GMB_AUTO[dow];
+  const on=Z.gmb["on_"+dISO];
+  const alt=dow===4?GMB_ALT[4]:(dow===3?GMB_ALT[3]:(dow===5?GMB_ALT[5]:null));
+  return `<div class="card spine"><h3>GMB Tissue Prep <span class="tiertag T3">T3</span></h3>
+  <div class="meta">Auto-pick: <b>${cls}</b>${alt&&alt!==cls?` · alt: ${alt}`:""} · ${Z.gmb.dur} min · run before the day's work</div>
+  ${editable?`<div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn sm ${on?"":"sec"}" onclick="Z.gmb['on_${dISO}']=${on?"false":"true"};save();render()">${on?"On today ✓":"Off today"}</button>
+    <button class="btn sm sec" onclick="go('gmb')">Open timer →</button></div>
+  <div class="mini" style="margin-top:6px">Every class includes the wrist hold — stacks with Baar; don't double-dose.</div>`:""}</div>`;
+}
+function skillCard(w,dow,dISO,editable){
+  let h="";
+  const mdi=MARKOW_DOW[dow];
+  if(mdi!==undefined){
+    const day=MARKOW[w][mdi];
+    const mm=Z.mkMode&&Z.mkMode[dISO];
+    const full=mm?mm==="full":!Z.mkMedDefault;
+    h+=`<div class="card spine t2"><h3>Markow Hip — Wk ${w+1} Day ${mdi+1} <span class="tiertag T2">T2</span></h3>
+    ${(()=>{const ws=worseSide();
+      if(!ws)return `<div class="meta">No hip IR screen on file. Measure before biasing either side.</div>`;
+      if(ws.symmetric)return `<div class="meta">IR restricted <b>bilaterally</b> — ${ws.date} (${ws.method==="pt"?"PT":"self"}): L ${ws.l}° / R ${ws.r}°${ws.arcL!=null?`, total arc ${ws.arcL}° / ${ws.arcR}°`:""}. Gap of ${ws.gap}° is inside measurement noise, so <b>train both sides equally</b> and let in-session feel decide any extra work.</div>
+      <div class="mini" style="margin-bottom:6px">Markow's notes below assume one side is clearly worse. That is not what your data shows. Apply them to whichever side feels tighter that day rather than to a fixed side.</div>`;
+      return `<div class="meta">Bias reps and holds to the <b>${SIDEW(ws.side)}</b> — ${ws.date} (${ws.method==="pt"?"PT":"self"}): L ${ws.l}° / R ${ws.r}°, gap ${ws.gap}°.</div>
+      ${ws.side==="R"?`<div class="mini" style="color:var(--t2);margin-bottom:6px">⚠ Markow's notes below are written assuming left-worse — <b>mirror them to the right</b>.</div>`:""}`;})()}
+    <div class="banner teal"><b>End-feel is firm capsular, bilateral, no guarding (2026-07-30).</b> That changes how you run every item below, not which items they are.
+    <span class="mini">A capsular restriction responds to <b>tension at end range</b>, not to time in a stretch. Everywhere a class says hold, push instead: get to your end range, then contract <i>into</i> it at roughly 7 out of 10 for 10 seconds, then contract <i>out of</i> it — try to pull the shin further into rotation under your own power — for 10 seconds. Two rounds. Relax and you have wasted the rep. Passive hanging is the one thing a capsule ignores.</span></div>
+    <div class="seg" style="margin-bottom:8px">
+      <button class="${full?"on":""}" onclick="setMkMode('${dISO}','full')">Full</button>
+      <button class="${!full?"on":""}" onclick="setMkMode('${dISO}','med')">Short on time</button></div>`;
+    if(!full){
+      h+=`<div class="banner teal"><b>Minimum effective dose.</b> ${MARKOW_MED[mdi]}<br><span class="mini">This counts. Nothing repeats and the block does not stall.</span></div>`;
+    } else {
+      day.forEach(it=>{
+        const isV=it.startsWith("v:"),k=it.slice(2);
+        if(isV){const v=V[k];
+          h+=`<div class="vlink"><span>${v[0]}</span><a href="${v[1]}" target="_blank">Play ▸</a></div>`;
+          if(MK_SUB[k])h+=`<div class="mini" style="color:var(--t2);margin:-2px 0 6px 0">⚠ ${MK_SUB[k]}</div>`;
+          if(MK_LEFT[k]){const ws=worseSide();
+            const lbl=!ws?"Restricted side":(ws.symmetric?"Both sides":"Restricted side ("+SIDEW(ws.side)+")");
+            const note=ws&&ws.symmetric?` <i>Your sides are within noise — apply to whichever is tighter today.</i>`:(ws&&ws.side==="R"?` <i>Source says left; apply it to the right.</i>`:"");
+            h+=`<div class="mini" style="margin:-2px 0 6px 0"><b>${lbl}:</b> ${MK_LEFT[k]}${note}</div>`;}
+          h+=vRate(k);
+        } else {const t=MK_TXT[k];
+          h+=`<div class="row"><div class="nm">${t[0]}<div class="sup">${t[1]}</div></div></div>`;
+          if(t[2])h+=`<div class="mini" style="color:var(--t2);margin:-2px 0 6px 0">⚠ ${t[2]}</div>`;}
+      });
+    }
+    h+=`${editable?ckHTML(dISO,"markow"):""}</div>`;
+    h+=liftOffCard(dISO,editable,w,dow);}
+  {const lift=(dow===0||dow===3);
+    h+=`<div class="card spine ${lift?"t2":""}"><h3>Hooklying — daily micro-dose${lift?" + pre-lift primer":""} <span class="tiertag ${lift?"T2":"T3"}">${lift?"T2":"T3"}</span></h3>
+    <div class="meta">${lift?"Morning, and again before you lift. Markow prescribes this specifically before lower-body work, not just before mobility.":"Morning. Three minutes. Highest-frequency capsular exposure available and it costs nothing."}</div>
+    <div class="row"><div class="nm">Hooklying Low Reach · 3 × 10<div class="sup">On your back, knees bent 90, feet flat hip-width. Exhale fully, let the ribs drop, then reach the arms forward and slightly low as if pushing the ceiling away. Feel the abs switch on. Breathe in without letting the ribs flare. That is one rep.</div></div></div>
+    <div class="mini">Source: "If you struggle with hip flexion / internal rotation try adding 3 sets of hooklying <b>every morning</b> and before any lower body workouts."</div>
+    <div class="mini" style="color:var(--t2)">Not scored on non-lifting days. Missing it never counts against you.</div>
+    ${editable?ckHTML(dISO,"hooklying"):""}</div>`;}
+  if(dow===4){
+    h+=`<div class="card spine t1"><h3>Kickboxing + Pre-Kick Drills <span class="tiertag T1">T1</span></h3>
+    <div class="meta">6:30 AM private + Muay Thai. Drills before class:</div>
+    ${FRIKICK(w).map(t=>`<div class="row"><div class="nm">${t}</div></div>`).join("")}
+    ${editable?ckHTML(dISO,"kick"):""}</div>`;}
+  if(dow===5){const v=V[LT_SAT[w]];
+    h+=`<div class="card spine t2"><h3>Luke Thomas Kick-Flex <span class="tiertag T2">T2</span></h3>
+    <div class="meta">Saturday rotation, week ${w+1} · plus sparring/MMA if scheduled</div>
+    <div class="vlink"><span>${v[0]}</span><a href="${v[1]}" target="_blank">Play ▸</a></div>
+    ${editable?ckHTML(dISO,"lt"):""}</div>`;}
+  if(dow===6){
+    h+=`<div class="card spine t1"><h3>BJJ Private — 11 AM <span class="tiertag T1">T1</span></h3><div class="meta">Anchor. Gap-fill lift beforehand.</div>${editable?ckHTML(dISO,"bjj"):""}</div>`;}
+  const kk={0:"mon",2:"wed",4:"fri",5:"sat",6:"sun"}[dow];
+  if(kk){const K=KOTG[kk];
+    h+=`<div class="card spine ${K.tier==="T2"?"t2":""}"><h3>${kk==="sun"?"KOTG — Primary Session":"KOTG"} <span class="tiertag ${K.tier}">${K.tier}</span></h3>
+    <div class="row"><div class="nm">${K.t}</div></div>${editable?ckHTML(dISO,"kotg"):""}</div>`;}
+  if(dow===2||dow===4){
+    h+=`<div class="card spine"><h3>Baar Wrist/Elbow (optional) <span class="tiertag T3">T3</span></h3>
+    <div class="row"><div class="nm">${BAAR.t}</div></div><div class="mini">${BAAR.note}</div>${editable?ckHTML(dISO,"baar"):""}</div>`;}
+  return h;
+}
+function plyoCard(w,dow,dISO,editable){
+  const k={0:"mon",3:"thu",5:"sat"}[dow];if(!k)return "";
+  const B=plyoBlock(k,w);const r=readiness(dISO);
+  if(!B.t)return "";  /* Sat Foundation: no sprint work yet */
+  const isSprint=k==="sat";
+  /* weeks 11–12 Saturday is the PZ Max FTP-estimation ride — sprints yield */
+  if(isSprint&&w>=10)return `<div class="card spine"><h3>Sprints <span class="tiertag T3">T3</span></h3><div class="meta">⛔ Skipped this week — Saturday is the PZ Max FTP-estimation ride. Block test takes priority over sprint work.</div></div>`;
+  const blocked=velocityGated(dISO);
+  const optional=r===3;
+  let title;
+  if(k==="mon")title="Vertical + Lateral Plyos";
+  else if(k==="thu")title="Horizontal + Rotational Plyos";
+  else title=B.drill?"Sprint Drills":"Sprint Accelerations";
+  const seqNote=isSprint?"Do these first, then Z2 — sprint work on fresh legs, not after aerobic work.":"Run these BEFORE the heavy lower work — priming, not a second workout.";
+  const body=B.t.replace(/\n/g,"<br>");
+  return `<div class="card spine"><h3>${title} · ${B.ph} <span class="tiertag T3">T3</span></h3>
+  <div class="meta">${seqNote} ${blocked?"⛔ Skipped today — readiness/down-week gate.":(optional?"Optional at readiness 3 — quality reps only, cut volume.":"Unlocked (readiness ≥4). Full intent, full rest.")}</div>
+  ${blocked?"":`<div class="row"><div class="nm">${body}</div></div><div class="mini" style="margin-top:4px">Cue: ${B.cue}</div>${editable?ckHTML(dISO,"plyo"):""}`}</div>`;
+}
+/* v11.1: FTP estimation removed. Peloton and the Power Zone pack do it better and
+   Robert already trusts that number. This stub keeps the ride cards rendering. */
+function nextRideHint(){return {d:"20",ride:"any Power Zone class",bucket:"—",missing:false,stale:false};}
+function condCard(w,dow,dISO,editable){
+  const k={1:"tue",2:"wed",5:"sat"}[dow];if(!k)return "";
+  const r=readiness(dISO);
+  /* Tue + Sat — locked Zone 2 base */
+  if(k==="tue"||k==="sat"){const C=COND[k];
+    return `<div class="card spine t2" style="border-left-color:var(--z2)"><h3>Zone 2 — PZ Endurance 90 min <span class="chip teal">Cond · base</span></h3><div class="meta">${C.d}</div>${editable?ckHTML(dISO,"cond_"+k):""}</div>`;}
+  /* Wednesday — optional legs-fresh hard ride; generates FTP data without touching the Z2 base */
+  if(isDown()||(r!==null&&r<4))
+    return `<div class="card spine"><h3>Optional Ride <span class="tiertag T3">T3</span></h3><div class="meta">⛔ Skip today (readiness &lt;4 or down-week). This is a bonus FTP-data ride, not part of the base — the Z2 anchors carry it. Protect Thursday's trap bar.</div></div>`;
+  const hint=nextRideHint();
+  /* selector: pz threshold, or PZ Max via bike / bag / wave */
+  const sel=Z.altSel[dISO]||"";
+  const opts=[["pz","PZ Threshold"],["bike","PZ Max"],["bulgarian","Bulgarian Bag"],["inertia","Inertia Wave"]];
+  const picker=editable?`<div class="seg" style="margin-top:8px;flex-wrap:wrap">${opts.map(([v,l])=>`<button class="${sel===v?"on":""}" onclick="Z.altSel['${dISO}']='${v}';save();render()">${l}</button>`).join("")}</div>`:"";
+  let detail="";
+  if(sel==="pz")detail=`<div class="mini" style="margin-top:6px">${WED_RIDE.pz.d}</div>`;
+  else if(sel==="bike")detail=`<div class="mini" style="margin-top:6px">${WED_RIDE.pzmax.d}</div>`;
+  else if(sel==="bulgarian"||sel==="inertia"){const a=ALT[sel];
+    detail=`<div class="row" style="margin-top:8px"><div class="nm">${a.name} <span class="mini">(${a.kind})</span></div></div>${a.body.map(x=>`<div class="mini" style="opacity:.85">${x}</div>`).join("")}<div class="mini" style="margin-top:4px;opacity:.7">${a.note} Fills the 1–5 min FTP bucket.</div>`;}
+  return `<div class="card spine t2" style="border-left-color:var(--z2)"><h3>Optional Ride — legs-fresh upper day <span class="chip teal">Cond</span></h3>
+  <div class="meta">Optional + readiness-gated. Legs stay fresh (Tue was easy); keep it controlled so Thursday's trap bar isn't compromised. Doesn't touch your Z2 base.</div>
+  <div class="mini" style="margin-top:6px">Pick the class off the Power Zone pack. If this ride is going to be your hard aerobic exposure, take a <b>PZ Max</b> and log the minutes above ${hrThreshold().t4} bpm on Today.</div>
+  ${picker}${detail}${editable?ckHTML(dISO,"cond_wed"):""}</div>`;
+}
+function sunLiftCard(w,dISO,editable){
+  return `<div class="card spine t2"><h3>Sunday Gap-Fill Lift <span class="tiertag T2">T2</span></h3>
+  <div class="meta">Commercial gym, circuit-style between your partner's sets. Minimal + surgical — rear delt is the point. Do NOT add arms/side-delt (already high).</div>
+  ${SUNBLOCK(w).map(x=>`<div class="row"><div class="nm">${x.n}<div class="sup">${x.why}</div></div><div class="rx">${x.rx}</div></div>`).join("")}
+  ${editable?ckHTML(dISO,"sunlift"):""}</div>`;
+}
+function heavyBagCard(dow,dISO,editable){
+  if(dow!==4&&dow!==5)return "";  /* Fri kick day, Sat MMA day */
+  const a=ALT.heavybag;
+  return `<div class="card spine"><h3>Home Heavy Bag <span class="tiertag T3">T3 · optional</span></h3>
+  <details><summary class="mini">${dow===4?"Fallback if you miss the Friday kick session (T1) — or extra kick volume":"Extra skill volume on the MMA day"}</summary>
+  ${a.body.map(x=>`<div class="mini" style="opacity:.85">${x}</div>`).join("")}
+  <div class="mini" style="margin-top:4px;opacity:.7">${a.note}</div>
+  ${editable?`<div style="margin-top:6px">${ckHTML(dISO,"heavybag")}<span class="mini" style="margin-left:8px">Done</span></div>`:""}</details></div>`;
+}
+function dayStack(w,dow,dISO,editable){
+  let h="";
+  h+=gmbCard(dow,dISO,editable);
+  const strD={0:"d1",2:"d2",3:"d3",4:"d4"}[dow];
+  if(dow===4)h+=skillCard(w,dow,dISO,editable); /* kicks first on Friday */
+  if(strD)h+=strengthCard(w,strD,dISO,editable);
+  if(dow===6)h+=sunLiftCard(w,dISO,editable);
+  h+=coreCard(w,dow,dISO,editable);
+  h+=plyoCard(w,dow,dISO,editable);
+  h+=condCard(w,dow,dISO,editable);
+  if(dow!==4)h+=skillCard(w,dow,dISO,editable);
+  h+=heavyBagCard(dow,dISO,editable);
+  const tp=TP_DAY[dow];
+  h+=`<div class="card spine"><h3>Tonight's Pick <span class="tiertag T3">T3</span></h3><div class="meta">Base category: ${tp}. <a href="#" onclick="go('night');return false">Open →</a></div></div>`;
+  return h;
+}
+
+/* ================= VIEWS ================= */
+function rToday(){
+  const el=document.getElementById("v_today");
+  const d=today(),dow=dayIdx(d),dISO=todayISO(),w=curWeek();
+  const r=readiness(dISO);
+  let h="";
+  if(!Z.assumeDismiss){
+    h+=`<div class="card"><h3>Confirm v11 assumptions</h3><ul class="assume">
+    <li><b>Block starts Mon 2026-08-10</b>, after a 6-day on-ramp Aug 4&ndash;9. <b>Two clocks, and this used to be stated wrong.</b> The <b>calendar</b> is calendar-driven — a missed session never stalls the block, nothing repeats, no makeup work. The <b>load</b> is completion-driven — your prescription is indexed to heavy exposures actually completed, so the bar waits for the work even though the calendar does not.</li>
+    <li><b>A week succeeds on 3 compound days, not 4.</b> Protected: D1 box squat, D2 bench, D3 trap bar. D4 is the flex day and is made up at the Sunday social lift. This is a published progression dose in your exact population, not a softened standard.</li>
+    <li><b>Intensity is the protected variable.</b> Cut frequency, cut volume, cut duration — never cut load. A 2-lift week at 85% beats a 4-lift week at 70%.</li>
+    <li><b>North star is kick height</b>, with lift-off height and the rear-view video as diagnostics. Passive hip IR is now a background metric.</li>
+    <li><b>Hard aerobic is the only gated domain</b> — 2 exposures of &ge;13 min above threshold, from any source. It is the fastest-decaying quality you have (&minus;7% VO2max at 21 days).</li>
+    <li><b>Old baselines are void.</b> Box squat 285×3 / trap 305×3 / bench 225×3 predate a two-week layoff. The on-ramp re-derives them from hard triples at RPE 7-8, not maxes.</li>
+    <li><b>Markow hip block is derived from the authored 12-week plan</b>, read session by session. Five of its fifteen classes have no video anywhere; those are labelled as substitutions in the card, with the reason.</li>
+    <li><b>Markow lands Tue / Wed / Fri / Sun.</b> Mon and Thu stay clear of hip volume because they are heavy lower-body days; Sat belongs to sprint and Luke Thomas.</li>
+    <li><b>Markow's Day-4 strength ladder is cut.</b> Lower Body Strength is redundant with 4D Hybrid. Quick Hamstring Strength is kept in wk 4-6 for sprint-block hamstring durability. Squat Class 2 is kept — its own notes are mobility, not loading.</li>
+    <li><b>Hip IR test is prone, in degrees, left vs right.</b> Not Prone Capsule CARs — no video exists to teach it and a CAR is a skill, which would confound learning with range.</li>
+    <li><b>Luke Thomas / F4F is a warm-up, not a program.</b> Its assessment battery has no internal-rotation test at all, so it cannot see your limiter.</li>
+    <li><b>No general-mobility program.</b> Full-ROM lifting raises ROM about as much as stretch training, so the barbell owns that. Total Body Mobility and 5Day Foundation dropped as redundant.</li>
+    <li><b>Your existing FTP stands.</b> Ride the Power Zone pack against it. No FTP test is scheduled and the app does not calculate one — Peloton owns that number. You are at the bottom of your current FTP after the layoff, so a retest now would only record the dip; leave it until the block has run.</li>
+    <li><b>Dynamic-effort bench on D2 is ON</b> — 6×3 @ 50%, 45 s rest, after the heavy work. Agreed 2026-07-28; it was declared but never wired in until v11.7.</li>
+    <li><b>Sex = male</b> for BMR · <b>activity 1.6</b> default · <b>protein on total BW</b> unless BF% &gt; 25%.</li>
+    <li><b>Booty Sprout bands are 45 lb and 70 lb, quantity unknown</b>, so the picker takes a count of each. The nominal total orders your progression but is <b>not</b> comparable to barbell load and is excluded from tonnage. Progression stays reps → tempo/pause → tension.</li></ul>
+    <button class="btn sm" onclick="Z.assumeDismiss=true;save();render()">Confirmed — dismiss</button></div>`;
+  }
+  if(dISO<ONRAMP_START){
+    const dd=Math.round((new Date(ONRAMP_START+"T00:00:00")-new Date(dISO+"T00:00:00"))/86400000);
+    const o=ONRAMP[0];
+    h+=`<div class="card spine t1"><h3>On-ramp starts ${dd===1?"tomorrow":"in "+dd+" days"} — ${fmtD(ONRAMP_START)}</h3>
+    <div class="meta">Today is ${fmtD(dISO)}. Nothing is scheduled yet. The ${ONRAMP.length}-day on-ramp opens automatically on ${fmtD(ONRAMP_START)} and hands off to Week 1 on ${fmtD(PROGRAM_START)}.</div>
+    <div class="klabel" style="margin-top:8px">Day 1 preview — ${o.t}</div>
+    ${o.items.map(it=>`<div class="row"><div class="nm">${it[0]}${it[1]?`<div class="sup">${it[1]}</div>`:""}</div></div>`).join("")}
+    <div class="banner teal" style="margin-top:10px"><b>Floor:</b> ${o.floor}</div>
+    <div class="mini" style="margin-top:8px">Worth doing first: install a clinometer app and find a spot for the tripod photo. The hip IR baseline is taken cold, first thing.</div></div>`;
+    el.innerHTML=h;return;
+  }
+  if(inOnramp(dISO)){
+    const i=orIndex(dISO),o=ONRAMP[i];
+    h+=`<div class="card"><div class="klabel">Readiness · 1–5</div>
+    <div class="seg">${[1,2,3,4,5].map(v=>`<button class="${r===v?"on":""}" onclick="setReady(${v})">${v}</button>`).join("")}</div></div>`;
+    if(o){
+      const dn=Z.orDone[dISO]||{};
+      h+=`<div class="card spine t1"><h3>On-ramp · Day ${i+1} of ${ONRAMP.length} — ${o.t}</h3>
+      <div class="meta">${fmtD(dISO)} · full block starts ${fmtD(PROGRAM_START)}</div>
+      ${Z.orShort===dISO?`<div class="mini" style="margin:6px 0;color:var(--t2)">Showing the floor only. Everything else today is optional.</div>`
+        :o.items.map((it,ix)=>`<div class="row"><div class="nm">${it[0]}${it[1]?`<div class="sup">${it[1]}</div>`:""}</div>
+        <button class="btn sm ${dn[ix]?"on":""}" onclick="orToggle('${dISO}',${ix})">${dn[ix]?"✓":"○"}</button></div>`).join("")}
+      <div class="seg" style="margin:10px 0 8px">
+        <button class="${Z.orShort!==dISO?"on":""}" onclick="Z.orShort=null;save();render()">Full day</button>
+        <button class="${Z.orShort===dISO?"on":""}" onclick="Z.orShort='${dISO}';save();render()">Short on time</button></div>
+      <div class="banner teal"><b>Floor:</b> ${o.floor}<br><span class="mini">Hit the floor and the session counted. Miss the day entirely and ${fmtD(PROGRAM_START)} is unaffected.</span></div>
+      <div class="mini" style="margin-top:8px">The minutes-planner &mdash; &ldquo;How much time do you actually have?&rdquo; &mdash; needs a programmed day structure to prioritise against, so it starts with Week 1 on ${fmtD(PROGRAM_START)}. During the on-ramp the <b>floor above is the same answer</b>: it is what this day is worth on its own.</div>
+      <div class="mini" style="margin-top:8px">Record baselines in the <a href="#" onclick="go('test');return false">Test tab →</a></div></div>`;
+    } else {
+      h+=`<div class="card"><h3>Rest before the block</h3><div class="meta">No on-ramp session scheduled for ${fmtD(dISO)}. Week 1 begins ${fmtD(PROGRAM_START)}.</div></div>`;
+    }
+    el.innerHTML=h;return;
+  }
+  h+=`<div class="card"><div class="klabel">Readiness · 1–5 (only brake on fatigue)</div>
+  <div class="seg">${[1,2,3,4,5].map(v=>`<button class="${r===v?"on":""}" onclick="setReady(${v})">${v}</button>`).join("")}</div></div>`;
+  h+=regBanner(dISO);
+  h+=chaosCard(dISO);
+  h+=`<div class="card" style="padding:10px 14px"><b>${DAYS[dow]}</b> · <span class="mini">${dISO} · Week ${w+1}${isDeloadWeek(w)?" · Deload as written":""}</span></div>`;
+  h+=proteinLine();
+  h+=whoopCard(dISO);
+  h+=scoreCard(dISO);
+  h+=aeroCard(dISO);
+  h+=plannerCard(w,dow,dISO);
+  h+=realityCard(dow);
+  h+=dayStack(w,dow,dISO,true);
+  el.innerHTML=h;
+}
+
+let wkView=null,wkDay=null;
+function rWeek(){
+  const el=document.getElementById("v_week");
+  const w=wkView===null?(inOnramp(todayISO())?-1:curWeek()):wkView;
+  const dow=wkDay===null?dayIdx(today()):wkDay;
+  let h=`<div class="card"><div class="klabel">Look ahead — the on-ramp, or any week of the block</div>
+  <div class="wksel"><button class="${w===-1?"on":""}" onclick="wkView=-1;render()">On-ramp</button>${Array.from({length:12},(_,i)=>`<button class="${i===w?"on":""}" onclick="wkView=${i};render()">${i+1}</button>`).join("")}</div>
+  <div class="daysel">${DAYS.map((d,i)=>`<button class="${i===dow?"on":""}" onclick="wkDay=${i};render()">${d}</button>`).join("")}</div>
+  <div class="mini">Preview only — logging happens on Today.</div></div>`;
+  h+=`<div class="card"><h3>Week map</h3><div class="mini" style="margin-bottom:6px">Mon D1 Lower + vert/lateral plyos · Tue Z2 90 (base) · Wed D2 Upper + optional FTP-data ride · Thu D3 Lower + horizontal/rot plyos · Fri kicks → D4 · Sat Z2 90 (base) + sprint drills (wk1–4) → sprints (wk5+) + Luke Thomas · Sun gap-fill + BJJ + primary KOTG. Z2 base locked on Tue + Sat; hard rides only on the fresh-legged upper day; sprints before BJJ not before kicks; lower days never back-to-back.</div></div>`;
+  if(w===-1){
+    h=`<div class="card"><div class="klabel">Look ahead — the on-ramp, or any week of the block</div>
+    <div class="wksel"><button class="on" onclick="wkView=-1;render()">On-ramp</button>${Array.from({length:12},(_,i)=>`<button onclick="wkView=${i};render()">${i+1}</button>`).join("")}</div>
+    <div class="mini">Preview only — logging happens on Today.</div></div>
+    <div class="card spine t1"><h3>On-ramp — Tue Aug 4 to Sun Aug 9</h3>
+    <div class="meta">Six days. Re-establish real numbers, meet the two things that are new, and settle the conditioning question. <b>Week 1 starts Mon Aug 10 regardless of what happens here.</b></div>
+    <div class="banner teal"><b>Nothing here can be failed.</b> Every day has a floor. Hit the floor and the day counted. Miss a day entirely and Monday is unaffected — nothing repeats, nothing is owed.</div></div>`;
+    ONRAMP.forEach((o,ix)=>{
+      const dn=(new Date(o.d+"T00:00:00")).getDay();
+      h+=`<div class="card spine ${ix===2||ix===4?"t1":"t2"}"><h3>Day ${ix+1} · ${DAYS[(dn+6)%7]} — ${o.t}</h3>
+      <div class="meta">${o.d}</div>
+      ${o.items.map(it=>`<div class="row"><div class="nm">${it[0]}${it[1]?`<div class="sup">${it[1]}</div>`:""}</div></div>`).join("")}
+      <div class="banner teal" style="margin-top:8px"><b>Floor:</b> ${o.floor}</div></div>`;});
+    h+=`<div class="card"><h3>What you should have on Monday morning</h3>
+    <div class="mini">Box squat e1RM &middot; trap bar e1RM &middot; active AND passive hip rotation, both sides &middot; ankle DF &middot; kick height + the rear-view video &middot; two strap-measured sessions with minutes above ${hrThreshold().t4} bpm.
+    <br><br>Bench is already banked at 236. Those numbers are the entire point of the week; the training is secondary.</div></div>`;
+    el.innerHTML=h;return;
+  }
+  h+=dayStack(w,dow,"preview",false);
+  h+=`<div class="card"><h3>Chaos tiers — what to cut first</h3>
+  ${["T1","T2","T3"].map(t=>`<div class="klabel"><span class="tiertag ${t}">${t}</span> ${t==="T1"?"Never cut":t==="T2"?"Protect if possible":"Cut first"}</div><ul class="tinylist">${TIERS[t].map(x=>`<li>${x}</li>`).join("")}</ul>`).join("")}</div>`;
+  h+=`<div class="card"><h3>When you miss something</h3>
+  <div class="banner teal"><b>Nothing is owed. There is no makeup work.</b>
+  <span class="mini">Earlier versions had a decision tree here for reshuffling a missed session into a later day. That is gone — it contradicted the design. The load does not need catching up because it never ran ahead: your prescription is indexed to <b>heavy exposures completed</b>, so a missed D1 simply means D1 loads next time from where it actually is. The calendar moves; the barbell waits.</span></div>
+  <div class="mini" style="margin-top:8px"><b>Three layers handle this, on three different clocks:</b></div>
+  <div class="row"><div class="nm">Right now — minutes<div class="sup">&ldquo;How much time do you actually have?&rdquo; on Today. Tap the minutes you have; it returns what fits, in tier order.</div></div></div>
+  <div class="row"><div class="nm">This week — 7 days<div class="sup">The missed-work card on Today. Four or more misses in seven days trips a chaos week: run T1 only, catch up nothing.</div></div></div>
+  <div class="row"><div class="nm">This block — 3 weeks<div class="sup">The scorecard adaptation. A domain below its floor three weeks running gets its prescription cut to the MED with intensity protected.</div></div></div>
+  <details style="margin-top:8px"><summary>End-of-week assessment</summary><div class="mini"><b>Weeks never repeat.</b> Progression is calendar-driven; week 5 follows week 4 regardless. The old rule here said &ldquo;repeat if 2 of 4 strength sessions missed&rdquo; — against your own 7-month record that would have fired in roughly 3 weeks out of 4, inside an app whose stated design is that nothing repeats. It is gone.<br><br>What happens instead: the <b>weekly scorecard</b> on Today grades each domain against its published minimum effective dose, and when a domain sits below its floor for 3 straight weeks the <b>prescription</b> changes — volume drops to the MED and intensity is protected. Load still self-corrects through the wave-hold rule. <b>1&ndash;2 weeks off produces no measurable 1RM loss</b> (Hortob&aacute;gyi 1993), so an ordinary bad week has no physiological claim on the calendar.</div></details></div>`;
+  el.innerHTML=h;
+}
+
+/* ---- GMB timer ---- */
+let T={seq:[],i:0,left:0,run:false,int:null,cls:null};
+function buildSeq(cls,dur){
+  const c=GMB[cls][dur];const seq=[];
+  [["P","PREPARE"],["R","PRACTICE"],["Y","PLAY"]].forEach(([k,lab])=>{
+    c[k].forEach(m=>{
+      if(m[2]){seq.push({n:m[0]+" — Left",s:m[1],ph:lab});seq.push({n:m[0]+" — Right",s:m[1],ph:lab});}
+      else seq.push({n:m[0],s:m[1],ph:lab});
+    });
+  });
+  return seq;
+}
+let AC=null;
+function beep(n){
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    for(let i=0;i<n;i++){const o=AC.createOscillator(),g=AC.createGain();
+      o.connect(g);g.connect(AC.destination);o.frequency.value=880;
+      const t=AC.currentTime+i*0.22;g.gain.setValueAtTime(0.001,t);
+      g.gain.exponentialRampToValueAtTime(0.4,t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+0.18);
+      o.start(t);o.stop(t+0.2);}
+  }catch(e){}
+  if(navigator.vibrate)navigator.vibrate(n===3?[150,80,150,80,300]:[120,60,120]);
+}
+let wl=null;
+async function wake(on){try{if(on&&"wakeLock" in navigator)wl=await navigator.wakeLock.request("screen");
+  else if(wl){wl.release();wl=null;}}catch(e){}}
+function gmbStart(cls){
+  T.cls=cls;T.seq=buildSeq(cls,Z.gmb.dur);T.i=0;T.left=T.seq[0].s;T.run=true;
+  clearInterval(T.int);T.int=setInterval(tick,1000);beep(2);wake(true);render();
+}
+function tick(){
+  if(!T.run)return;
+  T.left--;
+  if(T.left<=0){
+    const prevPh=T.seq[T.i].ph;T.i++;
+    if(T.i>=T.seq.length){beep(3);gmbStop();
+      Z.gmb["on_"+todayISO()]=true;Z.done[todayISO()]=Z.done[todayISO()]||{};Z.done[todayISO()].gmb=true;save();render();return;}
+    T.left=T.seq[T.i].s;
+    beep(T.seq[T.i].ph!==prevPh?3:2);
+  }
+  if(cur==="gmb")updTimer();
+}
+function gmbStop(){T.run=false;clearInterval(T.int);T.int=null;wake(false);}
+function gmbPause(){T.run=!T.run;render();}
+function gmbSkip(d){T.i=Math.max(0,Math.min(T.seq.length-1,T.i+d));T.left=T.seq[T.i].s;beep(1);render();}
+function updTimer(){
+  const m=T.seq[T.i];if(!m)return;
+  document.getElementById("tBig").textContent=fmtT(T.left);
+  document.getElementById("tMove").textContent=m.n;
+  document.getElementById("tPh").innerHTML=`<span class="chip teal">${m.ph}</span> <span class="mini">${T.i+1}/${T.seq.length}</span>`;
+  const nx=T.seq[T.i+1];
+  document.getElementById("tNext").textContent=nx?("Next: "+nx.n):"Last movement";
+  const total=T.seq.reduce((a,b)=>a+b.s,0),done=T.seq.slice(0,T.i).reduce((a,b)=>a+b.s,0)+(m.s-T.left);
+  document.getElementById("tFill").style.width=(100*done/total)+"%";
+}
+function rGMB(){
+  const el=document.getElementById("v_gmb");
+  const dow=dayIdx(today()),dISO=todayISO();
+  const auto=(Z.gmb.ov&&Z.gmb.ov[dISO])||GMB_AUTO[dow];
+  let h="";
+  if(T.seq.length&&T.i<T.seq.length&&(T.run||T.left>0)){
+    h+=`<div class="card"><div class="timerPhase" id="tPh"></div>
+    <div class="timerMove" id="tMove"></div><div class="timerBig" id="tBig"></div>
+    <div class="timerNext" id="tNext"></div><div class="tprog"><div class="f" id="tFill"></div></div>
+    <div class="trow"><button class="btn sec sm" onclick="gmbSkip(-1)">‹ Back</button>
+    <button class="btn ${T.run?"red":""}" onclick="gmbPause()">${T.run?"Pause":"Resume"}</button>
+    <button class="btn sec sm" onclick="gmbSkip(1)">Skip ›</button>
+    <button class="btn sec sm" onclick="gmbStop();T.seq=[];render()">End</button></div>
+    <div class="mini" style="text-align:center;margin-top:8px">${T.cls} · ${Z.gmb.dur} min · alarms at every movement + section change</div></div>`;
+    el.innerHTML=h;updTimer();return;
+  }
+  h+=`<div class="card"><h3>Tissue prep — timed sequence</h3>
+  <div class="meta">Runs the class as Prepare → Practice → Play with audible + vibration alarms and auto-advance. Replaces the follow-along app.</div>
+  <label class="f">Duration</label><div class="seg">${[15,30,45].map(d=>`<button class="${Z.gmb.dur===d?"on":""}" onclick="Z.gmb.dur=${d};save();render()">${d} min</button>`).join("")}</div>
+  <label class="f">Class · auto-pick today: <b>${auto}</b></label>
+  <select onchange="Z.gmb.ov=Z.gmb.ov||{};Z.gmb.ov['${dISO}']=this.value;save();render()">
+  ${Object.keys(GMB).map(c=>`<option ${c===auto?"selected":""}>${c}</option>`).join("")}</select>
+  <div style="margin-top:12px"><button class="btn" onclick="gmbStart('${auto.replace(/'/g,"\\'")}')">Start ${auto} · ${Z.gmb.dur} min ▸</button></div>
+  <div class="mini" style="margin-top:8px">Wrist hold is in every class — it stacks with Baar; skip Baar on days you run this.</div></div>`;
+  h+=`<div class="card"><h3>Auto-pick map</h3>${DAYS.map((d,i)=>`<div class="row"><div class="nm">${d}</div><div class="rx">${GMB_AUTO[i]}${i===3?" (alt Legs)":i===4?" (alt Rotation)":i===5?" (alt Hips)":""}</div></div>`).join("")}
+  <div class="mini" style="margin-top:6px">Extension / Flexion / Combined rotate onto lower-priority days across the block so every plane gets touched.</div></div>`;
+  const c=GMB[auto][Z.gmb.dur];
+  h+=`<div class="card"><h3>${auto} · ${Z.gmb.dur} min — movement list</h3>`+
+   [["P","Prepare"],["R","Practice"],["Y","Play"]].map(([k,lab])=>`<div class="klabel">${lab}</div>`+
+     c[k].map(m=>`<div class="row"><div class="nm">${m[0]}</div><div class="rx">${fmtT(m[1])}${m[2]?"/side":""}</div></div>`).join("")).join("")+`</div>`;
+  el.innerHTML=h;
+}
+
+/* ---- Nutrition ---- */
+function weeklyVolume(w){
+  const tot={};Object.keys(MUS).forEach(k=>tot[k]=0);
+  ["d1","d2","d3","d4"].forEach(dk=>{
+    EX[dk].forEach((e,i)=>{
+      if(e.sup)return;
+      let sets=RX[w][dk][i][0];
+      if(i===1&&HEAVY_BO_DAYS.includes(dk))sets=Math.max(1,sets-hboTrade(w));   /* hypertrophy sets traded out */
+      if(i===0&&HEAVY_BO_DAYS.includes(dk))sets+=heavyBO(w,dk).sets;   /* two heavy triples in */
+      Object.keys(e.mus).forEach(m=>tot[m]+=sets*e.mus[m]);
+    });
+  });
+  /* Sunday gap-fill defaults */
+  const p=corePhase(w);
+  tot.rdelt+=(p===2?4:3)+3;      /* rev pec deck + face pulls */
+  tot.back+=0.75;                 /* face pull spill + CS row partial */
+  /* Core, split by wall (evidence report). Anterior = dedicated RA/oblique work, phase-progressed.
+     Posterior = light dedicated lateral/extension + fractional credit from box squat + trap bar. */
+  tot.abs_ant+={0:12,1:14,2:15}[p];
+  const bsqSets=RX[w].d1[0][0]+RX[w].d1[1][0];
+  const tbSets =RX[w].d3[0][0]+RX[w].d3[1][0];
+  tot.abs_post+=4+0.5*(bsqSets+tbSets);   /* 0.5 indirect/heavy compound set (Pelland accounting) */
+  return tot;
+}
+
+let volWk=null;   /* v11.1: restored — this was declared inside the removed Fuel block */
+/* v11.1: Fuel tab removed — Robert does not log food, so a tab that asks him to is
+   dead weight. The protein target is NOT dropped: it is the one nutrition variable
+   that is load-bearing for a strength block, and it now renders as one line on Today. */
+function proteinLine(){
+  const bw=(Z.nut&&Z.nut.hist&&Z.nut.hist.length)?Z.nut.hist[Z.nut.hist.length-1].bw:null;
+  const g=bw?Math.round(bw*0.8):null;
+  return `<div class="card" style="padding:10px 14px"><span class="mini"><b>Protein${g?` \u2014 ${g} g today`:""}.</b> ${g?"0.8 g/lb.":"Enter body weight in the Log tab to get a number."} No tracking asked for \u2014 hit it by habit, not by spreadsheet.</span></div>`;
+}
+function rVol(){
+  const el=document.getElementById("v_vol");
+  const w=volWk===null?curWeek():volWk;
+  const tot=weeklyVolume(w);
+  let rows="";
+  Object.keys(MUS).forEach(k=>{
+    const [nm,mev,mav,mrv]=MUS[k];const v=tot[k];
+    const max=mrv*1.25;const pct=Math.min(100,100*v/max);
+    let col="var(--good)",flag="";
+    if(v<mev){col="var(--t2)";flag=" · under MEV";}
+    else if(v>mrv){col="var(--t1)";flag=" · over MRV";}
+    else if(v>mav){col="var(--t2)";flag=" · MAV→MRV watch";}
+    if(k==="rdelt"&&v>=mev)flag=" · Sunday block filling the hole ✓";
+    if(k==="abs_post"&&v>=mev)flag=" · box squat + trap bar credited ✓";
+    rows+=`<div class="volrow"><div class="t"><span class="n">${nm}</span><span class="s">${v.toFixed(1)} sets${flag}</span></div>
+    <div class="bar"><div class="fill" style="width:${pct}%;background:${col}"></div>
+    <div class="tick" style="left:${100*mev/max}%"></div><div class="tick" style="left:${100*mav/max}%"></div><div class="tick" style="left:${100*mrv/max}%"></div></div></div>`;
+  });
+  el.innerHTML=`<div class="card"><h3>Combined weekly volume — Week ${w+1}</h3>
+  <div class="meta">Mains + accessories + Sunday block + core, fractional counting. Ticks = MEV / MAV / MRV (masters-adjusted — practical MRV runs lower with kicks, BJJ, and plyos on top). Kicks/BJJ/KOTG are background load not counted here: read quads/glutes conservatively.</div>
+  <div class="wksel" style="margin-bottom:12px">${Array.from({length:12},(_,i)=>`<button class="${i===w?"on":""}" onclick="volWk=${i};render()">${i+1}</button>`).join("")}</div>
+  ${rows}
+  <div class="mini">Overshoot watch: quads / glutes / arms. Undershoot flag: rear delt — owned by the Sunday block. Core is split by wall: anterior (RA/obliques) is trained directly for aesthetics; posterior (ES/MF/QL) is largely paid by box squat + trap bar, so dedicated low-back work stays minimal.</div></div>`;
+}
+
+/* ---- Tonight's Pick ---- */
+function rNight(){
+  const el=document.getElementById("v_night");
+  const dow=dayIdx(today()),dISO=todayISO(),w=curWeek();
+  const r=readiness(dISO);
+  let cat=TP_DAY[dow],gate="";
+  if(isDown()||isDeloadWeek(w)){cat="Breathing";gate=`<div class="banner teal"><b>${isDown()?"Down-week":"Deload-week"} gate:</b> breathing / global only tonight.</div>`;}
+  else if(r!==null&&r<=3){cat=r<=2?"Breathing":"Global";gate=`<div class="banner amber"><b>Readiness gate (≤3):</b> switched to ${cat.toLowerCase()} work — downshift the nervous system, don't chase range.</div>`;}
+  const usedThisWeek=new Set(mkWeekKeys(w));
+  const pool=TP[cat].vids.filter(k=>!usedThisWeek.has(k));
+  const all=TP[cat].vids;
+  const seed=parseInt(dISO.replace(/-/g,""))%(pool.length||1);
+  const pick=pool.length?pool[seed]:all[0];
+  const alts=(pool.length?pool:all).filter(k=>k!==pick).slice(0,2);
+  const vrow=(k,primary)=>{const v=V[k];const dd=usedThisWeek.has(k);
+    return `<div class="vlink ${dd?"dedupe":""}"><span>${primary?"★ ":""}${v[0]}${dd?" · in this week's Markow rotation":""}</span><a href="${v[1]}" target="_blank">Play ▸</a></div>`;};
+  el.innerHTML=`${gate}
+  <div class="card spine"><h3>Tonight's Pick — ${cat} <span class="chip ghost">~${TP[cat].min} min</span></h3>
+  <div class="meta">1 primary + 2 alternates · greyed = already in this week's Markow rotation (dedupe)</div>
+  ${vrow(pick,true)}${alts.map(a=>vrow(a,false)).join("")}
+  <div style="margin-top:10px">${ckHTML(dISO,"night")}<span class="mini" style="margin-left:8px">Done tonight</span></div></div>
+  <div class="card"><h3>Full library by category</h3>
+  ${Object.keys(TP).map(c=>`<details><summary>${c} <span class="mini">~${TP[c].min} min</span></summary>${TP[c].vids.map(k=>vrow(k,false)).join("")}</details>`).join("")}
+  <div class="mini">GMB classes live in the GMB tab and count as Global work.</div></div>`;
+}
+
+/* ---- Testing / PRs ---- */
+function rTest(){
+  const el=document.getElementById("v_test");
+  const s=latestAny()||{};
+  const pv=latestScreen()||{};
+  const gap=(a,p)=>(a!=null&&p!=null)?(p-a):null;
+  const gL=gap(s.airL,s.irL),gR=gap(s.airR,s.irR);
+  const L=loLast("L"),R=loLast("R");
+  const kh=[...Z.screen].reverse().find(x=>x.kickL!=null||x.kickR!=null)||{};
+  const best={};Z.prs.forEach(p=>{if(!best[p.lift]||p.e1>best[p.lift].e1)best[p.lift]=p;});
+  const row=(lbl,val,sub)=>`<div class="row"><div class="nm">${lbl}${sub?`<div class="sup">${sub}</div>`:""}</div><div class="rx">${val}</div></div>`;
+  const f=(id,lbl,v)=>`<div><label class="f">${lbl} (deg)</label><input type="number" id="${id}" inputmode="decimal" value="${v??""}"></div>`;
+  const fk=(id,lbl,v)=>`<div><label class="f">${lbl}</label><input type="number" id="${id}" inputmode="decimal" value="${v??""}"></div>`;
+  const w=curWeek();
+  /* Retest every 4 weeks. This also keeps the tab week-aware — qa.js flags a tab that
+     renders identically across all 12 weeks as "renders but never progresses". */
+  const nextDue=[4,8,12].find(x=>w+1<=x)||12;
+  const due=(w+1)===4||(w+1)===8||(w+1)===12;
+  const boundary=w>=10;
+  el.innerHTML=`
+  ${due?`<div class="banner teal"><b>Week ${w+1} — screen week.</b> Kick height, active and passive rotation, ankle DF. About fifteen minutes, <b>no barbell</b>.
+       <span class="mini"><b>No strength retest. Not this week, not any week.</b> Your programmed top sets already are the test — every one you log is an e1RM estimate, and the suggestions have been tracking it all along. Adding max attempts on top of a high-volume block buys a number you already have, at a fatigue cost you cannot afford.</span></div>`
+       :`<div class="mini" style="margin-bottom:8px">Week ${w+1}. Next screen: <b>week ${nextDue}</b>${nextDue-(w+1)>0?` — ${nextDue-(w+1)} week${nextDue-(w+1)===1?"":"s"} out`:""}. Measurements only, ~15 min, <b>no barbell</b>. Strength never gets a separate retest — the programmed top sets already are the test.</div>`}
+  ${boundary?`<div class="banner amber"><b>Block boundary.</b> Weeks 11&ndash;12 already prescribe the heaviest top sets of the block (2&times;3 @ RIR 1&ndash;2, 88% of e1RM). <b>Those are your end-of-block numbers</b> — log them and the block closes itself out. Screen plus a kick-height check on top. No FTP test; Peloton owns that number.</div>`:""}
+  ${(w+1)===6?`<div class="banner amber"><b>Week 6 decision point.</b> If passive IR has not moved, stop spending the block chasing range — the lift-off number is the one that matters, and it can climb while passive ROM sits still.</div>`:""}
+  <div class="card spine t1"><h3>Where you stand</h3>
+  ${row("Kick height — the north star",(kh.kickL!=null||kh.kickR!=null)?`L ${kh.kickL??"—"} / R ${kh.kickR??"—"}`:"not measured","Everything else is a proxy for this")}
+  ${row("Lift-off — usable range",(L||R)?`L ${L?L.wt+"lb\u00d7"+L.reps:"—"} / R ${R?R.wt+"lb\u00d7"+R.reps:"—"}`:"nothing logged yet",
+     "Logged as an exercise on Markow days, not here \u2014 like any lift. Ankle weight \u00d7 controlled reps.")}
+  ${row("Box squat e1RM",(best["Box Squat"]||{}).e1?Math.round(best["Box Squat"].e1):"—","")}
+  ${row("Bench e1RM",(best["Bench Press"]||{}).e1?Math.round(best["Bench Press"].e1):"236 (banked 2026-08-02)","")}
+  ${row("Trap bar e1RM",(best["Trap Bar DL"]||{}).e1?Math.round(best["Trap Bar DL"].e1):"—","")}
+  ${row("Hip rotation — passive",pv.irL!=null?`IR ${pv.irL}/${pv.irR} \u00b7 ER ${pv.erL??"—"}/${pv.erR??"—"}`:"—",pv.date?`${pv.method==="pt"?"PT":"self"} \u00b7 ${pv.date}`:"")}
+  ${row("Hip rotation — active",s.airL!=null?`IR ${s.airL}/${s.airR} \u00b7 ER ${s.aerL??"—"}/${s.aerR??"—"}`:"not measured yet","")}
+  ${(gL!=null||gR!=null)?row("<b>Active/passive gap</b>",`L ${gL??"—"}\u00b0 / R ${gR??"—"}\u00b0`,
+     (Math.max(gL||0,gR||0)>=10)?"A large gap means range you own but cannot command — end-range strength is the limiter, and the loaded work is the right answer."
+     :"A small gap means you are already using what you have; the ceiling is structural, not strength."):""}
+  ${row("Ankle DF",s.ankL!=null?`L ${s.ankL}\u00b0 / R ${s.ankR}\u00b0`:"—","")}
+  </div>
+
+  <div class="card"><h3>Record a screen</h3>
+  <div class="meta">Every 4 weeks. Same method, same measurer, same time of day. Not weekly \u2014 range does not move fast enough for weekly to be signal.</div>
+  <div class="klabel" style="margin-top:10px">Kick height</div>
+  <div class="grid2">${fk("kickL","Kick height — Left")}${fk("kickR","Kick height — Right")}</div>
+  <div class="klabel" style="margin-top:12px">Hip rotation \u2014 passive</div>
+  <div class="mini" style="margin-bottom:4px">Pushed to a firm stop with a strap. This is your ceiling.</div>
+  <div class="grid2">${f("irL","Hip IR — Left")}${f("irR","Hip IR — Right")}${f("erL","Hip ER — Left")}${f("erR","Hip ER — Right")}</div>
+  <div class="klabel" style="margin-top:12px">Hip rotation \u2014 active</div>
+  <div class="mini" style="margin-bottom:4px">Same positions, <b>no strap, no hands</b>. How far you can hold under your own power. <b>The gap between these two rows is the whole point.</b></div>
+  <div class="grid2">${f("airL","Active IR — Left")}${f("airR","Active IR — Right")}${f("aerL","Active ER — Left")}${f("aerR","Active ER — Right")}</div>
+  <div class="klabel" style="margin-top:12px">Ankle dorsiflexion</div>
+  <div class="grid2">${f("ankL","Ankle DF — Left")}${f("ankR","Ankle DF — Right")}</div>
+  <div class="klabel" style="margin-top:12px">Measured by</div>
+  <div class="seg"><button class="${Z.sm!=="pt"?"on":""}" onclick="Z.sm='self';save();render()">Me</button>
+  <button class="${Z.sm==="pt"?"on":""}" onclick="Z.sm='pt';save();render()">PT</button></div>
+  <button class="btn" style="margin-top:10px" onclick="saveScreen()">Save screen</button>
+  <div class="mini" style="margin-top:6px">Leave anything blank that you did not measure.</div>
+  </div>
+
+  <div class="card"><h3>History</h3>
+  <div class="meta">Newest first. <b>Never mix methods in one trend</b> — a self-measure and a PT measure are not the same number, and yours differed by 14&deg; on the right.</div>
+  ${Z.screen.length?[...Z.screen].reverse().slice(0,8).map(x=>{
+    const arc=(a,b)=>(a!=null&&b!=null)?`${a+b}\u00b0`:"—";
+    return `<div class="row"><div class="nm">${x.date} <span class="chip">${x.method==="pt"?"PT":"self"}</span>
+      <div class="sup">${x.irL!=null?`IR ${x.irL}/${x.irR}`:""}${x.erL!=null?` \u00b7 ER ${x.erL}/${x.erR}`:""}${x.airL!=null?` \u00b7 active IR ${x.airL}/${x.airR}`:""}${x.ankL!=null?` \u00b7 ankle ${x.ankL}/${x.ankR}`:""}${x.kickL!=null?` \u00b7 kick ${x.kickL}/${x.kickR}`:""}</div></div>
+      <div class="rx">${(x.irL!=null&&x.erL!=null)?`arc ${arc(x.irL,x.erL)} / ${arc(x.irR,x.erR)}`:""}</div></div>`;}).join("")
+    :`<div class="mini">No screens recorded yet.</div>`}
+  </div>
+
+  <div class="card"><h3>How to measure</h3>
+  <details><summary><b>Hip rotation \u2014 passive and active</b></summary>
+  <div class="mini" style="margin-top:6px">
+  <b>Position.</b> Face down, one knee bent to 90&deg;, shin vertical, both hip bones flat. Prone, not seated \u2014 the standing-leg pivot happens near hip neutral, which is what prone tests. Seated tests a different capsular position; never compare across.<br><br>
+  <b>Why record the whole arc.</b> <b>IR and ER trade off</b> around a total rotational range, so an IR number read alone is ambiguous — a small IR with a large ER is a distribution, not a restriction. Your PT measured the full arc for exactly this reason: 70&deg; left, 75&deg; right, with ER normal at 50&deg; bilaterally.<br><br>
+  <b>Passive IR.</b> Let the shin fall <i>outward</i>, away from the midline. Loop a strap around the ankle and pull with steady tension until you meet a firm stop \u2014 a stop, not a stretch. <b>Do not use gravity alone</b>; it under-reads a firm end-feel by an unpredictable amount, which is why the self-measure and the PT differed by 14&deg; on the right.<br>
+  <b>Passive ER.</b> Same setup, shin falls <i>inward</i>, across the midline.<br><br>
+  <b>Active.</b> Identical positions, but <b>no strap and no hands</b>. Move the shin as far as you can under your own power and hold it there. That is your active range.<br><br>
+  <b>Reading it.</b> Phone flat on the shin, angle off vertical. Book flat across the sacrum as a pelvic-lift alarm \u2014 if it shifts, the rep is void. Tripod photo at the stop, measure afterward.<br><br>
+  <b>What the gap means.</b> Passive 50&deg; / active 30&deg; = 20&deg; you own but cannot command. That is end-range strength, and the loaded Markow work is the right answer. Passive 50&deg; / active 48&deg; = you are already using everything you have, and the ceiling is structural.</div></details>
+  <details><summary><b>Kick height</b></summary>
+  <div class="mini" style="margin-top:6px">Rear-leg chambered roundhouse against a wall, warm. Mark the highest clean contact where the chamber holds and the standing foot pivots properly. <b>Do not mark a kick you had to lean away from to make.</b> Photograph the mark. Film ten reps from behind at ~45&deg; \u2014 what your good kicks do differently is more informative than the number.</div></details>
+  <details><summary><b>Ankle dorsiflexion</b></summary>
+  <div class="mini" style="margin-top:6px">Weight-bearing lunge, barefoot, facing a wall, second toe in line with the knee. Drive the knee to the wall; <b>the heel must stay flat</b>. Slide the foot back until the knee only just reaches. Phone flat on the shin, angle off vertical. Single leg \u2014 do not let the back leg push you forward. This is the <b>weight-bearing lunge test</b>, the version the research uses; passive seated DF measures something you never use.<br><br>Worth the attention: ankle range responds to training better than any other joint, and eccentric-emphasis work carries the strongest effect of any modality (<b>g = 1.12</b>). Markow gives ankle and foot its own day from week 6.</div></details>
+  <details><summary><b>What weight do I actually use?</b></summary>
+  <div class="mini" style="margin-top:6px">Once the on-ramp gives you e1RMs, every main-lift row on Today shows a <b>suggested opening load</b> \u2014 e.g. &ldquo;start ~245 lb (86% of 285)&rdquo; \u2014 computed from your e1RM and that set&rsquo;s prescribed reps and RIR.<br><br>
+  <b>It updates as you get stronger. You do not wait for a retest.</b> Every top set you log is itself an e1RM estimate (weight &divide; the %1RM that set represents), so a good day on week 3 raises the suggestions for week 4. The app takes the best of the last 6 weeks, floored at your on-ramp number \u2014 a light day never drags it down, because e1RM is a statement about capacity, not about average effort. <b>So there is no strength retest at all</b> &mdash; not at week 4, 8 or 12. Max or AMRAP attempts on top of an already high-volume block would cost real fatigue to produce a number the log already contains. Weeks 4/8/12 are <b>screen weeks</b>: kick height, rotation, ankle DF. Fifteen minutes, no barbell.<br><br>
+  <b>Why you can&rsquo;t be marked down for following the program.</b> A session counts as a heavy exposure if it hit either &ge;80% of your working e1RM <i>or</i> &ge;97% of what the block prescribed that day. As written every top set here lands at 81&ndash;88%, so the two agree \u2014 but if the program ever prescribed lighter, doing it correctly would still count.<br><br>
+  <b>It is a starting point, not a command.</b> RIR still governs the set: if 3 &times; 5 @ RIR 2 turns out to be RIR 0, the weight was wrong for today and the number in the app does not know that. Autoregulation is the design, and it is how the 4D Hybrid source is written.<br><br>
+  Accessories get no suggestion \u2014 there is no e1RM for a machine row, and inventing one would be false precision.<br><br>
+  <b>One consequence worth knowing:</b> the weekly scorecard now checks the load you log against 80% of e1RM before counting a session as a heavy exposure. A logged set under 80% does not count. That is the intensity rule with teeth rather than a slogan.</div></details>
+  <details><summary><b>Strength \u2014 why a triple and not a max</b></summary>
+  <div class="mini" style="margin-top:6px">Work to one hard triple at RPE 7\u20138 \u2014 a set of 3 with 1\u20132 clearly left. Epley: e1RM = weight &times; 1.1. That is accurate enough to program from at a fraction of the risk of a true max on a system with no scheduled deloads.</div></details>
+  <details><summary><b>Conditioning</b></summary>
+  <div class="mini" style="margin-top:6px">No FTP calculation in this app \u2014 removed 2026-08-03. Use Peloton and the Power Zone pack; they do it better and you already trust the number. The only conditioning metric here is the hard-aerobic quota on Today: two sessions a week of <b>\u226513 min above ${hrThreshold().t4} bpm</b>.</div></details>
+  </div>
+
+  <div class="card"><h3>Why the north star changed</h3>
+  <div class="mini">It was passive hip IR. It is now <b>kick height</b>, with lift-off and the rear-view video as diagnostics.
+  <details style="margin-top:6px"><summary>The four findings</summary>
+  <div style="margin-top:6px">
+  <b>1.</b> Opening the <i>entire</i> hip capsule in cadavers did not meaningfully increase internal rotation \u2014 only cam bone resection did (Ng 2019). The capsule restrains ER; bone and the ischiofemoral ligament restrain IR.<br>
+  <b>2.</b> The hip &ldquo;capsular pattern&rdquo; is empirically invalid across 368 subjects (Bijl 1998, Kl&auml;ssbo 2003) \u2014 one study found 68 to 138 different patterns.<br>
+  <b>3.</b> Minimum detectable change for hip IR is 6\u20139&deg; in a lab and 11\u201316&deg; with a phone. The gain you were chasing sits at or below the noise floor.<br>
+  <b>4.</b> No literature establishes that passive hip IR limits a roundhouse at all. The kicking hip loads in flexion, abduction and external rotation.<br><br>
+  Your X-ray showed no obvious bony lesion, but plain films cannot measure femoral version \u2014 that needs axial CT or MRI. The active-vs-passive gap answers the useful question without imaging: it measures the <i>trainable</i> part regardless of what the bone is doing.</div></details></div></div>`;
+}
+function rLog(){
+  const el=document.getElementById("v_log");
+  const ks=Object.keys(Z.readiness).sort().slice(-14);
+  let spark="";
+  if(ks.length>1){
+    const vs=ks.map(k=>Z.readiness[k]);
+    const pts=vs.map((v,i)=>`${(i/(vs.length-1)*300).toFixed(1)},${(42-(v-1)/4*38).toFixed(1)}`).join(" ");
+    spark=`<svg class="spark" viewBox="0 0 300 44"><polyline points="${pts}" fill="none" stroke="#E0A458" stroke-width="2"/></svg>`;
+  }
+  /* this week's compliance vs tiers */
+  const s=new Date(Z.start+"T00:00:00");s.setDate(s.getDate()+curWeek()*7);
+  let t1=0,t1max=0,t2=0,t2max=0;
+  for(let i=0;i<7;i++){
+    const d=new Date(s);d.setDate(d.getDate()+i);const k=iso(d);const dn=Z.done[k]||{};
+    if([0,2,3,4].includes(i)){t1max++;if(dn.str)t1++;}
+    if(i===4){t1max++;if(dn.kick)t1++;}
+    if(i===6){t1max++;if(dn.bjj)t1++;}
+    if([0,1,2,3].includes(i)){t2max++;if(dn.markow)t2++;}
+    if(i===1||i===5){t2max++;if(dn.cond_tue||dn.cond_sat)t2++;}
+    if([0,2,3,4].includes(i)){t2max++;if(dn.core)t2++;}
+    if(i===6){t2max++;if(dn.kotg)t2++;}
+  }
+  el.innerHTML=`
+  <div class="card"><h3>Program</h3>
+  <label class="f">Week 1 start date (Monday)</label>
+  <input type="date" value="${Z.start}" onchange="Z.start=this.value;save();render()">
+  <div class="mini" style="margin-top:6px">Currently Week ${curWeek()+1} of 12. Restart preserves training history — periodization resets, adaptation doesn't.</div></div>
+  <div class="card"><h3>Readiness — last 14 logged days</h3>${spark||'<div class="mini">Log readiness on the Today tab.</div>'}
+  ${ks.slice().reverse().map(k=>`<div class="row"><div class="nm">${k}</div><div class="rx">${Z.readiness[k]} / 5</div></div>`).join("")}</div>
+  <div class="card"><h3>This week's compliance</h3>
+  <div class="grid2">
+  <div class="stat"><div class="v">${t1}/${t1max}</div><div class="l">T1 — never cut</div></div>
+  <div class="stat"><div class="v">${t2}/${t2max}</div><div class="l">T2 — protect</div></div></div>
+  <div class="mini" style="margin-top:8px">End-of-week rule of thumb: advance at ≥3/4 strength + both anchors + ≥1 Z2 + avg readiness ≥3. Details on the Week tab.</div></div>
+  <div class="card"><h3>Data</h3>
+  <div class="mini">State lives in localStorage under <code>hybrid_v6_state</code> — logged data survives Netlify redeployments as long as the app URL stays the same.</div>
+  <div style="margin-top:8px"><button class="btn sm sec" onclick="navigator.clipboard&&navigator.clipboard.writeText(JSON.stringify(S)).then(()=>alert('Copied state JSON'))">Copy backup JSON</button></div></div>`;
+}
+
+buildTabs();render();
+</script>
+</body>
+</html>
