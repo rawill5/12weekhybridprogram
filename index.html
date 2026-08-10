@@ -130,7 +130,7 @@ details[open] summary:after{transform:rotate(-90deg)}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.11 · 2026-08-04";
+const BUILD="v11.13 · 2026-08-10";
 const PROGRAM_START="2026-08-10";           /* Monday. Week 1 Day 1. */
 const ONRAMP_START="2026-08-04";            /* Tuesday. Six days, Aug 4-9. */
 /* Two weeks off. Purpose of these six days is the six baseline numbers,
@@ -986,6 +986,15 @@ function hrThreshold(){const rhr=(Z.rhr||77);
   return {t4:Math.round(rhr+0.70*(HRMAX-rhr)), t5:Math.round(rhr+0.85*(HRMAX-rhr)), rhr:rhr};}
 const AERO_MIN=13;                /* minutes above t4 for a session to qualify */
 function aeroQualify(mins){return (mins||0)>=AERO_MIN;}
+/* v11.13: Zone 2, logged but NOT gated.
+   Band is 60-70% of max HR, a %max definition, deliberately NOT Karvonen. Karvonen at 60-70%
+   of heart-rate RESERVE lands at 149-160 here, which collides with the hard threshold (160) —
+   two different intensities would share a boundary and Z2 would stop meaning easy.
+   These numbers will not match Morpheus's own Zone 2 readout (133-151 on Fri Aug 7): that band
+   is recovery-adjusted and floats daily. Same disagreement as the High band, same reason.
+   No weekly target is set here. The block uses Z2 strategically for aerobic base and recovery
+   support; inventing a dose would be making one up. Log it, total it, decide later with data. */
+function z2Band(){return {lo:Math.round(0.60*HRMAX), hi:Math.round(0.70*HRMAX)};}
 function bagBlocks(minsSoFar){const d=Math.max(0,AERO_MIN-(minsSoFar||0));
   return d===0?0:d+2;}            /* 1 min hard / 1 min light; +2 for the ramp */
 
@@ -1005,7 +1014,12 @@ if(Z.orShort===undefined)Z.orShort=null;   /* v11.10 dateISO when the on-ramp da
 Z.whoop=Z.whoop||{};           /* v11 dateISO -> {rec, hrv, z4min} from the Whoop export */
 Z.aero=Z.aero||{};             /* v11 dateISO -> minutes above the t4 threshold */
 Z.lo=Z.lo||{};                 /* v11.1 dateISO -> {L:{wt,reps},R:{wt,reps}} hip IR lift-offs */
-if(Z.rhr===undefined)Z.rhr=77; /* v11 rolling 30-day resting HR. Was 69 before Apr 2026. */
+if(Z.rhr===undefined)Z.rhr=79; /* v11.12 rolling 30-day resting HR, recomputed from the
+                                  2026-08-09 export (median 79, mean 79.3 over 31 days). */
+/* One-time migration: existing installs hold the stale 77 from v11. This is derived from
+   an export, not a preference, so it is safe to refresh once. The gate does not move —
+   Karvonen at rhr 77 gives t4 160.6, at rhr 79 gives 160.2, both round to 160. */
+if(!Z.rhrMig1){if(Z.rhr===77)Z.rhr=79;Z.rhrMig1=true;}
 Z.vrate=Z.vrate||{};           /* videoKey -> {r:1..5, date, n} difficulty rating */
 Z.screen=Z.screen||[];         /* [{date,irL,irR,ankL,ankR,kickL,kickR}] baseline battery */
 /* Measured by Robert 2026-07-28, seeded once so the block starts from real data.
@@ -1029,6 +1043,43 @@ if(!Z.seed0){
 const DE={sets:6,reps:3,pct:0.50,rest:"45 s"};
 Z.de=(Z.de===undefined)?true:Z.de;
 Z.base=Z.base||null;           /* {boxsq,trap,bench,date} e1RMs from the on-ramp */
+/* ============ v11.12: ON-RAMP BASELINES BANKED, 2026-08-09 ============
+   Test window Aug 6-8 is complete. Seeded once, editable in the Test tab.
+
+   CONVENTION, and it changed a documented number — read this before touching it.
+   The handoff banked bench as 215x3 @ RPE 8 -> e1RM 236, which is Epley on reps
+   PERFORMED (215 * 1.1), ignoring RIR. But workingE1() scores every LOGGED top set
+   with inverse-Epley on EFFECTIVE reps (reps + RIR): 215 / pct1RM(3,2) = 251.
+   Two different scales for the same quantity. Since Z.base is the FLOOR that the
+   rolling estimate is compared against, a floor on a different scale is not a floor —
+   it silently under-prescribes until the first logged set overtakes it.
+   Seeded on the app's own live convention so floor and rolling estimate agree:
+     box squat 255x3 @ RIR 2 -> 298   (Epley-on-reps would have said 280)
+     trap bar  285x3 @ RIR 2 -> 333   (Epley-on-reps would have said 313)
+     bench     215x3 @ RIR 2 -> 251   (supersedes the banked 236)
+   Sanity check on the practical consequence, week 1 D1 top set is 3 @ RIR 3:
+     e1 298 -> 248 lb. He triples 255 at RIR 2, so 248 at RIR 3 is right.
+     e1 280 -> 233 lb, which is 22 lb light on day one of a 12-week ramp.
+   If Robert prefers the conservative numbers they are two taps in the Test tab. */
+if(!Z.seed1){
+  Z.base={boxsq:298,trap:333,bench:251,date:"2026-08-08",conv:"reps+RIR"};
+  /* PT-measured 2026-08-06. Passive IR was not recorded that day — the 2026-07-30
+     values remain the passive IR baseline and latestScreen() still finds them. */
+  Z.screen.push({date:"2026-08-06",method:"pt",
+    irL:null,irR:null,erL:50,erR:50,
+    airL:22,airR:24,aerL:50,aerR:55,
+    ankL:37,ankR:38,
+    kickL:null,kickR:null,kcapL:null,kcapR:null});
+  /* Tape, 2026-08-07. These are WORKING height — the crease left on a leaning bag by
+     many kicks, not a best effort, and a leaning surface biases the mark low. Logged
+     as kwrk*, NOT as kickL/kickR, so they can never be mistaken for the north star. */
+  Z.screen.push({date:"2026-08-07",method:"self",
+    irL:null,irR:null,erL:null,erR:null,
+    airL:null,airR:null,aerL:null,aerR:null,ankL:null,ankR:null,
+    kickL:null,kickR:null,kcapL:null,kcapR:null,kwrkL:42.5,kwrkR:45});
+  Z.seed1=true;}
+Z.aeroSrc=Z.aeroSrc||{};       /* v11.12 dateISO -> 'morpheus'|'whoop'|'other' */
+Z.z2=Z.z2||{};                 /* v11.12a dateISO -> minutes in the Zone 2 band */
 Z.orDone=Z.orDone||{};         /* on-ramp day completion */
 Z.mkMedDefault=Z.mkMedDefault||false; /* hip block permanently on the short version */
 Z.bs=Z.bs||{};                 /* dateISO -> {b45,b70,reps,pause} Booty Sprout band config */
@@ -1164,8 +1215,9 @@ function bootyRow(dISO,s,r,rir,editable){
 function chaosCard(dISO){
   const missed=scanMissed(dISO,7),holds=waveHolds(dISO),drift=domainDrift(dISO),chaos=chaosWeek(dISO);
   if(!missed.length&&!holds.length&&!drift.length)
-    return `<div class="card"><h3>Nothing missed <span class="chip ghost">last 7 days</span></h3>
-    <div class="mini">When something does get missed, the plan for it appears here. Default is to absorb it, not make it up.</div></div>`;
+    /* v11.13: one line, not a card. It occupied a full card slot above the session purely
+       to report that there was nothing to report. */
+    return `<div class="mini" style="padding:2px 14px 6px;opacity:.65">Nothing missed in the last 7 days. When something is, the plan for it appears here \u2014 the default is to absorb it, not make it up.</div>`;
   let h=`<div class="card spine ${chaos?"t1":"t2"}"><h3>Missed work — what to actually do</h3>`;
 
   if(chaos){
@@ -1215,6 +1267,18 @@ function mkDefaultMed(){Z.mkMedDefault=true;save();render();}
    PT for the PASSIVE left/right comparison; but the active-vs-passive gap is self-measured
    by design, so the "where you stand" view must not hide today's screen behind July's PT visit. */
 function latestAny(){return Z.screen.length?Z.screen[Z.screen.length-1]:null;}
+/* v11.12 BUG FIX, caught by qa20. "Where you stand" read the LAST screen record and
+   showed whatever that record happened to contain. A screen is almost never complete —
+   the Aug 7 entry is kick marks and nothing else — so pushing it blanked the ankle,
+   active-ROM and gap rows even though all three had been measured the day before.
+   Resolve each field to its most recent NON-NULL value instead. Carries the date and
+   method per field so a merged view can still say where each number came from. */
+function mergedScreen(){
+  const out={};
+  (Z.screen||[]).forEach(x=>{Object.keys(x).forEach(k=>{
+    if(k==="date"||k==="method"||x[k]==null)return;
+    out[k]=x[k];out[k+"_d"]=x.date;out[k+"_m"]=x.method;});});
+  return out;}
 function latestScreen(){
   const withIR=Z.screen.filter(s=>s.irL!=null&&s.irR!=null);
   if(!withIR.length)return null;
@@ -1292,6 +1356,13 @@ function plannerCard(w,dow,dISO){
 function setWhoop(dISO,k,v){Z.whoop[dISO]=Z.whoop[dISO]||{};
   Z.whoop[dISO][k]=(v===""||v==null)?null:Number(v);save();render();}
 function setAero(dISO,v){if(v===""||v==null)delete Z.aero[dISO];else Z.aero[dISO]=Number(v);save();render();}
+function setZ2(dISO,v){if(v===""||v==null)delete Z.z2[dISO];else Z.z2[dISO]=Number(v);save();render();}
+function setAeroSrc(dISO,k){Z.aeroSrc=Z.aeroSrc||{};
+  if(Z.aeroSrc[dISO]===k)delete Z.aeroSrc[dISO];else Z.aeroSrc[dISO]=k;save();render();}
+/* v11.12: edit the on-ramp baselines. There was no path to set these — the ledger floors
+   the rolling e1RM at Z.base and nothing could write it, so a bad seed was permanent. */
+function setBase(k,v){Z.base=Z.base||{boxsq:null,trap:null,bench:null,date:null};
+  Z.base[k]=(v===""||v==null)?null:Number(v);save();render();}
 function setRHR(v){if(v!==""&&v!=null)Z.rhr=Number(v);save();render();}
 function whoopCard(dISO){
   const r=(Z.whoop||{})[dISO]||{},H=hrThreshold(),gate=velocityGated(dISO);
@@ -1377,17 +1448,24 @@ function adaptations(dISO){
   return A;
 }
 function scoreCard(dISO){
-  const w=weekScore(dISO),T=TIERTXT[w.tier];
-  const cls=w.tier==="FULL"?"teal":(w.tier==="SOLID"?"teal":(w.tier==="HELD"?"amber":"red"));
+  const w=weekScore(dISO);
+  /* v11.13: MISSED means "the week happened and nothing heavy was in it". On Monday and
+     Tuesday the week has not happened yet, so the same state is just an empty scorecard.
+     Calling it "Below floor" on the morning the block starts is both wrong and dispiriting.
+     w.tier is untouched — only the wording — so nothing downstream of it moves. */
+  const dw=(new Date(dISO+"T00:00:00").getDay()+6)%7;
+  const early=w.tier==="MISSED"&&dw<=1&&!w.heavy&&!w.aero&&!w.skill;
+  const T=early?["Week just started","Nothing logged yet \u2014 that is what a Monday looks like. The target is 3 compound days, 2 hard aerobic, 2 skill."]:TIERTXT[w.tier];
+  const cls=early?"":(w.tier==="FULL"?"teal":(w.tier==="SOLID"?"teal":(w.tier==="HELD"?"amber":"red")));
   let h=`<div class="card spine t1"><h3>This week — ${T[0]}</h3>
   <div class="banner ${cls}"><b>${T[0]}.</b> ${T[1]}</div>
   <div class="mini" style="margin:8px 0 4px">Counted as <b>intensity-qualified exposures</b>, not sessions. Doses are published minimums, not targets from your own history.</div>`;
   ["strength","aerobic","hip","power","skill"].forEach(k=>{
     const m=MED[k],s=w.st[k],c=w.counts[k];
-    const dot=["\u25cf","\u25cf","\u25cf"][s], col=s===2?"var(--ok,#3a7)":(s===1?"var(--t2,#c93)":"var(--bad,#c44)");
+    const dot="\u25cf", col=early?"var(--dim,#777)":(s===2?"var(--ok,#3a7)":(s===1?"var(--t2,#c93)":"var(--bad,#c44)"));
     h+=`<div class="row"><div class="nm"><span style="color:${col}">${dot}</span> ${m.n}
       <div class="sup">${c} / ${m.maintain.v} to maintain · ${m.progress.v} to progress ${m.maintain.u.includes("contact")?"(contacts)":""}</div></div>
-      <div class="rx" style="color:${col}">${MEDLBL[s]}</div></div>`;});
+      <div class="rx" style="color:${col}">${early?"not yet":MEDLBL[s]}</div></div>`;});
   h+=`<div class="mini" style="margin-top:6px">Strength detail: <b>${w.heavyV}</b> verified at &ge;80% of e1RM${w.heavyU?`, <b>${w.heavyU}</b> counted but no load logged`:""}. A logged set under 80% does not count as a heavy exposure &mdash; that is the whole point of the intensity rule.</div>`;
   h+=`<div class="mini" style="margin-top:8px">D4 this week: ${w.d4?"done":"not done \u2014 fold it into Sunday\u2019s social lift. That is the designed makeup, not a failure."}</div>`;
   const A=adaptations(dISO);
@@ -1400,8 +1478,9 @@ function aeroCard(dISO){
   const w=weekScore(dISO),H=hrThreshold(),mins=(Z.aero||{})[dISO];
   const bb=mins!=null?bagBlocks(mins):null;
   let h=`<div class="card spine t2"><h3>Hard aerobic — ${w.aero} of 2 this week <span class="tiertag T2">T2</span></h3>
-  <div class="meta">A session qualifies at <b>\u226513 min above ${H.t4} bpm</b>. Any source counts: sparring, bag rounds, PZ Max, a Peloton HIIT. Nothing is scheduled \u2014 the week just needs two.</div>
-  <div class="mini" style="margin-bottom:6px">Threshold is Karvonen off your current 30-day RHR (${H.rhr}) and a max of ${HRMAX}. Hard bursts: <b>${H.t5}+ bpm</b>. Stated in bpm on purpose \u2014 Whoop moved its own zone boundaries under six quarters of your data.</div>`;
+  <div class="meta">A <b>day</b> qualifies at <b>\u226513 min above ${H.t4} bpm</b>. Any source counts: sparring, bag rounds, PZ Max, a Peloton HIIT. Nothing is scheduled \u2014 the week just needs two.</div>
+  <div class="mini" style="margin-bottom:6px"><b>Enter the DAY\u2019s total, summed across every block.</b> Aug 7 was two kickboxing blocks, 43 min and 23 min \u2014 roughly 9 and 8 minutes over threshold. Scored separately that is two failures; added together it clears comfortably. One number per day.</div>
+  <div class="mini" style="margin-bottom:6px">Threshold is Karvonen off your current 30-day RHR (${H.rhr}) and a max of ${HRMAX}. Hard bursts: <b>${H.t5}+ bpm</b>. Stated in bpm on purpose, and <b>fixed</b>. Two different problems that avoids. <b>Whoop</b> re-estimated your max HR once, part-way through six quarters of data, which moved its zone boundaries between then and now \u2014 it does <i>not</i> change them day to day. <b>Morpheus</b> does: it recalculates its bands every morning from that day\u2019s recovery (High started at 171 on Fri Aug 7, 174 on Sat Aug 8). Either way, a boundary that moves cannot show progress \u2014 so this one never moves.</div>`;
   if(mins==null){
     h+=`<div class="mini" style="color:var(--t2)"><b>No HR minutes logged for today.</b> Enter them after the session and the app will tell you the exact backfill.</div>`;
   } else if(aeroQualify(mins)){
@@ -1412,14 +1491,35 @@ function aeroCard(dISO){
     <span class="mini">The one-minute rest is the trick \u2014 you are already warm, so HR will not fall out of zone, and nearly all elapsed time counts. A 3-min round with a full standing minute wastes that. The hard minute should be hard enough you could not get a sentence out.</span></div>`;
   }
   /* Any-day entry — you will not always log on the day you trained. */
+  /* v11.13: Zone 2 alongside it, because the two get measured on the same session and
+     splitting them across two cards guarantees one of them never gets entered. */
+  {const B=z2Band(),wk=weekBounds(dISO),z2w=wk.reduce((a,k)=>a+((Z.z2||{})[k]||0),0);
+   h+=`<div class="card" style="margin:8px 0 0;padding:10px 12px;background:transparent;border:1px dashed var(--dim,#555)">
+   <div class="klabel">Zone 2 — ${B.lo}–${B.hi} bpm</div>
+   <div class="mini" style="margin:4px 0 6px">Minutes in the band today. <b>Not gated</b> — this is aerobic base and recovery support, and no weekly dose is prescribed until there is enough logged to set one honestly. 60–70% of your ${HRMAX} max, a %max band on purpose: Karvonen would put Z2 at 149–160 and collide with the hard threshold. Morpheus will show a different Zone 2 (133–151 on Fri Aug 7) because its bands float with recovery.</div>
+   <input type="number" inputmode="decimal" placeholder="min in Zone 2" value="${(Z.z2||{})[dISO]??""}" onchange="setZ2('${dISO}',this.value)">
+   <div class="mini" style="margin-top:6px">This week: <b>${z2w}</b> min.</div></div>`;}
   h+=`<details style="margin-top:8px"><summary class="mini"><b>Log a different day</b> — Peloton, a PZ Max, a session you forgot</summary>
   <div class="mini" style="margin:6px 0">Any source counts. Enter minutes above ${H.t4} bpm for any day this week.</div>
   ${weekBounds(dISO).map(k=>{const v=(Z.aero||{})[k];const q=aeroQualify(v);
     return `<div class="row"><div class="nm">${DAYS[(new Date(k+"T00:00:00").getDay()+6)%7]} <span class="sup">${k}</span></div>
     <div class="rx" style="color:${v==null?"var(--dim)":(q?"var(--ok,#3a7)":"var(--t2)")}">${v==null?"—":(q?"\u2713 "+v:v+" min")}</div>
-    <input class="win" inputmode="decimal" value="${v??""}" onchange="setAero('${k}',this.value)"></div>`;}).join("")}
+    <input class="win" inputmode="decimal" value="${v??""}" onchange="setAero('${k}',this.value)" placeholder="hard">
+    <input class="win" inputmode="decimal" value="${(Z.z2||{})[k]??""}" onchange="setZ2('${k}',this.value)" placeholder="Z2"></div>`;}).join("")}
+  <div class="mini" style="margin-top:4px">Left box: minutes above ${H.t4}. Right box: minutes in Zone 2.</div>
   </details>`;
-  h+=`<div class="mini" style="margin-top:8px"><b>Measurement:</b> Morpheus chest strap for kickboxing and bag work. Whoop in the underwear band lost a median 22% of the HR trace on your kickboxing sessions versus 4% on the wrist during Spin \u2014 it cannot be trusted for this. BJJ is unmeasurable and nothing is gated on it.</div></div>`;
+  /* v11.12: instrument provenance. Morpheus minutes and Whoop minutes are not the same
+     quantity and must never be summed into one trend. */
+  const src=(Z.aeroSrc||{})[dISO]||"";
+  h+=`<div class="mini" style="margin-top:8px"><b>Measured with</b>
+  <span class="seg" style="display:inline-flex;margin-left:6px">
+   ${[["morpheus","Morpheus"],["whoop","Whoop sleeve"],["other","Other"]].map(([k,lb])=>
+     `<button class="${src===k?"on":""}" onclick="setAeroSrc('${dISO}','${k}')">${lb}</button>`).join("")}
+  </span></div>
+  ${src==="whoop"?`<div class="banner amber" style="margin-top:6px"><b>The sleeve undercounts this number.</b> On Aug 7 it reported 6.2 min above 156 bpm while the chest strap reported 8.5 min above <b>171</b>. Both cannot be true \u2014 PPG smooths away short bursts, which is the exact shape of a kickboxing round. Treat a Whoop figure as a floor, and put the strap on when you mean the session to count.</div>`:""}
+  <div class="mini" style="margin-top:6px"><b>Instrument notes, corrected 2026-08-09.</b> The Whoop <b>bicep sleeve is validated</b> \u2014 against the chest strap across three Aug 7 sessions its average HR was off by 1.7 bpm, better than the wrist's 3.8 bpm on four Spin sessions. The underwear band is retired. The sleeve is accurate for strain, average and max; it is <b>not</b> accurate for time in the top zone, which is the only thing this card needs. So: sleeve by default, <b>Morpheus whenever the session is meant to bank an exposure</b>.</div>
+  <div class="mini" style="margin-top:6px">Read minutes from the Morpheus <b>raw export</b> (download arrow, top right of the daily screen), not from its zone times \u2014 its High band is recovery-derived and floats, and it always sits well above ${H.t4}, so its High minutes are a permanent undercount of what qualifies here.</div>
+  <div class="mini" style="margin-top:6px;opacity:.8">BJJ: previously written off here as unmeasurable. The sleeve makes it measurable and it is now worth logging. Whether it ever clears this gate is <b>unknown</b> \u2014 one session on Jul 19 is not evidence either way, and that one was on the retired underwear band.</div></div>`;
   return h;
 }
 /* ---- What your own log says about when you actually train ---- */
@@ -1461,7 +1561,17 @@ function saveScreen(){
   const rec={date:todayISO(),method:(mEl&&mEl.value)||Z.sm||"self",
     irL:g("irL"),irR:g("irR"),erL:g("erL"),erR:g("erR"),
     airL:g("airL"),airR:g("airR"),aerL:g("aerL"),aerR:g("aerR"),   /* v11.1 active ROM */
-    ankL:g("ankL"),ankR:g("ankR"),kickL:g("kickL"),kickR:g("kickR")};
+    ankL:g("ankL"),ankR:g("ankR"),kickL:g("kickL"),kickR:g("kickR"),
+    /* v11.12 kick height split: capacity is the north star, working is the bag mark */
+    kcapL:g("kcapL"),kcapR:g("kcapR"),kwrkL:g("kwrkL"),kwrkR:g("kwrkR"),
+    /* v11.12 F4F / Luke Thomas battery, screen weeks only */
+    flexL:g("flexL"),flexR:g("flexR"),hamL:g("hamL"),hamR:g("hamR"),addL:g("addL"),addR:g("addR")};
+  /* v11.12: capacity IS the north star, so it also writes the legacy kickL/kickR field.
+     That keeps the existing history list, any older trend and latestScreen() working
+     unchanged, while kwrk* stays strictly separate — a bag mark must never be able to
+     masquerade as a best effort. */
+  if(rec.kcapL!=null)rec.kickL=rec.kcapL;
+  if(rec.kcapR!=null)rec.kickR=rec.kcapR;
   if(Object.keys(rec).every(k=>k==="date"||k==="method"||rec[k]===null))return;
   Z.screen.push(rec);save();render();
 }
@@ -1486,7 +1596,7 @@ function strengthCard(w,dkey,dISO,editable){
     const sg=suggestLoad(e.k,r,rir,dISO);
     const inp=editable?`<input class="win" inputmode="decimal" placeholder="${sg?sg.lb:(lastLoad(e.k,dISO)||"lb")}" value="${(Z.lifts[dISO]&&Z.lifts[dISO][e.k]&&Z.lifts[dISO][e.k].w)||""}" onchange="setLoad('${dISO}','${e.k}',this.value)">`:"";
     const sub2=sg?`${e.tag} · <b>start ~${sg.lb} lb</b> (${sg.pct}% of ${sg.e1}${sg.src&&sg.src!=="on-ramp test"?` — from your ${sg.src} on ${sg.when}`:""}) — then let RIR decide`
-                 :(MAINLIFT[e.k]?`${e.tag} · <i>no e1RM yet — test in the on-ramp and this fills in</i>`:e.tag);
+                 :(MAINLIFT[e.k]?`${e.tag} · <i>no e1RM yet — set a baseline in the Test tab and this fills in</i>`:e.tag);
     const useSets=(i===1&&HEAVY_BO_DAYS.includes(dkey))?Math.max(1,s-hboTrade(R.i)):s;
     /* dynamic-effort bench sits after the heavy work on D2 */
     if(i===1&&dkey==="d2"&&Z.de){
@@ -1761,11 +1871,15 @@ function rToday(){
   h+=`<div class="card" style="padding:10px 14px"><b>${DAYS[dow]}</b> · <span class="mini">${dISO} · Week ${w+1}${isDeloadWeek(w)?" · Deload as written":""}</span></div>`;
   h+=proteinLine();
   h+=whoopCard(dISO);
-  h+=scoreCard(dISO);
-  h+=aeroCard(dISO);
   h+=plannerCard(w,dow,dISO);
+  h+=dayStack(w,dow,dISO,true);      /* THE WORK — everything above it decides what it is */
+  /* v11.13: review goes AFTER the work. On the morning the block started he opened Today,
+     met six status cards, read "Below floor", and concluded the lifts were missing. They
+     were not — the D1 card had been rendering the whole time, five cards down. Nothing
+     below this line tells him what to do today. */
+  h+=aeroCard(dISO);
+  h+=scoreCard(dISO);
   h+=realityCard(dow);
-  h+=dayStack(w,dow,dISO,true);
   el.innerHTML=h;
 }
 
@@ -1987,12 +2101,17 @@ function rNight(){
 /* ---- Testing / PRs ---- */
 function rTest(){
   const el=document.getElementById("v_test");
-  const s=latestAny()||{};
+  const s=mergedScreen();          /* v11.12: per-field, not last-record */
   const pv=latestScreen()||{};
   const gap=(a,p)=>(a!=null&&p!=null)?(p-a):null;
   const gL=gap(s.airL,s.irL),gR=gap(s.airR,s.irR);
   const L=loLast("L"),R=loLast("R");
-  const kh=[...Z.screen].reverse().find(x=>x.kickL!=null||x.kickR!=null)||{};
+  /* v11.12: kick height split. CAPACITY (kcap*) is the north star — best effort against a
+     fixed marker. WORKING (kwrk*) is the habitual bag mark. They are different quantities
+     and were being conflated; 45 in on the bag and a best-effort max are not comparable. */
+  const kc=[...Z.screen].reverse().find(x=>x.kcapL!=null||x.kcapR!=null)||{};
+  const kw=[...Z.screen].reverse().find(x=>x.kwrkL!=null||x.kwrkR!=null)||{};
+  const bat=[...Z.screen].reverse().find(x=>x.flexL!=null||x.hamL!=null||x.addL!=null)||{};
   const best={};Z.prs.forEach(p=>{if(!best[p.lift]||p.e1>best[p.lift].e1)best[p.lift]=p;});
   const row=(lbl,val,sub)=>`<div class="row"><div class="nm">${lbl}${sub?`<div class="sup">${sub}</div>`:""}</div><div class="rx">${val}</div></div>`;
   const f=(id,lbl,v)=>`<div><label class="f">${lbl} (deg)</label><input type="number" id="${id}" inputmode="decimal" value="${v??""}"></div>`;
@@ -2004,38 +2123,61 @@ function rTest(){
   const due=(w+1)===4||(w+1)===8||(w+1)===12;
   const boundary=w>=10;
   el.innerHTML=`
-  ${due?`<div class="banner teal"><b>Week ${w+1} — screen week.</b> Kick height, active and passive rotation, ankle DF. About fifteen minutes, <b>no barbell</b>.
+  ${due?`<div class="banner teal"><b>Week ${w+1} — screen week.</b> Kick height (capacity), active and passive rotation, and the <b>F4F battery</b> — hip flexion, hamstring, adductor. Ankle DF only every 12 weeks now. About twenty minutes, <b>no barbell</b>.
        <span class="mini"><b>No strength retest. Not this week, not any week.</b> Your programmed top sets already are the test — every one you log is an e1RM estimate, and the suggestions have been tracking it all along. Adding max attempts on top of a high-volume block buys a number you already have, at a fatigue cost you cannot afford.</span></div>`
        :`<div class="mini" style="margin-bottom:8px">Week ${w+1}. Next screen: <b>week ${nextDue}</b>${nextDue-(w+1)>0?` — ${nextDue-(w+1)} week${nextDue-(w+1)===1?"":"s"} out`:""}. Measurements only, ~15 min, <b>no barbell</b>. Strength never gets a separate retest — the programmed top sets already are the test.</div>`}
   ${boundary?`<div class="banner amber"><b>Block boundary.</b> Weeks 11&ndash;12 already prescribe the heaviest top sets of the block (2&times;3 @ RIR 1&ndash;2, 88% of e1RM). <b>Those are your end-of-block numbers</b> — log them and the block closes itself out. Screen plus a kick-height check on top. No FTP test; Peloton owns that number.</div>`:""}
   ${(w+1)===6?`<div class="banner amber"><b>Week 6 decision point.</b> If passive IR has not moved, stop spending the block chasing range — the lift-off number is the one that matters, and it can climb while passive ROM sits still.</div>`:""}
   <div class="card spine t1"><h3>Where you stand</h3>
-  ${row("Kick height — the north star",(kh.kickL!=null||kh.kickR!=null)?`L ${kh.kickL??"—"} / R ${kh.kickR??"—"}`:"not measured","Everything else is a proxy for this")}
+  ${row("Kick height — the north star",(kc.kcapL!=null||kc.kcapR!=null)?`L ${kc.kcapL??"—"} / R ${kc.kcapR??"—"} in`:"not measured yet",
+     "<b>Capacity</b> — best effort, fixed marker, warm, 3 attempts a side. Everything else is a proxy for this.")}
+  ${(kw.kwrkL!=null||kw.kwrkR!=null)?row("Kick height — working",`L ${kw.kwrkL??"—"} / R ${kw.kwrkR??"—"} in`,
+     `Habitual height on the bag · ${kw.date}. Centroid of many kicks on a surface that leans away, so it reads low. A floor, not a target.`):""}
   ${row("Lift-off — usable range",(L||R)?`L ${L?L.wt+"lb\u00d7"+L.reps:"—"} / R ${R?R.wt+"lb\u00d7"+R.reps:"—"}`:"nothing logged yet",
      "Logged as an exercise on Markow days, not here \u2014 like any lift. Ankle weight \u00d7 controlled reps.")}
-  ${row("Box squat e1RM",(best["Box Squat"]||{}).e1?Math.round(best["Box Squat"].e1):"—","")}
-  ${row("Bench e1RM",(best["Bench Press"]||{}).e1?Math.round(best["Bench Press"].e1):"236 (banked 2026-08-02)","")}
-  ${row("Trap bar e1RM",(best["Trap Bar DL"]||{}).e1?Math.round(best["Trap Bar DL"].e1):"—","")}
+  ${row("Box squat e1RM",Math.round((workingE1("boxsq",todayISO())||{}).e1||0)||"—",(workingE1("boxsq",todayISO())||{}).src||"")}
+  ${row("Bench e1RM",Math.round((workingE1("bench",todayISO())||{}).e1||0)||"—",(workingE1("bench",todayISO())||{}).src||"")}
+  ${row("Trap bar e1RM",Math.round((workingE1("trap",todayISO())||{}).e1||0)||"—",(workingE1("trap",todayISO())||{}).src||"")}
   ${row("Hip rotation — passive",pv.irL!=null?`IR ${pv.irL}/${pv.irR} \u00b7 ER ${pv.erL??"—"}/${pv.erR??"—"}`:"—",pv.date?`${pv.method==="pt"?"PT":"self"} \u00b7 ${pv.date}`:"")}
   ${row("Hip rotation — active",s.airL!=null?`IR ${s.airL}/${s.airR} \u00b7 ER ${s.aerL??"—"}/${s.aerR??"—"}`:"not measured yet","")}
   ${(gL!=null||gR!=null)?row("<b>Active/passive gap</b>",`L ${gL??"—"}\u00b0 / R ${gR??"—"}\u00b0`,
      (Math.max(gL||0,gR||0)>=10)?"A large gap means range you own but cannot command — end-range strength is the limiter, and the loaded work is the right answer."
-     :"A small gap means you are already using what you have; the ceiling is structural, not strength."):""}
-  ${row("Ankle DF",s.ankL!=null?`L ${s.ankL}\u00b0 / R ${s.ankR}\u00b0`:"—","")}
+     :`No meaningful gap — you are already using what you have, so the ceiling is structural rather than strength. Two consequences: end-range loading is the right tool, and <b>lift-offs will read small</b>. That is the protocol working, not failing.${(gL<0||gR<0)?" Active reads above passive on one side, which just means the two were taken on different days by different hands — treat it as zero, not as a gain." : ""}`):""}
+  ${bat.date?row("F4F battery",`Flex ${bat.flexL??"—"}/${bat.flexR??"—"} \u00b7 Ham ${bat.hamL??"—"}/${bat.hamR??"—"} \u00b7 Abd ${bat.addL??"—"}/${bat.addR??"—"}`,`Live candidate limiters \u00b7 ${bat.date}`):""}
+  ${row("Ankle DF",s.ankL!=null?`L ${s.ankL}\u00b0 / R ${s.ankR}\u00b0`:"—",
+     (s.ankL!=null&&Math.min(s.ankL,s.ankR)>=35)?"<b>Not a limiter.</b> At or above normal weight-bearing range — demoted to a 12-week rescreen. Nothing in the kick is restricted here.":"")}
+  </div>
+
+  <div class="card"><h3>Block baselines — the floor under every suggested load</h3>
+  <div class="meta">Banked from the Aug 6–8 test window. The rolling e1RM takes the best of your trailing 42 days <b>or</b> these, whichever is higher — so a light week never drags your prescription down. Editable because there was previously no way to set them at all.</div>
+  <div class="grid2">
+    <div><label class="f">Box squat e1RM</label><input type="number" inputmode="decimal" value="${(Z.base||{}).boxsq??""}" onchange="setBase('boxsq',this.value)"></div>
+    <div><label class="f">Bench e1RM</label><input type="number" inputmode="decimal" value="${(Z.base||{}).bench??""}" onchange="setBase('bench',this.value)"></div>
+    <div><label class="f">Trap bar e1RM</label><input type="number" inputmode="decimal" value="${(Z.base||{}).trap??""}" onchange="setBase('trap',this.value)"></div>
+  </div>
+  <div class="mini" style="margin-top:8px"><b>Why these differ from the handoff numbers.</b> Box squat 255×3 and trap bar 285×3, both at RPE 8. Scored as Epley on reps performed that is 280 and 313 — which is how the bench was banked at 236. But every top set you <i>log</i> is scored on effective reps, reps + RIR, which for the same lifts gives <b>298, 333 and 251</b>. Two scales for one quantity, and a floor on the wrong scale is not a floor. These sit on the app’s own live scale. Day-one consequence: 248 lb on the box squat instead of 233, against a lift you just tripled at 255.</div>
   </div>
 
   <div class="card"><h3>Record a screen</h3>
   <div class="meta">Every 4 weeks. Same method, same measurer, same time of day. Not weekly \u2014 range does not move fast enough for weekly to be signal.</div>
-  <div class="klabel" style="margin-top:10px">Kick height</div>
-  <div class="grid2">${fk("kickL","Kick height — Left")}${fk("kickR","Kick height — Right")}</div>
+  <div class="klabel" style="margin-top:10px">Kick height — capacity <span class="chip">tracked</span></div>
+  <div class="mini" style="margin-bottom:4px">Warm, after the session. Fixed vertical marker on a wall — <b>not a bag, not a held pad</b>. Three attempts a side, record the best. <b>Height = the point on your SHIN that makes contact</b>, off the mat \u2014 a Thai round kick lands on the shin, not the instep, so foot height is the wrong landmark and reads high. <b>Round kicks only</b>: side kicks are limited by technique you do not practise, so they would measure the wrong thing.</div>
+  <div class="grid2">${fk("kcapL","Capacity — Left (in)")}${fk("kcapR","Capacity — Right (in)")}</div>
+  <div class="klabel" style="margin-top:12px">Kick height — working</div>
+  <div class="mini" style="margin-bottom:4px">The habitual mark on the bag. Free to collect, useful as a gap against capacity, and <b>never</b> the tracked number — it is a centroid of many kicks on a surface that leans away, so it reads low.</div>
+  <div class="grid2">${fk("kwrkL","Working — Left (in)")}${fk("kwrkR","Working — Right (in)")}</div>
   <div class="klabel" style="margin-top:12px">Hip rotation \u2014 passive</div>
   <div class="mini" style="margin-bottom:4px">Pushed to a firm stop with a strap. This is your ceiling.</div>
   <div class="grid2">${f("irL","Hip IR — Left")}${f("irR","Hip IR — Right")}${f("erL","Hip ER — Left")}${f("erR","Hip ER — Right")}</div>
   <div class="klabel" style="margin-top:12px">Hip rotation \u2014 active</div>
   <div class="mini" style="margin-bottom:4px">Same positions, <b>no strap, no hands</b>. How far you can hold under your own power. <b>The gap between these two rows is the whole point.</b></div>
   <div class="grid2">${f("airL","Active IR — Left")}${f("airR","Active IR — Right")}${f("aerL","Active ER — Left")}${f("aerR","Active ER — Right")}</div>
-  <div class="klabel" style="margin-top:12px">Ankle dorsiflexion</div>
+  <div class="klabel" style="margin-top:12px">Ankle dorsiflexion <span class="chip">12-week rescreen</span></div>
+  <div class="mini" style="margin-bottom:4px">Demoted 2026-08-09. Measured 37\u00b0 / 38\u00b0, at or above normal weight-bearing range — it is not restricting the kick and does not need watching every four weeks.</div>
   <div class="grid2">${f("ankL","Ankle DF — Left")}${f("ankR","Ankle DF — Right")}</div>
+  ${due?`<div class="klabel" style="margin-top:12px">F4F battery <span class="chip">week ${w+1}</span></div>
+  <div class="mini" style="margin-bottom:4px"><b>Reinstated 2026-08-09.</b> It was demoted for testing hip flexion, ER, hamstring and adductor when the limiter was assumed to be hip IR. Three findings since have inverted that reasoning: ankle DF is clear at 37/38\u00b0, there is no passive\u2013active gap at the hip, and the kick asymmetry runs the wrong way for a support-leg rotation story — the better-rotating right hip supports the <i>lower</i> kick. Those four measures are now the live candidates.</div>
+  <div class="grid2">${f("flexL","Hip flexion — Left")}${f("flexR","Hip flexion — Right")}${f("hamL","Hamstring SLR — Left")}${f("hamR","Hamstring SLR — Right")}${f("addL","Adductor / abduction — Left")}${f("addR","Adductor / abduction — Right")}</div>`:""}
   <div class="klabel" style="margin-top:12px">Measured by</div>
   <div class="seg"><button class="${Z.sm!=="pt"?"on":""}" onclick="Z.sm='self';save();render()">Me</button>
   <button class="${Z.sm==="pt"?"on":""}" onclick="Z.sm='pt';save();render()">PT</button></div>
@@ -2048,7 +2190,7 @@ function rTest(){
   ${Z.screen.length?[...Z.screen].reverse().slice(0,8).map(x=>{
     const arc=(a,b)=>(a!=null&&b!=null)?`${a+b}\u00b0`:"—";
     return `<div class="row"><div class="nm">${x.date} <span class="chip">${x.method==="pt"?"PT":"self"}</span>
-      <div class="sup">${x.irL!=null?`IR ${x.irL}/${x.irR}`:""}${x.erL!=null?` \u00b7 ER ${x.erL}/${x.erR}`:""}${x.airL!=null?` \u00b7 active IR ${x.airL}/${x.airR}`:""}${x.ankL!=null?` \u00b7 ankle ${x.ankL}/${x.ankR}`:""}${x.kickL!=null?` \u00b7 kick ${x.kickL}/${x.kickR}`:""}</div></div>
+      <div class="sup">${x.irL!=null?`IR ${x.irL}/${x.irR}`:""}${x.erL!=null?` \u00b7 ER ${x.erL}/${x.erR}`:""}${x.airL!=null?` \u00b7 active IR ${x.airL}/${x.airR}`:""}${x.ankL!=null?` \u00b7 ankle ${x.ankL}/${x.ankR}`:""}${x.kickL!=null?` \u00b7 kick ${x.kickL}/${x.kickR}`:""}${x.kwrkL!=null?` \u00b7 working kick ${x.kwrkL}/${x.kwrkR}`:""}${x.flexL!=null?` \u00b7 F4F flex ${x.flexL}/${x.flexR}`:""}</div></div>
       <div class="rx">${(x.irL!=null&&x.erL!=null)?`arc ${arc(x.irL,x.erL)} / ${arc(x.irR,x.erR)}`:""}</div></div>`;}).join("")
     :`<div class="mini">No screens recorded yet.</div>`}
   </div>
