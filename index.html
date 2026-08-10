@@ -130,49 +130,80 @@ details[open] summary:after{transform:rotate(-90deg)}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.13 · 2026-08-10";
-const PROGRAM_START="2026-08-10";           /* Monday. Week 1 Day 1. */
-const ONRAMP_START="2026-08-04";            /* Tuesday. Six days, Aug 4-9. */
-/* Two weeks off. Purpose of these six days is the six baseline numbers,
-   not the training. Every day has a floor and nothing here can be failed. */
+const BUILD="v11.14 · 2026-08-10";
+const PROGRAM_START="2026-08-17";           /* Monday. Week 1 Day 1. Moved from Aug 10, 2026-08-10. */
+const ONRAMP_START="2026-08-11";            /* Tuesday. Six days, Aug 11-16. */
+/* ============ SLEEP-PHASE ON-RAMP, Aug 11-16. Rewritten 2026-08-10. ============
+   THE FIFTH START DATE, and the first one with a structural reason rather than a
+   readiness one. Evenings now go to family, so training moves to the morning. That is a
+   schedule change, not a delay, and it has a precondition the block genuinely does have.
+
+   THE PRECONDITION IS NOT WAKING EARLY. IT IS THE BEDTIME.
+   From the 2026-08-09 Whoop export, trailing 21 nights:
+     median sleep onset 01:35   ·   median wake 09:22
+     median asleep 6.8 h against a modelled need of 8.9 h -> already 2 h short every night
+   Setting a 05:00 alarm on a 01:35 bedtime does not produce a morning habit, it produces
+   3.5 hours of sleep and a training session that costs more than it returns. So the target
+   of these six days is SLEEP ONSET. Wake time follows it; it does not lead it.
+
+   Phase advance is staged 30 min per night, which is about the fastest a circadian phase
+   reliably moves. 01:35 -> 22:35 is 3 h, and six nights at 30 min is exactly that. The
+   week is the right length for the job by arithmetic, not by coincidence.
+
+   Well-supported: fixed wake time plus bright light on waking is the strongest available
+   zeitgeber; evening light reduction in the 2 h before target onset advances phase.
+   Inference, labelled: the specific 30-min-per-night ladder below is a practical schedule
+   fitted to his numbers, not a protocol from any of his named sources.
+
+   TRAINING IS DELIBERATELY SUBORDINATE THIS WEEK. Nothing here is heavy, nothing is tested,
+   nothing accumulates fatigue that would compete with the phase shift or bleed into Aug 17.
+   Every session is <=35 min so it fits before work. His own words, 2026-08-10: "I don't want
+   to try to cram it in. I don't want to feed my instinct to make things up." Honoured — there
+   is no makeup work anywhere in this week and nothing here can be failed.
+
+   THE SLEEP GATE OVERRIDES EVERY SESSION. Under 6 h asleep, the session drops to its floor.
+   Training that costs sleep during a week whose entire purpose is sleep is self-defeating. */
 const ONRAMP=[
- {d:"2026-08-04",t:"Tue · the ride + Markow D1",floor:"Any ride at all, even 20 minutes.",items:[
-  ["Zone 2 — Peloton PZ Endurance 90","Your hard day. The bike is the right instrument and your own data agrees: 0 of 39 rides ever overran their class by >15 min, while 32 of 82 lifts ran past 90. A ride cannot balloon."],
-  ["Markow — Wk1 D1 pattern","Pelvic Magic Zero + Split Squat Isometric. Short version: hip rotation CARs only, 3 min."],
-  ["Hooklying 3 × 10, morning","Three minutes. Never scored against you."]]},
- {d:"2026-08-05",t:"Wed · upper body (bench already banked)",floor:"One working set of pressing.",items:[
-  ["Bench baseline is IN — 215 × 3 @ RPE 8 → e1RM 236","No bench test this week. This is training, not measurement."],
-  ["Press — real sets off 236","Nothing heavier than a comfortable 5."],
-  ["NEW · Dynamic-effort bench — 6 × 3 @ 118 lb","50% of e1RM, 45 s rest. Bar speed is the whole point; the load is deliberately trivial. Here so it is familiar Aug 10."],
-  ["Accessories — rear delts, cuff, rows","Rear delt is the standing structural hole."],
-  ["Markow — Wk1 D2 pattern","Rolling for hip rotation + hip rotation CARs."]]},
- {d:"2026-08-06",t:"Thu · TEST box squat + the ROM battery",floor:"The box squat triple. Fifteen minutes if that is all there is.",items:[
-  ["Warm-up — GMB Prep + hooklying 3 × 10",""],
-  ["TEST · Box squat — hard triple @ RPE 7-8","Not a max. A set of 3 with 1-2 clearly left. Belt on — the reason this lift is at home. Pre-layoff was 285 × 3; do not aim at it. Coming in 10-15% light after time off is normal."],
-  ["NEW · ACTIVE vs PASSIVE hip rotation, both sides","The test that settles the whole mobility question. Measure passive IR and ER with strap overpressure, then measure how far you can hold ACTIVELY with no assistance. A big gap means end-range strength is the limiter and the loaded Markow work is exactly right. A small gap means the ceiling is structural."],
-  ["Ankle dorsiflexion — both sides","Weight-bearing lunge, heel stays down. Method in the Test tab."],
-  ["Accessory — glute med, Booty Sprout 2 sets","Log band config and reps."],
-  ["No plyometrics","Deliberate. Not stacking jump work on a detrained system in a test week."]]},
- {d:"2026-08-07",t:"Fri · kickboxing — WEAR THE MORPHEUS STRAP",floor:"Attend class. Mark kick height while warm.",items:[
-  ["⚠ MORPHEUS CHEST STRAP — this is the point of today","Whoop in the underwear band lost 22% of the HR trace on the median kickboxing session. The strap is the only clean measurement you can get. Note minutes above 160 bpm."],
-  ["Pre-class — ballistic leg swings, submaximal, 5 min","The correct and only use of the Luke Thomas ballistic material."],
-  ["Kickboxing 6:30 as normal","Your most reliable session — 89% start before 9am, median 06:47. Nothing added."],
-  ["Kick height, both legs, while warm — AND film it","Rear-leg chambered roundhouse at a wall. Phone on a tripod behind you at ~45°. Ten kicks, mark each. The video decides what is actually different about your good ones."],
-  ["If <13 min above 160 bpm → bag backfill before you leave","1 min hard / 1 min light, repeat (deficit + 2) times. Bags are right there and you are already warm."],
-  ["No lift today","No box squat or deadlift at the MMA gym — you would have to bring the belt."]]},
- {d:"2026-08-08",t:"Sat · TEST trap bar",floor:"The trap bar triple.",items:[
-  ["Warm-up — full lower, hooklying, ankle work",""],
-  ["TEST · Trap bar — FIRST, before any riding","Hard triple @ RPE 7-8. Lift before cardio so the number is clean. 48 h after the box squat. Pre-layoff 305 × 3 — again, do not aim at it."],
-  ["Zone 2 ride, optional, 45-60 min","Only if the trap bar felt good."],
-  ["Sprint — mechanics only","A-skips, wall drills, acceleration posture. No build-ups, no strides, no timed runs."],
-  ["Markow — Wk1 D3 pattern","Pelvic Magic Cross Connect."]]},
- {d:"2026-08-09",t:"Sun · BJJ + bag rounds (STRAP) + close out",floor:"Press Set as block baselines. Even if you train nothing, the week succeeded.",items:[
-  ["BJJ as normal","Your most reliable day — 87% of Sundays produced training. Strap will not survive grappling; do not try."],
-  ["⚠ AFTER BJJ · bag rounds with the MORPHEUS STRAP","Measurement #2 of 2. 5 rounds: 1 min hard / 1 min light. Record minutes above 160 bpm and peak HR. This plus Friday settles whether the aerobic backfill is occasional or standing."],
-  ["Social lift","Fold in the Sunday block if it fits — rear delt is the hole."],
-  ["Markow — Wk1 D4 pattern","Hip rotation mini, about 8 minutes."],
-  ["Enter the numbers → Set as block baselines","Box squat, trap bar, active/passive ROM, ankle DF, kick height. Bench is already in."],
-  ["Read Monday","Week 1 starts Aug 10. No fifth start date."]]}
+ {d:"2026-08-11",t:"Tue · lights-out 01:05 · first morning",floor:"Get up at the alarm. That is the whole day.",items:[
+  ["\u23f0 TARGET: asleep by 01:05, up at 08:05","30 min earlier than your median. Small on purpose \u2014 this is the rung you can actually hit."],
+  ["Bright light within 10 min of waking, 10 min","Outside if possible. This is the strongest lever you have on tomorrow night's bedtime, and it works on the NEXT night, not this one."],
+  ["GMB tissue prep, short \u00b7 8 min","Movement in the morning slot. The point is the slot, not the stimulus."],
+  ["Hooklying 3 \u00d7 10","Three minutes. Never scored against you."],
+  ["No training load today","Deliberate. Day one is a wake-time rehearsal, nothing else."],
+  ["Caffeine cutoff 15:00","~10 h before target onset. Non-negotiable if the ladder is going to hold."]]},
+ {d:"2026-08-12",t:"Wed · lights-out 00:35 · first lift in the slot",floor:"One working set of pressing. 10 minutes.",items:[
+  ["\u23f0 TARGET: asleep by 00:35, up at 07:35",""],
+  ["Bright light within 10 min of waking, 10 min",""],
+  ["Upper, submaximal \u00b7 ~25 min","Bench 3 \u00d7 5 at roughly 70% of 251 \u2014 about 175 lb. Nowhere near hard. You are rehearsing pressing at 7am, which your body has essentially never done."],
+  ["Rear delts + cuff, 2 sets each","Rear delt is the standing structural hole. Cheap to keep."],
+  ["Markow hip rotation CARs, 3 min",""],
+  ["Screens off by 23:35","One hour before target onset. This is the lever that actually moves bedtime."]]},
+ {d:"2026-08-13",t:"Thu · lights-out 00:05 · first lower in the slot",floor:"Hooklying and hip CARs. 5 minutes.",items:[
+  ["\u23f0 TARGET: asleep by 00:05, up at 07:05","You are now past the halfway point of the shift."],
+  ["Bright light within 10 min of waking, 10 min",""],
+  ["Box squat 3 \u00d7 3 at ~70% \u2014 about 210 lb \u00b7 ~30 min","Explicitly NOT a top set. Belt on, groove the pattern cold-ish in the morning, learn what your 7am body does. Monday's real top set is 250; do not touch that this week."],
+  ["Booty Sprout, 2 sets","Log band config and reps."],
+  ["Markow Wk1 D1 pattern, short","Pelvic Magic Zero + Split Squat Isometric."],
+  ["If you slept under 6 h \u2014 drop to the floor","The gate is real. Sleep is the adaptation being trained this week."]]},
+ {d:"2026-08-14",t:"Fri · lights-out 23:35 · your proven morning",floor:"Attend class.",items:[
+  ["\u23f0 TARGET: asleep by 23:35, up at 06:30","This is the one you already hit 68% of the time. The ladder has brought the other five days to meet it."],
+  ["Kickboxing 6:30 as normal","Untouched. Your most reliable session, median start 06:47. Nothing added, nothing tested."],
+  ["Pre-class ballistic leg swings, submaximal, 5 min","The correct and only use of the Luke Thomas ballistic material."],
+  ["Morpheus strap ON","Not for a gate this week \u2014 for a second data point on where kickboxing actually sits against 160 bpm. Log the DAY total, all blocks summed."],
+  ["No lift today","No box squat or trap bar at the MMA gym \u2014 you would have to bring the belt."]]},
+ {d:"2026-08-15",t:"Sat · lights-out 23:05 · hinge in the slot",floor:"Ten easy minutes of anything.",items:[
+  ["\u23f0 TARGET: asleep by 23:05, up at 06:05",""],
+  ["Bright light within 10 min of waking, 10 min",""],
+  ["Trap bar 3 \u00d7 3 at ~70% \u2014 about 235 lb \u00b7 ~30 min","Same logic as Thursday. Pattern, not load. Monday's real work starts from 333."],
+  ["Zone 2, easy, 30-40 min, optional","117\u2013137 bpm. Only if the morning felt good. Z2 supports the phase shift; hard work fights it."],
+  ["Sprint mechanics only \u2014 A-skips, wall drills","No build-ups, no strides, no timed runs. Velocity work waits for the block."]]},
+ {d:"2026-08-16",t:"Sun · lights-out 22:35 · dress rehearsal",floor:"Set tomorrow's alarm. Even if you train nothing, the week succeeded.",items:[
+  ["\u23f0 TARGET: asleep by 22:35, up at 05:35","The last rung. Tomorrow this becomes the real thing."],
+  ["BJJ as normal, 13:41","Your most reliable day \u2014 87% of Sundays produce training. Sleeve on, not the strap; it will not survive grappling."],
+  ["Social lift if it fits","Rear delt is the hole. This is the D4 flex day the block relies on."],
+  ["Markow hip rotation mini, ~8 min",""],
+  ["\u2705 Read Monday in the Week tab","Week 1 D1: box squat, top set 3 @ RIR 3, ~250 lb, plus 2 \u00d7 3 back-offs at RIR 4. Know it before you wake up."],
+  ["Set the alarm before you go to bed","Fifth start date. There is no sixth \u2014 and this time the reason was structural, so the structure is what has to hold."]]}
 ];
 const orIndex=iso=>ONRAMP.findIndex(o=>o.d===iso);
 const inOnramp=iso=>iso>=ONRAMP_START&&iso<PROGRAM_START;
@@ -2155,7 +2186,10 @@ function rTest(){
     <div><label class="f">Bench e1RM</label><input type="number" inputmode="decimal" value="${(Z.base||{}).bench??""}" onchange="setBase('bench',this.value)"></div>
     <div><label class="f">Trap bar e1RM</label><input type="number" inputmode="decimal" value="${(Z.base||{}).trap??""}" onchange="setBase('trap',this.value)"></div>
   </div>
-  <div class="mini" style="margin-top:8px"><b>Why these differ from the handoff numbers.</b> Box squat 255×3 and trap bar 285×3, both at RPE 8. Scored as Epley on reps performed that is 280 and 313 — which is how the bench was banked at 236. But every top set you <i>log</i> is scored on effective reps, reps + RIR, which for the same lifts gives <b>298, 333 and 251</b>. Two scales for one quantity, and a floor on the wrong scale is not a floor. These sit on the app’s own live scale. Day-one consequence: 248 lb on the box squat instead of 233, against a lift you just tripled at 255.</div>
+  <div class="mini" style="margin-top:8px"><b>This is a PREDICTED 1RM, not a demonstrated one \u2014 and that distinction matters.</b>
+  251 on the bench looks high against a 215 triple, and the skepticism is reasonable: a predicted max assumes you can express that strength in a true single, which is a skill in itself. Lifters who never train singles routinely fall short of their predicted max. <b>The arithmetic is not in doubt</b> \u2014 Epley, Brzycki, Lombardi, O\u2019Conner, Wathen, Mayhew and the Helms RPE chart all land between 242 and 256 for that set, median 251.
+  <br><br><b>But the headline number does not set your loads \u2014 it cancels out.</b> The prescription is your test weight \u00d7 [pct(reps,RIR&nbsp;prescribed) \u00f7 pct(reps,RIR&nbsp;tested)]. For a week-1 triple at RIR 3 off a triple at RIR 2 that is \u00d70.972 regardless of formula: box squat 255\u2192248, bench 215\u2192209. Whether your true single is 251 or 235 changes neither. <b>The only input that actually matters is whether your RIR call was honest</b>, and the rolling e1RM re-derives itself from logged sets within two weeks either way.
+  <br><br><b>Why these differ from the handoff numbers.</b> Box squat 255×3 and trap bar 285×3, both at RPE 8. Scored as Epley on reps performed that is 280 and 313 — which is how the bench was banked at 236. But every top set you <i>log</i> is scored on effective reps, reps + RIR, which for the same lifts gives <b>298, 333 and 251</b>. Two scales for one quantity, and a floor on the wrong scale is not a floor. These sit on the app’s own live scale. Day-one consequence: 248 lb on the box squat instead of 233, against a lift you just tripled at 255.</div>
   </div>
 
   <div class="card"><h3>Record a screen</h3>
