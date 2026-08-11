@@ -130,80 +130,87 @@ details[open] summary:after{transform:rotate(-90deg)}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.14 · 2026-08-10";
+const BUILD="v11.15 · 2026-08-10";
 const PROGRAM_START="2026-08-17";           /* Monday. Week 1 Day 1. Moved from Aug 10, 2026-08-10. */
 const ONRAMP_START="2026-08-11";            /* Tuesday. Six days, Aug 11-16. */
-/* ============ SLEEP-PHASE ON-RAMP, Aug 11-16. Rewritten 2026-08-10. ============
-   THE FIFTH START DATE, and the first one with a structural reason rather than a
-   readiness one. Evenings now go to family, so training moves to the morning. That is a
-   schedule change, not a delay, and it has a precondition the block genuinely does have.
+/* ============ RE-ENTRY ON-RAMP, Aug 11-16. Rewritten 2026-08-10. ============
+   Six days of real training before the block opens Mon Aug 17. Not a taper, not a
+   rehearsal, and no habit-coaching — he asked for training and this is training.
 
-   THE PRECONDITION IS NOT WAKING EARLY. IT IS THE BEDTIME.
-   From the 2026-08-09 Whoop export, trailing 21 nights:
-     median sleep onset 01:35   ·   median wake 09:22
-     median asleep 6.8 h against a modelled need of 8.9 h -> already 2 h short every night
-   Setting a 05:00 alarm on a 01:35 bedtime does not produce a morning habit, it produces
-   3.5 hours of sleep and a training session that costs more than it returns. So the target
-   of these six days is SLEEP ONSET. Wake time follows it; it does not lead it.
+   TWO JOBS, in priority order.
 
-   Phase advance is staged 30 min per night, which is about the fastest a circadian phase
-   reliably moves. 01:35 -> 22:35 is 3 h, and six nights at 30 min is exactly that. The
-   week is the right length for the job by arithmetic, not by coincidence.
+   1. GET BACK ON THE BIKE. This is the domain furthest from baseline. Whoop shows one ride
+      in the last eight weeks (Aug 4, 45 min) against a spring pattern of 65-95 min rides,
+      and the handoff already records him at the bottom of his FTP post-layoff. Three Z2
+      rides here, ~2.5 h total, is a real re-entry dose off a near-zero base without
+      spiking it. Z2 is also the lowest-interference modality against lower-body strength —
+      concurrent-training interference comes overwhelmingly from high-intensity and from
+      high-eccentric running, not from steady-state cycling. So the aerobic work can be
+      genuine without costing Monday anything.
 
-   Well-supported: fixed wake time plus bright light on waking is the strongest available
-   zeitgeber; evening light reduction in the 2 h before target onset advances phase.
-   Inference, labelled: the specific 30-min-per-night ladder below is a practical schedule
-   fitted to his numbers, not a protocol from any of his named sources.
+   2. LIFT THE THREE MAINS ONCE EACH, FOR REAL, SEQUENCED BACKWARD OFF WEEK 1.
+      DKEY puts D1 box squat on Mon, D2 bench on Wed, D3 trap bar on Thu. So:
+        box squat Tue 11 -> D1 Mon 17   (6 days)
+        bench     Thu 13 -> D2 Wed 19   (6 days)
+        trap bar  Sat 15 -> D3 Thu 20   (5 days)
+      Each lift gets most of a week before its block counterpart. Nothing is stacked
+      against itself.
 
-   TRAINING IS DELIBERATELY SUBORDINATE THIS WEEK. Nothing here is heavy, nothing is tested,
-   nothing accumulates fatigue that would compete with the phase shift or bleed into Aug 17.
-   Every session is <=35 min so it fits before work. His own words, 2026-08-10: "I don't want
-   to try to cram it in. I don't want to feed my instinct to make things up." Honoured — there
-   is no makeup work anywhere in this week and nothing here can be failed.
+   INTENSITY: top triple at RIR 4, one notch under week 1's RIR 3, then two back-off
+   triples about 5% lighter. That is genuinely working - 240x3 on the box squat is a real
+   set - while leaving the week-1 numbers untouched for Monday. It also gives the block a
+   clean opening progression: RIR 4 here, RIR 3 in week 1.
 
-   THE SLEEP GATE OVERRIDES EVERY SESSION. Under 6 h asleep, the session drops to its floor.
-   Training that costs sleep during a week whose entire purpose is sleep is self-defeating. */
+   WHAT IS DELIBERATELY ABSENT.
+   - No testing. The Aug 6-8 window banked all of it.
+   - No hard-aerobic target. Friday's class will produce whatever it produces; programming
+     intervals on a detrained aerobic system four days before a 12-week block is the wrong
+     trade. Base first. A PZ Max on Wednesday is offered, not prescribed.
+   - No velocity or plyometric work. That is gated on readiness inside the block and has no
+     business in a re-entry week.
+   - No makeup work. His boundary, 2026-08-10: "I don't want to try to cram it in. I don't
+     want to feed my instinct to make things up." Every day still has a floor, and nothing
+     in this week can be failed.
+
+   Kickboxing Friday 6:30 and BJJ Sunday are untouched - they are the two sessions his own
+   log says he reliably keeps, and the week is built around them rather than over them. */
 const ONRAMP=[
- {d:"2026-08-11",t:"Tue · lights-out 01:05 · first morning",floor:"Get up at the alarm. That is the whole day.",items:[
-  ["\u23f0 TARGET: asleep by 01:05, up at 08:05","30 min earlier than your median. Small on purpose \u2014 this is the rung you can actually hit."],
-  ["Bright light within 10 min of waking, 10 min","Outside if possible. This is the strongest lever you have on tomorrow night's bedtime, and it works on the NEXT night, not this one."],
-  ["GMB tissue prep, short \u00b7 8 min","Movement in the morning slot. The point is the slot, not the stimulus."],
-  ["Hooklying 3 \u00d7 10","Three minutes. Never scored against you."],
-  ["No training load today","Deliberate. Day one is a wake-time rehearsal, nothing else."],
-  ["Caffeine cutoff 15:00","~10 h before target onset. Non-negotiable if the ladder is going to hold."]]},
- {d:"2026-08-12",t:"Wed · lights-out 00:35 · first lift in the slot",floor:"One working set of pressing. 10 minutes.",items:[
-  ["\u23f0 TARGET: asleep by 00:35, up at 07:35",""],
-  ["Bright light within 10 min of waking, 10 min",""],
-  ["Upper, submaximal \u00b7 ~25 min","Bench 3 \u00d7 5 at roughly 70% of 251 \u2014 about 175 lb. Nowhere near hard. You are rehearsing pressing at 7am, which your body has essentially never done."],
-  ["Rear delts + cuff, 2 sets each","Rear delt is the standing structural hole. Cheap to keep."],
-  ["Markow hip rotation CARs, 3 min",""],
-  ["Screens off by 23:35","One hour before target onset. This is the lever that actually moves bedtime."]]},
- {d:"2026-08-13",t:"Thu · lights-out 00:05 · first lower in the slot",floor:"Hooklying and hip CARs. 5 minutes.",items:[
-  ["\u23f0 TARGET: asleep by 00:05, up at 07:05","You are now past the halfway point of the shift."],
-  ["Bright light within 10 min of waking, 10 min",""],
-  ["Box squat 3 \u00d7 3 at ~70% \u2014 about 210 lb \u00b7 ~30 min","Explicitly NOT a top set. Belt on, groove the pattern cold-ish in the morning, learn what your 7am body does. Monday's real top set is 250; do not touch that this week."],
-  ["Booty Sprout, 2 sets","Log band config and reps."],
-  ["Markow Wk1 D1 pattern, short","Pelvic Magic Zero + Split Squat Isometric."],
-  ["If you slept under 6 h \u2014 drop to the floor","The gate is real. Sleep is the adaptation being trained this week."]]},
- {d:"2026-08-14",t:"Fri · lights-out 23:35 · your proven morning",floor:"Attend class.",items:[
-  ["\u23f0 TARGET: asleep by 23:35, up at 06:30","This is the one you already hit 68% of the time. The ladder has brought the other five days to meet it."],
-  ["Kickboxing 6:30 as normal","Untouched. Your most reliable session, median start 06:47. Nothing added, nothing tested."],
-  ["Pre-class ballistic leg swings, submaximal, 5 min","The correct and only use of the Luke Thomas ballistic material."],
-  ["Morpheus strap ON","Not for a gate this week \u2014 for a second data point on where kickboxing actually sits against 160 bpm. Log the DAY total, all blocks summed."],
+ {d:"2026-08-11",t:"Tue · box squat + first ride back",floor:"The top triple. Fifteen minutes if that is all there is.",items:[
+  ["Warm-up \u2014 GMB tissue prep + hooklying 3 \u00d7 10","Eight minutes. Hooklying is never scored against you."],
+  ["Box squat \u2014 top triple @ RIR 4 \u00b7 ~240 lb","Belt on \u2014 the reason this lift is at home. Real work, one notch under Monday's 250 at RIR 3. Stop at 4 in reserve even if it is moving well; the block starts in six days."],
+  ["Box squat \u2014 2 \u00d7 3 back-off @ ~230 lb","Same bar speed, less load. This is the pattern the whole block is built on."],
+  ["Zone 2 ride \u2014 45 min, PZ Endurance","117\u2013137 bpm. First real ride in eight weeks. Ride it easy enough that it is boring \u2014 if you are pushing, it is not Zone 2."],
+  ["Markow Wk1 D1 pattern","Pelvic Magic Zero + Split Squat Isometric."]]},
+ {d:"2026-08-12",t:"Wed · the long ride",floor:"Any ride at all, even 20 minutes.",items:[
+  ["Zone 2 ride \u2014 60 min, PZ Endurance","The week's aerobic centrepiece. Your own data says a ride cannot balloon: 0 of 39 rides ever overran their class by >15 min, while 32 of 82 lifts ran past 90."],
+  ["Optional \u2014 PZ Max instead, if legs feel good","Offered, not prescribed. Base is the priority this week and intervals on a detrained aerobic system four days out from the block is the wrong trade. If you take it, log the minutes above 160."],
+  ["Markow Wk1 D2 pattern","Rolling for hip rotation + hip rotation CARs."],
+  ["No lifting today","Deliberate. Tuesday's squat and Thursday's bench both need the room."]]},
+ {d:"2026-08-13",t:"Thu · bench + upper",floor:"One working set of pressing.",items:[
+  ["Warm-up \u2014 shoulders, cuff, band pull-aparts",""],
+  ["Bench \u2014 top triple @ RIR 4 \u00b7 ~205 lb","Six days before D2 on Wed the 19th. Real, not maximal."],
+  ["Bench \u2014 2 \u00d7 3 back-off @ ~195 lb",""],
+  ["Dynamic-effort bench \u2014 6 \u00d7 3 @ 125 lb","50% of 251, 45 s rest. Bar speed is the whole point; the load is deliberately trivial. Here so it is familiar on Aug 19."],
+  ["Rows + rear delts + cuff, 2\u20133 sets each","Rear delt is the standing structural hole. Cheap to keep, expensive to ignore."],
+  ["Optional Zone 2 \u2014 30 min","Only if the press felt easy."]]},
+ {d:"2026-08-14",t:"Fri · kickboxing, as normal",floor:"Attend class.",items:[
+  ["Kickboxing 6:30","Untouched. Your most reliable session \u2014 68% of Fridays start before 9am, median 06:47."],
+  ["Pre-class \u2014 ballistic leg swings, submaximal, 5 min","The correct and only use of the Luke Thomas ballistic material."],
+  ["Morpheus strap ON","Second clean read on where kickboxing actually sits against 160 bpm. Log the DAY total, all blocks summed \u2014 Aug 7 was two blocks and scored separately that reads as two failures."],
   ["No lift today","No box squat or trap bar at the MMA gym \u2014 you would have to bring the belt."]]},
- {d:"2026-08-15",t:"Sat · lights-out 23:05 · hinge in the slot",floor:"Ten easy minutes of anything.",items:[
-  ["\u23f0 TARGET: asleep by 23:05, up at 06:05",""],
-  ["Bright light within 10 min of waking, 10 min",""],
-  ["Trap bar 3 \u00d7 3 at ~70% \u2014 about 235 lb \u00b7 ~30 min","Same logic as Thursday. Pattern, not load. Monday's real work starts from 333."],
-  ["Zone 2, easy, 30-40 min, optional","117\u2013137 bpm. Only if the morning felt good. Z2 supports the phase shift; hard work fights it."],
-  ["Sprint mechanics only \u2014 A-skips, wall drills","No build-ups, no strides, no timed runs. Velocity work waits for the block."]]},
- {d:"2026-08-16",t:"Sun · lights-out 22:35 · dress rehearsal",floor:"Set tomorrow's alarm. Even if you train nothing, the week succeeded.",items:[
-  ["\u23f0 TARGET: asleep by 22:35, up at 05:35","The last rung. Tomorrow this becomes the real thing."],
-  ["BJJ as normal, 13:41","Your most reliable day \u2014 87% of Sundays produce training. Sleeve on, not the strap; it will not survive grappling."],
-  ["Social lift if it fits","Rear delt is the hole. This is the D4 flex day the block relies on."],
+ {d:"2026-08-15",t:"Sat · trap bar + ride",floor:"The top triple.",items:[
+  ["Warm-up \u2014 full lower, hooklying, ankle work",""],
+  ["Trap bar \u2014 top triple @ RIR 4 \u00b7 ~270 lb","Lift BEFORE the ride so the bar is the clean signal. Five days before D3 on Thu the 20th."],
+  ["Trap bar \u2014 2 \u00d7 3 back-off @ ~255 lb",""],
+  ["Zone 2 ride \u2014 45 min","Third ride of the week, ~2.5 h of Z2 total. That is a real re-entry dose off a near-zero base."],
+  ["Booty Sprout, 2 sets","Log band config and reps."],
+  ["Markow Wk1 D3 pattern","Pelvic Magic Cross Connect."],
+  ["Sprint \u2014 mechanics only","A-skips, wall drills, acceleration posture. No build-ups, no strides, no timed runs \u2014 velocity work is readiness-gated inside the block and does not belong here."]]},
+ {d:"2026-08-16",t:"Sun · BJJ + close the week out",floor:"Read Monday. Even if you train nothing else, the week succeeded.",items:[
+  ["BJJ as normal, 13:41","Your most reliable day \u2014 87% of Sundays produce training. Sleeve, not the chest strap; it will not survive grappling."],
+  ["Social lift if it fits","This is the D4 flex day the block leans on. Rear delt is still the hole."],
   ["Markow hip rotation mini, ~8 min",""],
-  ["\u2705 Read Monday in the Week tab","Week 1 D1: box squat, top set 3 @ RIR 3, ~250 lb, plus 2 \u00d7 3 back-offs at RIR 4. Know it before you wake up."],
-  ["Set the alarm before you go to bed","Fifth start date. There is no sixth \u2014 and this time the reason was structural, so the structure is what has to hold."]]}
+  ["\u2705 Read Monday in the Week tab","Week 1 D1: box squat, top set 3 @ RIR 3 at ~250, then 2 \u00d7 3 back-offs at RIR 4. You will have squatted 240 on Tuesday, so Monday is a 10 lb step and one less rep in reserve. Know it before you wake up."]]}
 ];
 const orIndex=iso=>ONRAMP.findIndex(o=>o.d===iso);
 const inOnramp=iso=>iso>=ONRAMP_START&&iso<PROGRAM_START;
