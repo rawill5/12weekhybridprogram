@@ -87,6 +87,11 @@ a{color:var(--z2);text-decoration:none;font-weight:600}
 .volrow .t{display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px}
 .volrow .t .n{font-weight:700}
 .volrow .t .s{color:var(--mut);font-variant-numeric:tabular-nums}
+#tCard[data-flash]{animation:flashPulse .6s ease-out}
+#tCard[data-flash="go"]{--fl:#3a7}
+#tCard[data-flash="stop"]{--fl:#c93}
+#tCard[data-flash="section"]{--fl:#49f}
+@keyframes flashPulse{0%{box-shadow:0 0 0 0 var(--fl,#3a7);background:color-mix(in srgb,var(--fl,#3a7) 22%,transparent)}100%{box-shadow:0 0 0 14px transparent;background:transparent}}
 .timerBig{font-size:64px;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin:6px 0}
 .timerMove{text-align:center;font-size:20px;font-weight:800;min-height:28px}
 .timerNext{text-align:center;color:var(--mut);font-size:13px;min-height:18px}
@@ -130,7 +135,7 @@ details[open] summary:after{transform:rotate(-90deg)}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.15 · 2026-08-10";
+const BUILD="v11.18 · 2026-08-10";
 const PROGRAM_START="2026-08-17";           /* Monday. Week 1 Day 1. Moved from Aug 10, 2026-08-10. */
 const ONRAMP_START="2026-08-11";            /* Tuesday. Six days, Aug 11-16. */
 /* ============ RE-ENTRY ON-RAMP, Aug 11-16. Rewritten 2026-08-10. ============
@@ -1204,6 +1209,30 @@ function lastLoad(exKey,beforeISO){
   for(let i=ks.length-1;i>=0;i--){const v=Z.lifts[ks[i]][exKey];if(v&&v.w)return v.w;}
   return "";
 }
+/* v11.16: accessories carry no e1RM, so nothing was telling him what he used last time —
+   it existed only as a faint input placeholder, which is invisible the moment you type.
+   Without it there is no way to know whether an accessory is progressing, and accessories
+   are most of the volume in this block. Returns the most recent entries for a lift,
+   newest first, strictly before the day being rendered. */
+function lastLoads(exKey,beforeISO,n){
+  const out=[],ks=Object.keys(Z.lifts).sort().filter(k=>k<beforeISO);
+  for(let i=ks.length-1;i>=0&&out.length<(n||2);i--){
+    const v=Z.lifts[ks[i]][exKey];
+    if(v&&v.w)out.push({w:Number(v.w),date:ks[i]});}
+  return out;
+}
+/* Renders "Last: 45 lb · Wed 2026-08-19 (+5)". The delta is the whole point — a number with
+   no comparison does not tell you whether you are progressing. Silent until there is history,
+   so a fresh install shows nothing rather than an empty scaffold. */
+function lastLoadTag(exKey,beforeISO){
+  const L=lastLoads(exKey,beforeISO,2);
+  if(!L.length)return "";
+  const d=L.length>1?L[0].w-L[1].w:null;
+  const delta=d==null?"":(d>0?` <b style="color:var(--ok,#3a7)">+${d}</b>`
+                            :(d<0?` <b style="color:var(--t2,#c93)">${d}</b>`
+                                 :` <span style="color:var(--dim)">=</span>`));
+  return ` · <span class="chip ghost">Last ${L[0].w} lb</span> <span style="opacity:.7">${fmtD(L[0].date)}</span>${delta}`;
+}
 /* ---- v10 helpers ---- */
 /* ===== Booty Sprout =====
    Bands on hand: 45 lb and 70 lb nominal. Exact count of each is unknown, so the
@@ -1633,8 +1662,11 @@ function strengthCard(w,dkey,dISO,editable){
     if(e.k==="bht"){rows+=bootyRow(dISO,s,r,rir,editable);return;}
     const sg=suggestLoad(e.k,r,rir,dISO);
     const inp=editable?`<input class="win" inputmode="decimal" placeholder="${sg?sg.lb:(lastLoad(e.k,dISO)||"lb")}" value="${(Z.lifts[dISO]&&Z.lifts[dISO][e.k]&&Z.lifts[dISO][e.k].w)||""}" onchange="setLoad('${dISO}','${e.k}',this.value)">`:"";
+    /* v11.16: a suggested lift already tells him what to load. An accessory does not, so it
+       gets its last load and the change since the time before. */
     const sub2=sg?`${e.tag} · <b>start ~${sg.lb} lb</b> (${sg.pct}% of ${sg.e1}${sg.src&&sg.src!=="on-ramp test"?` — from your ${sg.src} on ${sg.when}`:""}) — then let RIR decide`
-                 :(MAINLIFT[e.k]?`${e.tag} · <i>no e1RM yet — set a baseline in the Test tab and this fills in</i>`:e.tag);
+                 :(MAINLIFT[e.k]?`${e.tag} · <i>no e1RM yet — set a baseline in the Test tab and this fills in</i>`
+                                :`${e.tag}${lastLoadTag(e.k,dISO)}`);
     const useSets=(i===1&&HEAVY_BO_DAYS.includes(dkey))?Math.max(1,s-hboTrade(R.i)):s;
     /* dynamic-effort bench sits after the heavy work on D2 */
     if(i===1&&dkey==="d2"&&Z.de){
@@ -1665,6 +1697,7 @@ function strengthCard(w,dkey,dISO,editable){
   });
   return `<div class="card spine t1"><h3>${names[dkey]} <span class="tiertag T1">T1</span></h3>
   <div class="meta">4D Hybrid — log top-set loads; blank = last used shown as placeholder.</div>
+  <div class="mini" style="margin-bottom:6px">Accessories carry no e1RM, so each one shows <b>what you used last time and the change since the session before that</b>. That is the only progression signal they have — nothing else in the app is watching them.</div>
   ${dkey==="d2"&&Z.de?`<div class="mini" style="margin-bottom:6px">⚡ <b>Dynamic-effort bench is on.</b> 6×3 at 50%, 45 s rest, after the heavy work. Bar speed is the point — if it feels like conditioning the weight is too heavy. Not counted in the Volume tab: 18 reps at 50% is below any hypertrophy threshold and counting it would flatter the chest number. Honest caveat: evidence that speed work adds to a trained lifter's 1RM is equivocal, and at your age force rather than velocity limits power. It is here because it costs about five minutes and almost no fatigue.</div>`:""}
   ${HEAVY_BO_DAYS.includes(dkey)?`<div class="mini" style="margin-bottom:6px;color:var(--t2)">⚠ <b>Modified from the source, 2026-08-04.</b> Two heavy triples added, one 3×8 set removed. As written this block gave you <b>one</b> set a week above 80%; the study this rests on found a heavy single alone carried only a 6.3% chance of meaningful gain, against 99.6% once heavy back-offs were added. Net cost: about one stimulating rep per week for hypertrophy.</div>`:""}
   ${R.lag>0
@@ -1965,56 +1998,180 @@ function rWeek(){
 
 /* ---- GMB timer ---- */
 let T={seq:[],i:0,left:0,run:false,int:null,cls:null};
+/* v11.17: a 5-second transition before every round. Reported from the mat, 2026-08-10 —
+   the timer rolled straight from one round into the next with no time to switch sides or
+   reposition, so the first seconds of every round were spent getting into it.
+   The authored work durations are NOT touched. The gap is added on top, which means a class
+   runs longer than its nominal length; the true total is shown in the UI rather than hidden,
+   because shortening the authored holds to protect a round number would be the wrong trade. */
+const GMB_GAP=5;
 function buildSeq(cls,dur){
   const c=GMB[cls][dur];const seq=[];
+  const push=(n,secs,lab)=>{seq.push({n:"Get set",s:GMB_GAP,ph:lab,t:true,nx:n});
+                            seq.push({n,s:secs,ph:lab});};
   [["P","PREPARE"],["R","PRACTICE"],["Y","PLAY"]].forEach(([k,lab])=>{
     c[k].forEach(m=>{
-      if(m[2]){seq.push({n:m[0]+" — Left",s:m[1],ph:lab});seq.push({n:m[0]+" — Right",s:m[1],ph:lab});}
-      else seq.push({n:m[0],s:m[1],ph:lab});
+      if(m[2]){push(m[0]+" — Left",m[1],lab);push(m[0]+" — Right",m[1],lab);}
+      else push(m[0],m[1],lab);
     });
   });
   return seq;
 }
+const isWork=x=>x&&!x.t;
+function workCount(seq){return seq.filter(isWork).length;}
+function workNum(seq,i){let n=0;for(let j=0;j<=i;j++)if(isWork(seq[j]))n++;return n;}
 let AC=null;
-function beep(n){
-  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();
-    for(let i=0;i<n;i++){const o=AC.createOscillator(),g=AC.createGain();
-      o.connect(g);g.connect(AC.destination);o.frequency.value=880;
-      const t=AC.currentTime+i*0.22;g.gain.setValueAtTime(0.001,t);
-      g.gain.exponentialRampToValueAtTime(0.4,t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+0.18);
-      o.start(t);o.stop(t+0.2);}
+/* ===== v11.17 AUDIO, rewritten after it produced NO SOUND on his iPad, 2026-08-10 =====
+   Three separate reasons it was silent, and the card was claiming otherwise:
+
+   1. navigator.vibrate DOES NOT EXIST on iOS Safari. Not throttled, not permission-gated —
+      absent. So the "audible + vibration alarms" line in the UI was simply false on the one
+      device he uses, and the vibration fallback that was supposed to cover a failed beep
+      could never have fired. Copy corrected; a VISUAL flash added as the real fallback.
+   2. An AudioContext created outside a user gesture starts suspended on iOS and stays that
+      way. It was being created lazily inside beep(), which on the first call is inside the
+      Start handler and should unlock — but nothing ever called resume(), so any later
+      suspension (backgrounding, screen lock, iPadOS reclaiming audio) was permanent and
+      silent. Now unlocked explicitly on Start and resumed before every cue.
+   3. iOS routes Web Audio through the ambient category, so the hardware mute switch and
+      Control Centre mute silence it with no error and no indication.
+
+   (3) cannot be fixed in code. What can be fixed is making the failure CHECKABLE instead of
+   discovered mid-session: there is now a Test sound button, and it reports the context state
+   rather than pretending. */
+/* Pitch is a parameter. Start-of-round and end-of-round have to be
+   distinguishable without looking at the phone — that is the entire point of an audible
+   cue. One high note means GO, two low notes mean STOP AND SWITCH. */
+/* ===== v11.18: beating the iOS ringer switch =====
+   Confirmed against WebKit bug 237322 and Apple's own guidance: on iOS the Web Audio API is
+   assigned the AMBIENT audio session category, which the hardware ringer/mute switch silences
+   — with no error, no event, and no way to detect it. HTML5 <audio> elements are NOT silenced,
+   because they land on the PLAYBACK category. That asymmetry is the whole exploit.
+
+   Two fixes, applied in order of preference:
+   1. navigator.audioSession.type = "playback". This is the W3C AudioSession spec, and Safari
+      is the only engine that has shipped it — which is exactly the engine he is on. Clean,
+      no hack, no wasted audio channel.
+   2. Fall back to looping a near-silent HTML5 <audio> element for the duration of the timer.
+      Holding a media element in play forces the whole session onto the PLAYBACK category, and
+      Web Audio rides along with it. The track is deliberately NOT pure digital silence —
+      alternating 128/129 samples — because some pipelines optimise a genuinely silent buffer
+      away and the trick then does nothing.
+
+   Both are started from a user gesture and torn down when the timer stops, so nothing holds
+   the audio session open in the background. */
+const SILENT_WAV="data:audio/wav;base64,UklGRvQHAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YdAHAACBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgA==";
+let silentEl=null;
+function holdAudioSession(on){
+  try{
+    if(navigator.audioSession){navigator.audioSession.type=on?"playback":"auto";}
   }catch(e){}
-  if(navigator.vibrate)navigator.vibrate(n===3?[150,80,150,80,300]:[120,60,120]);
+  try{
+    if(on){
+      if(!silentEl){silentEl=new Audio(SILENT_WAV);silentEl.loop=true;silentEl.volume=0.02;
+        silentEl.setAttribute("playsinline","");}
+      const pr=silentEl.play(); if(pr&&pr.catch)pr.catch(()=>{});
+    } else if(silentEl){silentEl.pause();}
+  }catch(e){}
+}
+function audioUnlock(){
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==="suspended")AC.resume();
+    holdAudioSession(true);
+    /* A near-silent blip inside the gesture is what actually flips iOS from suspended to
+       running. Creating the context alone is not enough. */
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.connect(g);g.connect(AC.destination);g.gain.value=0.0001;
+    o.start();o.stop(AC.currentTime+0.05);
+    return AC.state;
+  }catch(e){return "error";}
+}
+function beep(n,freq){
+  const f=freq||880;
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==="suspended")AC.resume();   /* the line whose absence made this permanent */
+    for(let i=0;i<n;i++){
+      const t=AC.currentTime+i*0.26;
+      /* Two stacked partials rather than a bare sine — a pure 880 tone is thin and gets lost
+         against a fan or music. The octave above gives it an edge that carries. */
+      [[f,0.55],[f*2,0.25]].forEach(([hz,amp])=>{
+        const o=AC.createOscillator(),g=AC.createGain();
+        o.type="triangle";o.frequency.value=hz;
+        o.connect(g);g.connect(AC.destination);
+        g.gain.setValueAtTime(0.0001,t);
+        g.gain.exponentialRampToValueAtTime(amp,t+0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001,t+0.22);
+        o.start(t);o.stop(t+0.24);});
+    }
+  }catch(e){}
+  /* Absent on iOS. Kept for Android, never relied on. */
+  if(navigator.vibrate)navigator.vibrate(n>=3?[150,80,150,80,300]:(n===2?[200,100,200]:[120]));
+  flash(n>=3?"section":(f>900?"go":"stop"));
+}
+/* The real cross-platform fallback: a full-card colour flash. Works with the sound off, with
+   the iPad muted, and from across a room. */
+function flash(kind){
+  try{const el=document.getElementById("tCard");if(!el)return;
+    el.setAttribute("data-flash",kind);
+    setTimeout(()=>{try{el.removeAttribute("data-flash");}catch(e){}},600);
+  }catch(e){}
+}
+const BEEP={go:[1,1175], stop:[2,660], section:[3,880], done:[4,880], skip:[1,880]};
+function cue(k){const b=BEEP[k]||BEEP.skip;beep(b[0],b[1]);}
+function testSound(){
+  const st=audioUnlock();cue('go');setTimeout(()=>cue('stop'),700);
+  const sess=navigator.audioSession?("audioSession \u2192 "+navigator.audioSession.type):"audioSession not supported, using the silent-track fallback";
+  const el=document.getElementById("sndMsg");
+  if(el)el.innerHTML=st==="running"
+    ? `Audio context <b>running</b> \u00b7 ${sess}. You should have heard <b>one high note, then two low ones</b>. If you did, the mute switch no longer matters \u2014 leave it however you like.<br>If you heard nothing: turn the volume up with the physical buttons while this page is open, then tap again.`
+    : `Audio context reports <b>${st}</b> \u00b7 ${sess}. Tap once more \u2014 iOS only unlocks audio from a direct tap.`;
 }
 let wl=null;
 async function wake(on){try{if(on&&"wakeLock" in navigator)wl=await navigator.wakeLock.request("screen");
   else if(wl){wl.release();wl=null;}}catch(e){}}
 function gmbStart(cls){
+  audioUnlock();      /* v11.18: must happen inside the tap, before anything else */
   T.cls=cls;T.seq=buildSeq(cls,Z.gmb.dur);T.i=0;T.left=T.seq[0].s;T.run=true;
-  clearInterval(T.int);T.int=setInterval(tick,1000);beep(2);wake(true);render();
+  /* Starts on a transition, so the first cue is "get set" rather than "go". */
+  clearInterval(T.int);T.int=setInterval(tick,1000);cue('stop');wake(true);render();
 }
 function tick(){
   if(!T.run)return;
   T.left--;
   if(T.left<=0){
     const prevPh=T.seq[T.i].ph;T.i++;
-    if(T.i>=T.seq.length){beep(3);gmbStop();
+    if(T.i>=T.seq.length){cue('done');gmbStop();
       Z.gmb["on_"+todayISO()]=true;Z.done[todayISO()]=Z.done[todayISO()]||{};Z.done[todayISO()].gmb=true;save();render();return;}
     T.left=T.seq[T.i].s;
-    beep(T.seq[T.i].ph!==prevPh?3:2);
+    /* Two events he needs to hear, and they must not sound alike:
+         transition -> work  = the 5 s is over, BEGIN        -> one high note
+         work -> transition  = round over, CHANGE SIDES      -> two low notes
+       A section change still overrides, since that is a bigger boundary. */
+    const nowWork=isWork(T.seq[T.i]);
+    cue(T.seq[T.i].ph!==prevPh ? 'section' : (nowWork?'go':'stop'));
   }
   if(cur==="gmb")updTimer();
 }
-function gmbStop(){T.run=false;clearInterval(T.int);T.int=null;wake(false);}
+function gmbStop(){T.run=false;clearInterval(T.int);T.int=null;wake(false);holdAudioSession(false);}
 function gmbPause(){T.run=!T.run;render();}
-function gmbSkip(d){T.i=Math.max(0,Math.min(T.seq.length-1,T.i+d));T.left=T.seq[T.i].s;beep(1);render();}
+/* Skip moves a whole ROUND, not a step. Stepping into a 5-second transition when he
+   deliberately pressed Skip would be an odd place to land. */
+function gmbSkip(d){
+  let i=T.i;
+  do{i+=d;}while(i>0&&i<T.seq.length-1&&!isWork(T.seq[i]));
+  T.i=Math.max(0,Math.min(T.seq.length-1,i));T.left=T.seq[T.i].s;cue('skip');render();}
 function updTimer(){
   const m=T.seq[T.i];if(!m)return;
   document.getElementById("tBig").textContent=fmtT(T.left);
-  document.getElementById("tMove").textContent=m.n;
-  document.getElementById("tPh").innerHTML=`<span class="chip teal">${m.ph}</span> <span class="mini">${T.i+1}/${T.seq.length}</span>`;
-  const nx=T.seq[T.i+1];
-  document.getElementById("tNext").textContent=nx?("Next: "+nx.n):"Last movement";
+  /* On a transition the screen should name what is COMING, not the word "Get set" — he is
+     looking at the phone to find out what to set up for. */
+  document.getElementById("tMove").textContent=m.t?("Get set \u2014 "+m.nx):m.n;
+  /* Count rounds, not steps. "7/40" would be meaningless once half the steps are 5-second gaps. */
+  document.getElementById("tPh").innerHTML=`<span class="chip ${m.t?"":"teal"}">${m.t?"GET SET":m.ph}</span> <span class="mini">${workNum(T.seq,T.i)}/${workCount(T.seq)}</span>`;
+  const nx=T.seq.slice(T.i+1).find(isWork);
+  document.getElementById("tNext").textContent=m.t?"":(nx?("Next: "+nx.n):"Last movement");
   const total=T.seq.reduce((a,b)=>a+b.s,0),done=T.seq.slice(0,T.i).reduce((a,b)=>a+b.s,0)+(m.s-T.left);
   document.getElementById("tFill").style.width=(100*done/total)+"%";
 }
@@ -2024,18 +2181,22 @@ function rGMB(){
   const auto=(Z.gmb.ov&&Z.gmb.ov[dISO])||GMB_AUTO[dow];
   let h="";
   if(T.seq.length&&T.i<T.seq.length&&(T.run||T.left>0)){
-    h+=`<div class="card"><div class="timerPhase" id="tPh"></div>
+    h+=`<div class="card" id="tCard"><div class="timerPhase" id="tPh"></div>
     <div class="timerMove" id="tMove"></div><div class="timerBig" id="tBig"></div>
     <div class="timerNext" id="tNext"></div><div class="tprog"><div class="f" id="tFill"></div></div>
     <div class="trow"><button class="btn sec sm" onclick="gmbSkip(-1)">‹ Back</button>
     <button class="btn ${T.run?"red":""}" onclick="gmbPause()">${T.run?"Pause":"Resume"}</button>
     <button class="btn sec sm" onclick="gmbSkip(1)">Skip ›</button>
     <button class="btn sec sm" onclick="gmbStop();T.seq=[];render()">End</button></div>
-    <div class="mini" style="text-align:center;margin-top:8px">${T.cls} · ${Z.gmb.dur} min · alarms at every movement + section change</div></div>`;
+    <div class="mini" style="text-align:center;margin-top:8px">${T.cls} · ${workCount(T.seq)} rounds · ${GMB_GAP}s to switch between each · <b>${fmtT(T.seq.reduce((a,b)=>a+b.s,0))}</b> total<br>One high note = begin · two low notes = round over, change sides<br>The card also flashes \u2014 green to begin, amber to change \u2014 so it still works with the iPad muted</div></div>`;
     el.innerHTML=h;updTimer();return;
   }
   h+=`<div class="card"><h3>Tissue prep — timed sequence</h3>
-  <div class="meta">Runs the class as Prepare → Practice → Play with audible + vibration alarms and auto-advance. Replaces the follow-along app.</div>
+  <div class="meta">Runs the class as Prepare → Practice → Play with audible alarms, a visual flash and auto-advance. Replaces the follow-along app.</div>
+  <div class="banner" style="margin-bottom:6px"><b>Check the sound before you start.</b>
+  <button class="btn sm sec" style="margin-left:8px" onclick="testSound()">Test sound</button>
+  <div class="mini" id="sndMsg" style="margin-top:6px">iOS puts web audio on the channel the <b>mute switch silences</b> — with no error and no indication — and <b>iPads have no vibration at all</b>, so a silent timer looks identical to a working one. This build forces the audio onto the media channel so mute should no longer matter. Tap to confirm, and turn the volume up with the physical buttons while this page is open.</div></div>
+  <div class="mini" style="margin-bottom:6px"><b>${GMB_GAP} seconds between rounds</b> to switch sides or reposition. <b>One high note</b> means the gap is over and the round starts; <b>two low notes</b> mean the round is over and it is time to change. The authored hold times are untouched, so the class runs a little past its nominal ${Z.gmb.dur} minutes — the real total is shown once it is running.</div>
   <label class="f">Duration</label><div class="seg">${[15,30,45].map(d=>`<button class="${Z.gmb.dur===d?"on":""}" onclick="Z.gmb.dur=${d};save();render()">${d} min</button>`).join("")}</div>
   <label class="f">Class · auto-pick today: <b>${auto}</b></label>
   <select onchange="Z.gmb.ov=Z.gmb.ov||{};Z.gmb.ov['${dISO}']=this.value;save();render()">
