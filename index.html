@@ -135,7 +135,7 @@ details[open] summary:after{transform:rotate(-90deg)}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.18 · 2026-08-10";
+const BUILD="v11.20 · 2026-08-14";
 const PROGRAM_START="2026-08-17";           /* Monday. Week 1 Day 1. Moved from Aug 10, 2026-08-10. */
 const ONRAMP_START="2026-08-11";            /* Tuesday. Six days, Aug 11-16. */
 /* ============ RE-ENTRY ON-RAMP, Aug 11-16. Rewritten 2026-08-10. ============
@@ -1041,6 +1041,123 @@ function z2Band(){return {lo:Math.round(0.60*HRMAX), hi:Math.round(0.70*HRMAX)};
 function bagBlocks(minsSoFar){const d=Math.max(0,AERO_MIN-(minsSoFar||0));
   return d===0?0:d+2;}            /* 1 min hard / 1 min light; +2 for the ramp */
 
+/* ============ v11.19 — THE THREE-LAYER AEROBIC MODEL ============
+   Robert, 2026-08-14: "the 13-minute mark doesn't actually create an adaptation. It's
+   just for maintenance, and what I'm looking to do is progress." Correct, and the app
+   had been letting a maintenance floor read as a target. Three layers now, on three
+   different jobs:
+
+     LAYER 1  AERO_MIN / aeroQualify   maintenance floor    "did I lose anything"
+     LAYER 2  VO2_PROTO / vo2*         stimulus delivery    "did I do the work"
+     LAYER 3  BENCH_* / bench*         adaptation readout   "did it change anything"
+
+   ---- LAYER 2. Scored COMPLETED / NOT COMPLETED. Never on minutes. ----
+   Because time-above-a-HR-threshold is an unreliable proxy for time near VO2max AND
+   the direction of the error flips with modality:
+     Fleckenstein 2025, runners, PMID 39835194 — 30-s intervals gave 50% MORE time
+       above 90% HRmax while giving LESS time above 90% VO2max than 3-min intervals.
+     Almquist 2020, cyclists, PMID 32267032 — 30-s intervals gave MORE of both.
+   A metric that changes sign with the vehicle cannot be a score. Prescribe structure,
+   verify completion, measure adaptation separately in Layer 3.
+
+   Intensity anchors to POWER ZONES, not %HRmax. Threshold-anchored prescription beat
+   percentage-anchored prescription for VO2max gain in controlled comparison. Peloton
+   Power Zones are FTP-anchored, so the vehicle he already owns is already the correct
+   anchor, and the app still calculates no FTP of its own.
+
+   Protocol is HIS choice, not the app's — the literature does not settle it, and the
+   two best-evidenced options disagree BY MODALITY, which is a real fork rather than a
+   gap to paper over. Both are offered with their evidence attached. */
+const VO2_PROTO={
+ "4x4":{n:"4 × 4 min — Norwegian",
+   sess:"4 × 4 min @ PZ 5–6, 3 min active @ PZ 2 between",
+   mins:25, work:"16 min of work",
+   ev:"Hov 2023, PMID 36314990 — 48 well-trained men, 8 wk, 3×/wk, randomised. VO2max <b>+6.5%</b> vs +3.3% for 8×20 s and non-significant for 10×30 s. Stroke volume (O2-pulse) +8.1%. The best-validated aerobic-HIIT format there is. <b>Running study</b> — its SIT comparators were supramaximal (150–175% of maximal aerobic speed), so it does not test the 30/15 option below.",
+   cue:"Interval 1 will not reach target HR however hard you ride — that is HR kinetics, not effort. Judge the session on intervals 2–4."},
+ "30/15":{n:"30/15 short intervals — Rønnestad",
+   sess:"3 sets × 13 × (30 s @ PZ 6 / 15 s @ PZ 2), 3 min easy between sets",
+   mins:30, work:"19.5 min of work",
+   ev:"Rønnestad 2015, PMID 24382021 — 10 wk, effort-matched, trained <b>cyclists</b>. VO2max <b>+8.7%</b> vs +2.6% for long intervals, ES 0.86–1.54 across power tests. Almquist 2020, PMID 32267032 — 14% higher mean power and 54% more time above 90% VO2max than 5-min intervals at matched RPE. Small n (9 v 7).",
+   cue:"<b>Not all-out.</b> The 15 s recovery is deliberately too short to let VO2 fall — that IS the mechanism. Pace set 1 so set 3 is still complete. Blowing up in set 2 means you rode it as a sprint, which is the protocol Hov found inferior."},
+ "pzmax":{n:"Peloton PZ Max — as programmed",
+   sess:"Any PZ Max class; the class owns the structure",
+   mins:30, work:"varies by class",
+   ev:"No protocol-specific trial. Chosen for adherence, and because the Power Zone pack is FTP-anchored — the prescription method that outperformed percentage-anchoring. <b>Labelled best-practice, not evidence-matched.</b>",
+   cue:"Read the class structure first. Efforts of 30–60 s make it a 30/15 analogue; 3–5 min efforts make it a 4×4 analogue. Either qualifies. A class that is mostly PZ 4 does not."}};
+const VO2_SESS=3, VO2_WKMIN=3, VO2_WKMAX=6;
+function vo2On(){return !!(Z.vo2&&Z.vo2.on);}
+function vo2Proto(){return (Z.vo2&&VO2_PROTO[Z.vo2.proto])?Z.vo2.proto:"4x4";}
+function vo2Done(){return (Z.vo2&&Z.vo2.done)?Z.vo2.done:{};}
+function vo2WeekCount(dISO){const D=vo2Done();
+  return weekBounds(dISO).reduce((a,k)=>a+(D[k]?1:0),0);}
+function vo2BlockWeek(dISO){
+  if(!vo2On()||!Z.vo2.start)return null;
+  const d=Math.floor((new Date(dISO+"T00:00:00")-new Date(Z.vo2.start+"T00:00:00"))/864e5);
+  return d<0?null:Math.floor(d/7)+1;}
+
+/* ---- LAYER 3. The only layer that answers "am I getting the adaptation."
+   Session heart rate is an INPUT: it records what you asked of the system, not what
+   the system became. Adaptation is more work at the same heart rate, which requires a
+   WORK measurement. The bike has one. Kickboxing never will — it can deliver the
+   stimulus but can never verify it, and no app purchase changes that.
+
+   Built on a REPEATED FIXED CLASS because Peloton does not export per-interval watts
+   (the CSV carries Length, Type, Total Output, Avg Watts — whole-ride only). Same
+   class every time makes Total Output comparable without needing splits.
+   Four entries across 12 weeks, three fields each. ---- */
+const BENCH_WEEKS=[1,4,8,12];
+function benchDue(w){return BENCH_WEEKS.indexOf(w+1)>=0;}
+function benchAll(){return (Z.aeroBench||[]).slice().sort((a,b)=>a.date<b.date?-1:1);}
+/* Only records at or after the current baseline count toward the trend. Everything
+   before it is still stored and still shown — it is history, not an error. */
+function benchList(){const b=Z.benchBase;
+  return benchAll().filter(r=>!b||r.date>=b);}
+function benchClassName(){return (Z.benchClass&&Z.benchClass.name)?Z.benchClass.name:null;}
+/* A record ridden on a DIFFERENT class than the pinned one is not comparable. Flag it
+   rather than silently averaging it into the trend. */
+function benchOffClass(){const n=benchClassName();if(!n)return [];
+  return benchList().filter(r=>r.cls&&r.cls.trim()&&r.cls.trim()!==n.trim());}
+
+/* ---- v11.20 — THE ZONE CEILING. Robert, 2026-08-14:
+   "there's a ceiling to output in PZ classes because if you're at the top of your zone
+   (other than zone 7 with no ceiling) you can't get any further output."
+
+   Correct, and it changes what this measurement IS. In a Power Zone class the instructor
+   prescribes a zone, and every zone below 7 has an upper bound as a % of FTP. Riding
+   harder means leaving the zone, i.e. not doing the class. So output is not free to rise
+   no matter how fit he gets — it is PINNED BY THE PRESCRIPTION.
+
+   That does not break the benchmark. It reclassifies it. This is a FIXED-WORKLOAD
+   SUBMAXIMAL HR TEST: hold a known power, read the heart rate. Output is the CONTROL
+   VARIABLE, not the signal. Lower HR at the same watts is the adaptation. That is a
+   long-standing and legitimate method.
+
+   But it has a hard precondition the earlier framing hid: the comparison is only valid
+   if output really was constant. If output drifted, an HR difference is confounded and
+   means nothing. So we check, rather than assume.
+
+   Consequence worth stating: with output pinned, output-per-beat degenerates to a
+   restatement of heart rate. The "more work" channel needs a session with NO ceiling —
+   Zone 7 / PZ Max — which is what Layer 2 provides once it is running. ---- */
+const BENCH_DRIFT_PCT=5;   /* [INF] judgment call, not a published threshold. Same class
+                              ridden honestly still varies a few % on cadence/resistance
+                              choices; beyond ~5% the workload was materially different. */
+function benchDrift(){
+  const L=benchList(); if(L.length<2)return null;
+  const a=L[0], b=L[L.length-1];
+  if(a.kj==null||b.kj==null||!a.kj)return null;
+  const pct=(b.kj-a.kj)/a.kj*100;
+  return {pct:pct, ok:Math.abs(pct)<=BENCH_DRIFT_PCT};}
+function benchOPB(r){return (r&&r.kj!=null&&r.hr)?(r.kj/r.hr):null;}
+function benchDelta(){
+  const L=benchList(); if(L.length<2)return null;
+  const a=L[0], b=L[L.length-1], oa=benchOPB(a), ob=benchOPB(b);
+  return {first:a,last:b,n:L.length,
+    dKJ :(a.kj !=null&&b.kj !=null)? (b.kj-a.kj)   : null,
+    dHR :(a.hr !=null&&b.hr !=null)? (b.hr-a.hr)   : null,
+    dOPB:(oa!=null&&ob!=null)      ? ((ob-oa)/oa*100) : null,
+    dHRR:(a.hrr!=null&&b.hrr!=null)? (b.hrr-a.hrr) : null};}
+
 /* ---- Whoop readiness gate. Thresholds from HIS OWN 12-month distribution
    (recovery p10 = 28, median 57), not Whoop's generic bands, so the brake fires
    at ~10% of days rather than whatever Whoop's colour scheme implies. ---- */
@@ -1126,6 +1243,18 @@ Z.z2=Z.z2||{};                 /* v11.12a dateISO -> minutes in the Zone 2 band 
 Z.orDone=Z.orDone||{};         /* on-ramp day completion */
 Z.mkMedDefault=Z.mkMedDefault||false; /* hip block permanently on the short version */
 Z.bs=Z.bs||{};                 /* dateISO -> {b45,b70,reps,pause} Booty Sprout band config */
+/* v11.19 LAYER 2 — VO2max block. Dormant by default; nothing renders until on=true. */
+Z.vo2=Z.vo2||{on:false,proto:"4x4",start:null,done:{}};
+/* v11.19 LAYER 3 — benchmark rides. [{date,cls,kj,hr,hrr}] */
+Z.aeroBench=Z.aeroBench||[];
+/* v11.20 — the CHOSEN class, pinned once. {name,set}. A benchmark you have to remember
+   is not a benchmark; the comparison is only as good as the repeat. */
+if(Z.benchClass===undefined)Z.benchClass=null;
+/* v11.20 — baseline start. Records before this date are excluded from the trend.
+   Exists because an FTP change silently breaks the comparison: Power Zone targets are a
+   percentage of FTP, so if FTP moves the class prescribes different watts and output
+   changes for a reason that has nothing to do with adaptation. */
+if(Z.benchBase===undefined)Z.benchBase=null;
 /* v10: the block start is a fixed calendar date, not "most recent Monday".
    Progression is calendar-driven on purpose — missing sessions never stalls it. */
 Z.start=Z.start||PROGRAM_START;
@@ -1420,6 +1549,42 @@ function plannerCard(w,dow,dISO){
   h+=`<div class="mini" style="margin-top:8px">Ordered T1 → T2 → T3, strength ahead of conditioning ahead of power, per the block's priority stack. Floor versions count as complete.</div></div>`;
   return h;
 }
+/* ---- v11.19 Layer 2 handlers. Block is inert until vo2Toggle() is called. ---- */
+function vo2Init(){Z.vo2=Z.vo2||{on:false,proto:"4x4",start:null,done:{}};
+  Z.vo2.done=Z.vo2.done||{};return Z.vo2;}
+function vo2Toggle(){const v=vo2Init();v.on=!v.on;
+  if(v.on&&!v.start)v.start=todayISO();
+  if(!v.on)v.start=null;                 /* a re-started block is a NEW block, not a resumed one */
+  save();render();}
+function vo2SetProto(p){const v=vo2Init();if(VO2_PROTO[p])v.proto=p;save();render();}
+function vo2Mark(dISO){const v=vo2Init();
+  if(v.done[dISO])delete v.done[dISO];else v.done[dISO]={p:vo2Proto()};
+  save();render();}
+
+/* ---- v11.19 Layer 3 handlers. ---- */
+function benchAdd(){
+  const g=id=>{const e=document.getElementById(id);return (e&&e.value!=="")?Number(e.value):null;};
+  const ce=document.getElementById("bnClass");
+  /* Default to the pinned class so he never has to retype it — that is the whole point
+     of pinning it. He can still override, and an override gets flagged, not hidden. */
+  const typed=(ce&&ce.value)?ce.value.trim():"";
+  const rec={date:todayISO(),cls:typed||benchClassName()||"",kj:g("bnKJ"),hr:g("bnHR"),hrr:g("bnHRR")};
+  if(rec.kj==null&&rec.hr==null&&rec.hrr==null)return;   /* refuse an empty record */
+  Z.aeroBench=Z.aeroBench||[];Z.aeroBench.push(rec);save();render();}
+/* v11.20 — pin / clear the class, and break the baseline when FTP moves. */
+function benchSetClass(){const e=document.getElementById("bnPin");
+  const v=(e&&e.value)?e.value.trim():"";
+  if(!v)return;
+  Z.benchClass={name:v,set:todayISO()};save();render();}
+function benchClearClass(){Z.benchClass=null;save();render();}
+function benchNewBaseline(){
+  /* Does NOT delete anything. Moves the start line, so the trend stops comparing across
+     a change that invalidates it. */
+  Z.benchBase=todayISO();save();render();}
+function benchClearBaseline(){Z.benchBase=null;save();render();}
+function benchDel(i){Z.aeroBench=Z.aeroBench||[];
+  if(i>=0&&i<Z.aeroBench.length){Z.aeroBench.splice(i,1);save();render();}}
+
 function setWhoop(dISO,k,v){Z.whoop[dISO]=Z.whoop[dISO]||{};
   Z.whoop[dISO][k]=(v===""||v==null)?null:Number(v);save();render();}
 function setAero(dISO,v){if(v===""||v==null)delete Z.aero[dISO];else Z.aero[dISO]=Number(v);save();render();}
@@ -1544,8 +1709,9 @@ function scoreCard(dISO){
 function aeroCard(dISO){
   const w=weekScore(dISO),H=hrThreshold(),mins=(Z.aero||{})[dISO];
   const bb=mins!=null?bagBlocks(mins):null;
-  let h=`<div class="card spine t2"><h3>Hard aerobic — ${w.aero} of 2 this week <span class="tiertag T2">T2</span></h3>
-  <div class="meta">A <b>day</b> qualifies at <b>\u226513 min above ${H.t4} bpm</b>. Any source counts: sparring, bag rounds, PZ Max, a Peloton HIIT. Nothing is scheduled \u2014 the week just needs two.</div>
+  let h=`<div class="card spine t2"><h3>Layer 1 · Hard aerobic — maintenance floor, ${w.aero} of 2 this week <span class="tiertag T2">T2</span></h3>
+  <div class="banner ${w.aero>=2?"teal":"amber"}"><b>This holds VO2max. It does not raise it.</b> Hickson 1981 found 2 sessions/wk of 13&ndash;26 min at unreduced intensity preserved VO2max for &ge;15 weeks. That is a <i>maintenance</i> result: clearing it means you provably lost nothing, not that you gained. <b>Progression is Layer 2 below.</b> Whether you actually gained is Layer 3, on the Test tab.</div>
+  <div class="meta">A <b>day</b> qualifies at <b>\u226513 min above ${H.t4} bpm</b>. Any source counts: sparring, bag rounds, PZ Max, a Peloton HIIT. Nothing is scheduled \u2014 the week just needs two. This layer runs every week whatever else is on, and it is what protects you in a chaotic one.</div>
   <div class="mini" style="margin-bottom:6px"><b>Enter the DAY\u2019s total, summed across every block.</b> Aug 7 was two kickboxing blocks, 43 min and 23 min \u2014 roughly 9 and 8 minutes over threshold. Scored separately that is two failures; added together it clears comfortably. One number per day.</div>
   <div class="mini" style="margin-bottom:6px">Threshold is Karvonen off your current 30-day RHR (${H.rhr}) and a max of ${HRMAX}. Hard bursts: <b>${H.t5}+ bpm</b>. Stated in bpm on purpose, and <b>fixed</b>. Two different problems that avoids. <b>Whoop</b> re-estimated your max HR once, part-way through six quarters of data, which moved its zone boundaries between then and now \u2014 it does <i>not</i> change them day to day. <b>Morpheus</b> does: it recalculates its bands every morning from that day\u2019s recovery (High started at 171 on Fri Aug 7, 174 on Sat Aug 8). Either way, a boundary that moves cannot show progress \u2014 so this one never moves.</div>`;
   if(mins==null){
@@ -1584,11 +1750,153 @@ function aeroCard(dISO){
      `<button class="${src===k?"on":""}" onclick="setAeroSrc('${dISO}','${k}')">${lb}</button>`).join("")}
   </span></div>
   ${src==="whoop"?`<div class="banner amber" style="margin-top:6px"><b>The sleeve undercounts this number.</b> On Aug 7 it reported 6.2 min above 156 bpm while the chest strap reported 8.5 min above <b>171</b>. Both cannot be true \u2014 PPG smooths away short bursts, which is the exact shape of a kickboxing round. Treat a Whoop figure as a floor, and put the strap on when you mean the session to count.</div>`:""}
-  <div class="mini" style="margin-top:6px"><b>Instrument notes, corrected 2026-08-09.</b> The Whoop <b>bicep sleeve is validated</b> \u2014 against the chest strap across three Aug 7 sessions its average HR was off by 1.7 bpm, better than the wrist's 3.8 bpm on four Spin sessions. The underwear band is retired. The sleeve is accurate for strain, average and max; it is <b>not</b> accurate for time in the top zone, which is the only thing this card needs. So: sleeve by default, <b>Morpheus whenever the session is meant to bank an exposure</b>.</div>
-  <div class="mini" style="margin-top:6px">Read minutes from the Morpheus <b>raw export</b> (download arrow, top right of the daily screen), not from its zone times \u2014 its High band is recovery-derived and floats, and it always sits well above ${H.t4}, so its High minutes are a permanent undercount of what qualifies here.</div>
+  <div class="mini" style="margin-top:6px"><b>Instrument notes, corrected 2026-08-09.</b> The Whoop <b>bicep sleeve is validated</b> \u2014 against the chest strap across three Aug 7 sessions its average HR was off by 1.7 bpm, better than the wrist's 3.8 bpm on four Spin sessions. The underwear band is retired. The sleeve is accurate for strain, average and max; it is <b>not</b> accurate for time in the top zone, which is the only thing this card needs. So: sleeve by default, <b>chest strap whenever the session is meant to bank an exposure</b>.
+  <br><br><b>Strap order, revised 2026-08-14 &mdash; the Polar H10 is now first choice.</b> It has extensive peer-reviewed validation against reference ECG (r &gt; 0.99 for HR, and better RR signal quality than the reference during vigorous movement). No published validation of the Morpheus M7 could be found. The H10 pairs with everything, including the Morpheus app, so switching costs nothing. Keep the M7 as backup. Practical note: on an old strap the sensor pod is usually fine but the fabric electrode band loses conductivity &mdash; if readings look erratic, replace the band, not the sensor.</div>
+  <div class="banner amber" style="margin-top:6px"><b>Correction, 2026-08-14 — this card used to point you at a Morpheus &ldquo;raw export&rdquo; reachable from the daily screen. No such export could be found</b>, and Morpheus does not write workouts to Apple Health either (it only reads sleep, steps, calories and distance; workouts come in from Garmin Connect only). That instruction was inferred, never verified, and it is withdrawn. This is the same failure mode as the High-floor-read-off-a-chart-axis error: <b>a number in a picture is not a measurement.</b>
+  <br><br><b>What to do instead.</b> Morpheus reports three zones and its Moderate band straddles ${H.t4}, so its readout can only ever <i>bound</i> this number, never give it. Read the zone floors off the app (they are shown as numerals), then: if High minutes alone &ge; ${AERO_MIN}, the day qualifies outright. If High + Moderate &lt; ${AERO_MIN}, it failed. Anything between is <b>indeterminate — log it as unknown rather than guessing a number.</b> To resolve the middle case, pair the H10 to an app with fixed, user-set zones at ${H.t4} and ${H.t5}, and let Morpheus keep only the morning recovery test. They do not overlap, so nothing needs to run twice.</div>
+  <div class="mini" style="margin-top:6px">Do not read minutes from Morpheus zone times \u2014 its High band is recovery-derived and floats, and it always sits well above ${H.t4}, so its High minutes are a permanent undercount of what qualifies here.</div>
   <div class="mini" style="margin-top:6px;opacity:.8">BJJ: previously written off here as unmeasurable. The sleeve makes it measurable and it is now worth logging. Whether it ever clears this gate is <b>unknown</b> \u2014 one session on Jul 19 is not evidence either way, and that one was on the retired underwear band.</div></div>`;
   return h;
 }
+/* ---- v11.19 LAYER 3 CARD — adaptation readout. Lives on the Test tab because it is
+   a measurement, not a session. ---- */
+function benchCard(w){
+  const L=benchList(), D=benchDelta(), due=benchDue(w);
+  const n1=v=>v==null?"—":(Math.round(v*10)/10);
+  const cn=benchClassName(), off=benchOffClass();
+  let h=`<div class="card spine t1"><h3>Layer 3 · Adaptation readout${due?` <span class="tiertag T1">due</span>`:""}</h3>
+  <div class="meta">Benchmark ride at weeks ${BENCH_WEEKS.join(", ")}. <b>Same Peloton class every time.</b> Three numbers, four times in the block.</div>
+  <div class="banner ${due?"teal":""}" style="${due?"":"background:transparent;border:1px dashed var(--dim,#555)"}">
+  <b>${due?`Week ${w+1} is a benchmark week.`:`Next benchmark: week ${BENCH_WEEKS.find(x=>x>w+1)||12}.`}</b>
+  Heart rate during a session is an <i>input</i> — it records what you asked of the body, not what the body became. Adaptation is <b>more work at the same heart rate</b>, so it needs a work measurement. The bike has one. Kickboxing never will: it can deliver the stimulus but can never verify it.</div>`;
+
+  /* ---- The pinned class. Set once, shown every time, auto-filled on entry. ---- */
+  if(cn){
+    h+=`<div class="card" style="margin:8px 0 0;padding:10px 12px;background:transparent;border:1px solid var(--ok,#3a7)">
+    <div class="klabel">Your benchmark class — ride this one, every time</div>
+    <div style="font-size:1.05em;margin:4px 0 2px"><b>${cn}</b></div>
+    <div class="mini">Pinned ${Z.benchClass.set}. Weeks ${BENCH_WEEKS.join(", ")}.
+    <button onclick="benchClearClass()" class="mini" style="margin-left:6px">Change</button></div></div>`;
+  } else {
+    h+=`<div class="card" style="margin:8px 0 0;padding:10px 12px;background:transparent;border:1px solid var(--t2,#c93)">
+    <div class="klabel" style="color:var(--t2)">No benchmark class chosen yet</div>
+    <div class="mini" style="margin:4px 0 6px"><b>Pick one before the week-1 ride.</b> Without it there is no baseline, and Layer 3 sits dead for the whole block. Pick a class you would happily ride four times and <b>save it to a Peloton collection</b> so you are not hunting for it in October.</div>
+    <input id="bnPin" type="text" placeholder="e.g. 45 min Power Zone Endurance — Matt Wilpers">
+    <div style="margin-top:6px"><button onclick="benchSetClass()">Pin this class</button></div></div>`;
+  }
+  h+=`<details style="margin-top:8px"><summary class="mini"><b>How to choose the class</b></summary>
+  <div class="mini" style="margin-top:6px">
+  <b>Power Zone Endurance, 30–45 min.</b> Not PZ Max, and for a specific reason: the instructor pins your targets to your FTP, so <b>the class determines your output</b> — which leaves heart rate as the free variable. Adaptation shows up as the <i>same watts at a lower heart rate</i>, which is far cleaner than &ldquo;how hard did I decide to go today.&rdquo;<br><br>
+  <b>The zone ceiling is the point, not a flaw.</b> Every zone below 7 has an upper bound as a percentage of FTP, so output <i>cannot</i> rise however fit you get — riding harder means leaving the zone and not doing the class. That makes this a <b>fixed-workload submaximal heart-rate test</b>, which is a long-standing method: hold a known power, read the heart rate, watch it fall. Output is the control variable. Heart rate is the measurement.<br><br>
+  <b>What it costs you.</b> With output pinned, the &ldquo;more work at the same cost&rdquo; channel is unavailable here, and the whole signal rests on heart rate — which is noisy day to day (sleep, heat, caffeine, stress). So keep the conditions boring and repeatable, and do not over-read a single 2 bpm move. The uncapped channel needs Zone 7 / PZ Max work, which arrives with Layer 2.<br><br>
+  <b>It should not be a hard session.</b> The measurement is meant to cost you nothing from the fatigue budget, and an endurance ride doubles as base volume — which you are currently short on after the on-ramp delivered about two-thirds of its planned Zone 2.<br><br>
+  <b>Keep it repeatable.</b> Similar time of day, similar sleep, same strap every time. A Whoop-sleeve average and an H10 average are not the same quantity and must never be mixed in one trend.</div></details>`;
+
+  if(off.length){
+    h+=`<div class="banner amber" style="margin-top:8px"><b>${off.length} logged ride${off.length===1?" was":"s were"} on a different class</b> (${off.map(r=>r.date).join(", ")}). Those are not comparable to the rest — different structure, different output, for reasons unrelated to fitness. Either re-ride the pinned class or start a new baseline below.</div>`;
+  }
+  if(Z.benchBase){
+    h+=`<div class="mini" style="margin-top:8px">Trend measured from <b>${Z.benchBase}</b>. Earlier records are kept but excluded.
+    <button onclick="benchClearBaseline()" class="mini" style="margin-left:6px">Undo</button></div>`;
+  }
+  if(L.length){
+    h+=`<div class="mini" style="margin:8px 0 4px"><b>Logged benchmarks</b></div>`;
+    L.forEach((r,i)=>{const o=benchOPB(r);
+      h+=`<div class="row"><div class="nm">${r.date}${r.cls?` <span class="sup">${r.cls}</span>`:""}</div>
+      <div class="rx">${r.kj??"—"} kJ · ${r.hr??"—"} bpm${o!=null?` · <b>${n1(o)}</b> kJ/bpm`:""}${r.hrr!=null?` · HRR60 ${r.hrr}`:""}</div>
+      <button onclick="benchDel(${i})" class="mini">×</button></div>`;});
+  }
+  if(D){
+    const dr=benchDrift();
+    /* HR FALLING at matched output is the signal. Note the sign: dHR negative is good. */
+    const better=D.dHR!=null&&D.dHR<0;
+    const valid=!dr||dr.ok;
+    h+=`<div class="banner ${!valid?"amber":(better?"teal":"amber")}" style="margin-top:8px">
+    <b>${D.first.date} → ${D.last.date}</b><br>
+    Avg HR <b>${D.dHR==null?"—":(D.dHR>0?"+":"")+n1(D.dHR)+" bpm"}</b> at
+    ${D.dKJ==null?"—":(D.dKJ>0?"+":"")+n1(D.dKJ)+" kJ"} output${dr?` (${dr.pct>0?"+":""}${n1(dr.pct)}%)`:""}
+    ${D.dHRR==null?"":` · HRR60 ${(D.dHRR>0?"+":"")+n1(D.dHRR)} bpm`}
+    <br><span class="mini">${
+      !valid
+        ? `<b>Output drifted ${n1(Math.abs(dr.pct))}% — the HR comparison is confounded and should not be read.</b> This is a fixed-workload test: it only works if the workload was actually fixed. Either the class differed, the zones moved, or you rode it differently. Re-ride the pinned class before drawing any conclusion.`
+      : D.dHR==null
+        ? "Need avg HR on two benchmarks before this means anything."
+      : better
+        ? "<b>Lower heart rate at the same power. That is aerobic adaptation</b> — the standard fixed-workload reading. Faster HRR60 is the independent second confirmation."
+        : "Heart rate has not fallen at matched power. Before concluding the block failed: same class, similar sleep, similar time of day, same strap? Heart rate is noisy day to day, and two points is a line, not a trend."}</span></div>`;
+    if(valid)h+=`<div class="mini" style="margin-top:6px"><b>Note the ceiling.</b> Output barely moved because it <i>cannot</i> — every Power Zone below 7 has an upper bound, so riding harder means leaving the zone. That is by design here: output is the <b>control</b>, heart rate is the <b>signal</b>. The &ldquo;more work at the same cost&rdquo; channel needs a session with no ceiling (Zone 7 / PZ Max), which arrives with Layer 2.</div>`;
+  } else if(L.length===1){
+    h+=`<div class="mini" style="margin-top:8px">One benchmark logged. That is your baseline — the readout starts at the second.</div>`;
+  }
+  h+=`<div class="mini" style="margin-top:10px"><b>Log a benchmark</b> (today, ${todayISO()})${cn?` — class auto-fills as <b>${cn}</b>, leave it blank`:""}</div>
+  <div class="grid2" style="margin-top:4px">
+   <div><label class="f">Class ${cn?"(override only)":"(name or ID)"}</label><input id="bnClass" type="text" placeholder="${cn?cn:"e.g. 45 min Power Zone Endurance — Matt"}"></div>
+   <div><label class="f">Total Output (kJ)</label><input id="bnKJ" type="number" inputmode="decimal"></div>
+   <div><label class="f">Avg HR (bpm)</label><input id="bnHR" type="number" inputmode="decimal"></div>
+   <div><label class="f">HRR60 (bpm dropped)</label><input id="bnHRR" type="number" inputmode="decimal"></div>
+  </div>
+  <div style="margin-top:6px"><button onclick="benchAdd()">Save benchmark</button></div>
+  <details style="margin-top:10px"><summary class="mini"><b>Where each number comes from</b></summary>
+  <div class="mini" style="margin-top:6px">
+  <b>Total Output (kJ)</b> — the post-ride summary screen, and in the CSV from your Peloton profile (Workouts → Download Workouts). <b>Per-interval watts are not exported</b> — the CSV carries Length, Type, Total Output and Avg Watts only, whole-ride. That is exactly why this is built on a repeated fixed class: identical structure makes whole-ride output comparable without needing splits.<br><br>
+  <b>Avg HR</b> — same summary screen if the strap is paired, otherwise off the strap app. Use the <b>same instrument every time</b>; a Whoop-sleeve average and a chest-strap average are not the same quantity and must never be mixed in one trend.<br><br>
+  <b>HRR60</b> — note HR the moment you stop the last hard effort, and again exactly 60 s later. Enter the <i>drop</i>. Costs you one minute of standing still. Faster recovery tracks aerobic fitness and is independent of the output measure, which is what makes it worth the minute.<br><br>
+  <b>Same class, warm, similar time of day, similar sleep.</b> The comparison is only as good as the repeat. If you have to change class, start a new baseline rather than pretending the old one carries over.</div></details>
+  <div class="banner amber" style="margin-top:10px"><b>If your FTP changes mid-block, this comparison breaks.</b> Power Zone targets are a percentage of FTP, so a new FTP means the class prescribes different watts — and your output moves for a reason that has nothing to do with adaptation. This is the one thing that would silently poison the data rather than obviously breaking it.
+  <div style="margin-top:6px"><button onclick="benchNewBaseline()">FTP changed — start a new baseline here</button></div></div>
+  <div class="mini" style="margin-top:8px">No FTP test, ever. You are at the bottom of your FTP after the layoff and a retest now would only record the dip. Peloton owns that number.</div></div>`;
+  return h;
+}
+
+/* ---- v11.20 — the reminder. Layer 3 lives on the Test tab, and he will not open the
+   Test tab unprompted on a Monday. v11.13 taught this the hard way: he opened Today,
+   could not see his lifts, and concluded they were missing — they were five cards down.
+   A measurement he has to remember to take is a measurement that does not happen. ---- */
+function benchTodayCard(dISO){
+  const w=curWeek(), cn=benchClassName();
+  const wk=weekBounds(dISO), doneThisWeek=benchList().some(r=>wk.indexOf(r.date)>=0);
+  if(!benchDue(w))return "";                 /* silent on the other 8 weeks */
+  if(doneThisWeek){
+    return `<div class="card" style="padding:10px 12px;background:transparent;border:1px dashed var(--ok,#3a7)">
+    <div class="klabel">Benchmark ride — logged this week ✓</div>
+    <div class="mini" style="margin-top:4px">Next one: week ${BENCH_WEEKS.find(x=>x>w+1)||"—"}.</div></div>`;
+  }
+  return `<div class="card spine t2"><h3>Benchmark ride due — week ${w+1} <span class="tiertag T2">T2</span></h3>
+  <div class="banner teal">${cn?`Ride <b>${cn}</b>.`:`<b>No class pinned yet</b> — pick one on the Test tab before you ride.`}
+  Afterwards log three numbers on the <b>Test tab</b>: Total Output (kJ), Avg HR, and HRR60.</div>
+  <div class="mini" style="margin-top:6px">This is the only thing in the program that tells you whether the aerobic work is <i>working</i>. It is a normal endurance ride, not a test — it costs nothing from the fatigue budget and doubles as base volume.${w===0?" <b>Week 1 is the baseline: skip it and the readout is dead for the whole block.</b>":""}</div>
+  <div class="mini" style="margin-top:6px">HRR60: note your HR the moment you stop, and again exactly 60 s later. Enter the drop.</div></div>`;
+}
+
+/* ---- v11.19 LAYER 2 CARD — VO2max block. Renders a one-line dormant stub when off,
+   so the layer is discoverable without occupying the day. ---- */
+function vo2Card(dISO){
+  const P=VO2_PROTO[vo2Proto()], done=vo2WeekCount(dISO), bw=vo2BlockWeek(dISO);
+  const marked=!!vo2Done()[dISO];
+  if(!vo2On()){
+    return `<div class="card" style="padding:10px 12px;background:transparent;border:1px dashed var(--dim,#555)">
+    <div class="klabel">Layer 2 · VO2max block — <b>off</b></div>
+    <div class="mini" style="margin:4px 0 6px">The progression layer. ${VO2_SESS} interval sessions a week for ${VO2_WKMIN}&ndash;${VO2_WKMAX} weeks, then out. <b>Deliberately not running yet</b> &mdash; the on-ramp delivered about two-thirds of its planned Zone 2 and the strength wave is still opening. Insert it around week 4&ndash;6, once there is a Layer 3 baseline to progress <i>from</i>.</div>
+    <button onclick="vo2Toggle()">Start a VO2max block</button></div>`;
+  }
+  const over = bw!=null && bw>VO2_WKMAX;
+  let h=`<div class="card spine t2"><h3>Layer 2 · VO2max block — ${done} of ${VO2_SESS} this week <span class="tiertag T2">T2</span></h3>
+  <div class="meta">Block week <b>${bw??1}</b> of ${VO2_WKMIN}&ndash;${VO2_WKMAX}. Started ${Z.vo2.start?fmtD(Z.vo2.start):"—"}. Scored <b>completed / not completed</b>, never on minutes.</div>`;
+  if(over)h+=`<div class="banner amber"><b>Past week ${VO2_WKMAX}. Close the block.</b> Yang found effects beyond 6 weeks non-significant, and this is an insertable block, not a standing state. Take the Layer 3 reading, then switch it off and drop back to the Layer 1 floor.</div>`;
+  h+=`<div class="mini" style="margin:6px 0 4px"><b>Protocol</b> — your pick. The evidence does not settle this, and the two best-supported options disagree <i>by modality</i>.</div>
+  <div class="seg" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">
+   ${Object.keys(VO2_PROTO).map(k=>`<button class="${vo2Proto()===k?"on":""}" onclick="vo2SetProto('${k}')">${VO2_PROTO[k].n}</button>`).join("")}
+  </div>
+  <div class="banner teal"><b>${P.sess}</b><br><span class="mini">~${P.mins} min of intervals, ${P.work}. Warm up properly first &mdash; warm-up duration was a linear, significant predictor of outcome in Yang's meta-regression, and it is the cheapest variable in the whole protocol.</span></div>
+  <div class="mini" style="margin-top:6px"><b>Cue.</b> ${P.cue}</div>
+  <div class="mini" style="margin-top:6px"><b>Evidence.</b> ${P.ev}</div>
+  <div class="mini" style="margin-top:6px">Intensity is set in <b>Power Zones, not bpm</b> &mdash; threshold-anchored prescription outperformed percentage-of-max anchoring for VO2max gain, and your Power Zones are already FTP-anchored. HR is a check on whether it got hard, never the prescription. The app still calculates no FTP; Peloton owns that number.</div>
+  <div style="margin-top:8px"><button class="${marked?"on":""}" onclick="vo2Mark('${dISO}')">${marked?"✓ Logged for today":"Mark today's interval session done"}</button></div>
+  <div class="mini" style="margin-top:8px">Friday kickboxing does <b>not</b> count toward these three. It is unstructured and carries no work measurement, so it cannot be progressed against &mdash; it still counts toward the Layer 1 floor, where it belongs.</div>
+  <div class="mini" style="margin-top:6px"><button onclick="vo2Toggle()">End block</button></div></div>`;
+  return h;
+}
+
 /* ---- What your own log says about when you actually train ---- */
 function realityCard(dow){
   const R={
@@ -1948,7 +2256,9 @@ function rToday(){
      met six status cards, read "Below floor", and concluded the lifts were missing. They
      were not — the D1 card had been rendering the whole time, five cards down. Nothing
      below this line tells him what to do today. */
+  h+=benchTodayCard(dISO);  /* v11.20 — only on weeks 1/4/8/12, silent otherwise */
   h+=aeroCard(dISO);
+  h+=vo2Card(dISO);      /* v11.19 Layer 2 — renders a dormant stub when the block is off */
   h+=scoreCard(dISO);
   h+=realityCard(dow);
   el.innerHTML=h;
@@ -2397,6 +2707,8 @@ function rTest(){
     :`<div class="mini">No screens recorded yet.</div>`}
   </div>
 
+  ${benchCard(w)}
+
   <div class="card"><h3>How to measure</h3>
   <details><summary><b>Hip rotation \u2014 passive and active</b></summary>
   <div class="mini" style="margin-top:6px">
@@ -2421,7 +2733,11 @@ function rTest(){
   <details><summary><b>Strength \u2014 why a triple and not a max</b></summary>
   <div class="mini" style="margin-top:6px">Work to one hard triple at RPE 7\u20138 \u2014 a set of 3 with 1\u20132 clearly left. Epley: e1RM = weight &times; 1.1. That is accurate enough to program from at a fraction of the risk of a true max on a system with no scheduled deloads.</div></details>
   <details><summary><b>Conditioning</b></summary>
-  <div class="mini" style="margin-top:6px">No FTP calculation in this app \u2014 removed 2026-08-03. Use Peloton and the Power Zone pack; they do it better and you already trust the number. The only conditioning metric here is the hard-aerobic quota on Today: two sessions a week of <b>\u226513 min above ${hrThreshold().t4} bpm</b>.</div></details>
+  <div class="mini" style="margin-top:6px">No FTP calculation in this app \u2014 removed 2026-08-03. Use Peloton and the Power Zone pack; they do it better and you already trust the number.<br><br>
+  <b>Three layers, three different questions</b> (restructured 2026-08-14, because one number was being asked to do all three jobs and could only do the first):<br>
+  <b>Layer 1 \u2014 maintenance floor.</b> Two days a week of \u226513 min above ${hrThreshold().t4} bpm, on Today. Hickson's dose. Tells you whether you <i>lost</i> anything. It cannot tell you whether you gained, and it was reading as a target when it is a floor.<br>
+  <b>Layer 2 \u2014 stimulus delivery.</b> Three interval sessions a week for 3\u20136 weeks, on Today, dormant until switched on. Scored completed / not completed. Not scored on minutes, because time above a HR threshold is an unreliable proxy for time near VO2max and the error flips direction depending on whether you are running or cycling.<br>
+  <b>Layer 3 \u2014 adaptation readout.</b> The benchmark ride above. The only one that answers whether any of it worked.</div></details>
   </div>
 
   <div class="card"><h3>Why the north star changed</h3>
