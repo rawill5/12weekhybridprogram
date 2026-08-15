@@ -135,7 +135,7 @@ details[open] summary:after{transform:rotate(-90deg)}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.20 · 2026-08-14";
+const BUILD="v11.21 · 2026-08-14";
 const PROGRAM_START="2026-08-17";           /* Monday. Week 1 Day 1. Moved from Aug 10, 2026-08-10. */
 const ONRAMP_START="2026-08-11";            /* Tuesday. Six days, Aug 11-16. */
 /* ============ RE-ENTRY ON-RAMP, Aug 11-16. Rewritten 2026-08-10. ============
@@ -1038,6 +1038,41 @@ function aeroQualify(mins){return (mins||0)>=AERO_MIN;}
    No weekly target is set here. The block uses Z2 strategically for aerobic base and recovery
    support; inventing a dose would be making one up. Log it, total it, decide later with data. */
 function z2Band(){return {lo:Math.round(0.60*HRMAX), hi:Math.round(0.70*HRMAX)};}
+/* ---- v11.21: minutes above 90% of max HR, and WHICH ACTIVITY produced them.
+   Robert, 2026-08-14: log it on the high-intensity possibilities — BJJ, kickboxing, bag
+   rounds, PZ and PZ Max — not on Zone 2 rides. Correct: a Z2 ride by definition never
+   reaches here, so a Z5 box on it is a box that is always empty or always wrong.
+
+   This is an OBSERVATION, not a gate, and must never become one. Time above 90% HRmax
+   ranks interval protocols in the WRONG ORDER (Fleckenstein 2025, PMID 39835194: short
+   intervals scored 50% higher on this metric while delivering LESS time above 90% VO2max),
+   and it errs in the direction that flatters kickboxing — exactly the session we are least
+   able to verify. It is logged because it answers a descriptive question nothing else can:
+   does his combat work reach near-VO2max intensity AT ALL, and which modality gets there.
+   BJJ in particular has been "unknown" in this project since July. ---- */
+function z5Threshold(){return Math.round(0.90*HRMAX);}   /* 176 at HRMAX 195 */
+const AERO_MODE={kick:"Kickboxing",bjj:"BJJ",bag:"Bag rounds",pz:"Power Zone",pzmax:"PZ Max",hiit:"Other HIIT"};
+/* Minutes above 176 are a SUBSET of minutes above 160. If z5 > hard, one of the two was
+   misread — flag it rather than storing a contradiction. */
+function aeroZ5Bad(dISO){const hh=(Z.aero||{})[dISO], z=(Z.aeroZ5||{})[dISO];
+  return (hh!=null&&z!=null&&z>hh);}
+function median(a){if(!a.length)return null;const s=a.slice().sort((x,y)=>x-y),m=Math.floor(s.length/2);
+  return s.length%2?s[m]:(s[m-1]+s[m])/2;}
+/* Per-modality rollup. Median, not mean — n is small and one outlier session should not
+   move the answer to "does BJJ ever get hard." */
+function aeroByMode(){
+  const out={};
+  Object.keys(AERO_MODE).forEach(k=>out[k]={n:0,hard:[],z5:[]});
+  Object.keys(Z.aeroMode||{}).forEach(d=>{
+    const k=Z.aeroMode[d]; if(!out[k])return;
+    const hh=(Z.aero||{})[d], z=(Z.aeroZ5||{})[d];
+    if(hh==null&&z==null)return;
+    out[k].n++;
+    if(hh!=null)out[k].hard.push(hh);
+    if(z!=null)out[k].z5.push(z);
+  });
+  Object.keys(out).forEach(k=>{out[k].mHard=median(out[k].hard);out[k].mZ5=median(out[k].z5);});
+  return out;}
 function bagBlocks(minsSoFar){const d=Math.max(0,AERO_MIN-(minsSoFar||0));
   return d===0?0:d+2;}            /* 1 min hard / 1 min light; +2 for the ramp */
 
@@ -1240,6 +1275,8 @@ if(!Z.seed1){
   Z.seed1=true;}
 Z.aeroSrc=Z.aeroSrc||{};       /* v11.12 dateISO -> 'morpheus'|'whoop'|'other' */
 Z.z2=Z.z2||{};                 /* v11.12a dateISO -> minutes in the Zone 2 band */
+Z.aeroZ5=Z.aeroZ5||{};         /* v11.21 dateISO -> minutes above 90% HRmax. Observation only. */
+Z.aeroMode=Z.aeroMode||{};     /* v11.21 dateISO -> which activity produced the hard minutes */
 Z.orDone=Z.orDone||{};         /* on-ramp day completion */
 Z.mkMedDefault=Z.mkMedDefault||false; /* hip block permanently on the short version */
 Z.bs=Z.bs||{};                 /* dateISO -> {b45,b70,reps,pause} Booty Sprout band config */
@@ -1589,6 +1626,15 @@ function setWhoop(dISO,k,v){Z.whoop[dISO]=Z.whoop[dISO]||{};
   Z.whoop[dISO][k]=(v===""||v==null)?null:Number(v);save();render();}
 function setAero(dISO,v){if(v===""||v==null)delete Z.aero[dISO];else Z.aero[dISO]=Number(v);save();render();}
 function setZ2(dISO,v){if(v===""||v==null)delete Z.z2[dISO];else Z.z2[dISO]=Number(v);save();render();}
+/* v11.21 — Z5 minutes and the activity tag. Hard-aerobic entry only; deliberately absent
+   from the Zone 2 box, where it would always be empty. */
+function setAeroZ5(dISO,v){Z.aeroZ5=Z.aeroZ5||{};
+  if(v===""||v==null)delete Z.aeroZ5[dISO];else Z.aeroZ5[dISO]=Number(v);save();render();}
+/* toggle=true only from the segmented buttons, where tapping the active one should clear
+   it. A <select> re-emitting the same value must NOT wipe the tag. */
+function setAeroMode(dISO,k,toggle){Z.aeroMode=Z.aeroMode||{};
+  if(!k||(toggle&&Z.aeroMode[dISO]===k))delete Z.aeroMode[dISO];else Z.aeroMode[dISO]=k;
+  save();render();}
 function setAeroSrc(dISO,k){Z.aeroSrc=Z.aeroSrc||{};
   if(Z.aeroSrc[dISO]===k)delete Z.aeroSrc[dISO];else Z.aeroSrc[dISO]=k;save();render();}
 /* v11.12: edit the on-ramp baselines. There was no path to set these — the ledger floors
@@ -1723,9 +1769,40 @@ function aeroCard(dISO){
     Bag backfill: <b>${bb} blocks of 1 min hard / 1 min light.</b> ~${bb*2} minutes.<br>
     <span class="mini">The one-minute rest is the trick \u2014 you are already warm, so HR will not fall out of zone, and nearly all elapsed time counts. A 3-min round with a full standing minute wastes that. The hard minute should be hard enough you could not get a sentence out.</span></div>`;
   }
+  /* ---- v11.21: Z5 minutes + which activity. Hard-aerobic sessions only. ---- */
+  {const Z5=z5Threshold(), z5v=(Z.aeroZ5||{})[dISO], md=(Z.aeroMode||{})[dISO]||"";
+   h+=`<div class="card" style="margin:8px 0 0;padding:10px 12px;background:transparent;border:1px dashed var(--dim,#555)">
+   <div class="klabel">Near-max minutes — ${Z5}+ bpm <span class="mini">(90% of ${HRMAX})</span></div>
+   <div class="mini" style="margin:4px 0 6px"><b>Observation, not a gate.</b> Nothing scores off this and nothing should &mdash; time above 90% of max HR ranks interval protocols in the <i>wrong order</i> (short bursts score ~50% higher on it while delivering less actual time near VO2max), and it errs in the direction that flatters kickboxing, which is the session we can verify least. It is here to answer a question nothing else can: <b>which of your hard sessions actually gets near-maximal, and does BJJ ever get there.</b> That has been unknown in this project since July.</div>
+   <div class="grid2">
+    <div><label class="f">Min above ${Z5}</label><input type="number" inputmode="decimal" placeholder="min ≥ ${Z5}" value="${z5v??""}" onchange="setAeroZ5('${dISO}',this.value)"></div>
+    <div><label class="f">Min above ${H.t4} (the gate)</label><input type="number" inputmode="decimal" placeholder="min ≥ ${H.t4}" value="${mins??""}" onchange="setAero('${dISO}',this.value)"></div>
+   </div>
+   <div class="mini" style="margin:8px 0 4px"><b>Which activity?</b> Tag it or the numbers pool into one meaningless average.</div>
+   <div class="seg" style="display:flex;flex-wrap:wrap;gap:4px">
+    ${Object.keys(AERO_MODE).map(k=>`<button class="${md===k?"on":""}" onclick="setAeroMode('${dISO}','${k}',true)">${AERO_MODE[k]}</button>`).join("")}
+   </div>`;
+   if(aeroZ5Bad(dISO)){
+     h+=`<div class="banner red" style="margin-top:8px"><b>Impossible: ${z5v} min above ${Z5} but only ${mins} min above ${H.t4}.</b> Every beat above ${Z5} is also above ${H.t4}, so the first number cannot exceed the second. One of the two was misread &mdash; check you did not take the ${H.t4} figure from a zone that starts higher than ${H.t4}.</div>`;
+   }
+   /* Per-modality rollup. This is the entire reason the tag exists. */
+   {const BM=aeroByMode(), rows=Object.keys(AERO_MODE).filter(k=>BM[k].n>0);
+    if(rows.length){
+      h+=`<div class="mini" style="margin-top:10px"><b>What each activity actually delivers</b> — median across logged sessions</div>`;
+      rows.forEach(k=>{const r=BM[k];
+        h+=`<div class="row"><div class="nm">${AERO_MODE[k]}<div class="sup">${r.n} session${r.n===1?"":"s"} tagged</div></div>
+        <div class="rx">${r.mHard==null?"—":r.mHard+" min ≥"+H.t4}${r.mZ5==null?"":` · <b>${r.mZ5} min ≥${Z5}</b>`}</div></div>`;});
+      h+=`<div class="mini" style="margin-top:4px">Medians, not averages &mdash; n is small and one unusually hard session should not be allowed to answer &ldquo;does BJJ get hard.&rdquo; Treat anything under about four tagged sessions as a hint, not a finding.</div>`;
+    } else {
+      h+=`<div class="mini" style="margin-top:10px">Nothing tagged yet. Once a few sessions carry a tag, this becomes a per-activity breakdown &mdash; the first real answer to what your kickboxing and BJJ are actually worth.</div>`;
+    }}
+   h+=`</div>`;}
+
   /* Any-day entry — you will not always log on the day you trained. */
   /* v11.13: Zone 2 alongside it, because the two get measured on the same session and
-     splitting them across two cards guarantees one of them never gets entered. */
+     splitting them across two cards guarantees one of them never gets entered.
+     v11.21: Z5 is deliberately NOT added here. A Zone 2 ride never reaches 90% of max,
+     so the box would be permanently empty or, worse, filled in wrongly. */
   {const B=z2Band(),wk=weekBounds(dISO),z2w=wk.reduce((a,k)=>a+((Z.z2||{})[k]||0),0);
    h+=`<div class="card" style="margin:8px 0 0;padding:10px 12px;background:transparent;border:1px dashed var(--dim,#555)">
    <div class="klabel">Zone 2 — ${B.lo}–${B.hi} bpm</div>
@@ -1738,8 +1815,13 @@ function aeroCard(dISO){
     return `<div class="row"><div class="nm">${DAYS[(new Date(k+"T00:00:00").getDay()+6)%7]} <span class="sup">${k}</span></div>
     <div class="rx" style="color:${v==null?"var(--dim)":(q?"var(--ok,#3a7)":"var(--t2)")}">${v==null?"—":(q?"\u2713 "+v:v+" min")}</div>
     <input class="win" inputmode="decimal" value="${v??""}" onchange="setAero('${k}',this.value)" placeholder="hard">
-    <input class="win" inputmode="decimal" value="${(Z.z2||{})[k]??""}" onchange="setZ2('${k}',this.value)" placeholder="Z2"></div>`;}).join("")}
-  <div class="mini" style="margin-top:4px">Left box: minutes above ${H.t4}. Right box: minutes in Zone 2.</div>
+    <input class="win" inputmode="decimal" value="${(Z.aeroZ5||{})[k]??""}" onchange="setAeroZ5('${k}',this.value)" placeholder="${z5Threshold()}+">
+    <input class="win" inputmode="decimal" value="${(Z.z2||{})[k]??""}" onchange="setZ2('${k}',this.value)" placeholder="Z2">
+    <select onchange="setAeroMode('${k}',this.value)" style="max-width:96px">
+     <option value=""${!(Z.aeroMode||{})[k]?" selected":""}>—</option>
+     ${Object.keys(AERO_MODE).map(m=>`<option value="${m}"${(Z.aeroMode||{})[k]===m?" selected":""}>${AERO_MODE[m]}</option>`).join("")}
+    </select></div>`;}).join("")}
+  <div class="mini" style="margin-top:4px">Boxes, left to right: minutes above ${H.t4} (the gate) · minutes above ${z5Threshold()} (observation) · minutes in Zone 2 · which activity. <b>Leave the ${z5Threshold()}+ box and the tag blank on Zone 2 rides</b> — an easy ride never reaches either.</div>
   </details>`;
   /* v11.12: instrument provenance. Morpheus minutes and Whoop minutes are not the same
      quantity and must never be summed into one trend. */
