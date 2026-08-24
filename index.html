@@ -135,9 +135,33 @@ details[open] summary:after{transform:rotate(-90deg)}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.21 · 2026-08-14";
-const PROGRAM_START="2026-08-17";           /* Monday. Week 1 Day 1. Moved from Aug 10, 2026-08-10. */
-const ONRAMP_START="2026-08-11";            /* Tuesday. Six days, Aug 11-16. */
+const BUILD="v11.24 · 2026-08-23";
+/* v11.22 — THE START DATE IS NOW STATE, NOT A CONSTANT.
+   Sixth start date (Jul 28 · Aug 3 · Aug 10 · Aug 17 · Aug 24), moved for an episodic
+   lumbar recurrence. The point of this change is that there must never be a seventh
+   edit to a constant: `Z.start` is the single source of truth and the Log tab moves it.
+
+   PROGRAM_START_DEFAULT is a SEED ONLY. It is read exactly once, when `Z.start` is
+   absent. Nothing else in this file may read it. Every other date comparison goes
+   through progStart(). If you are adding a date comparison, call progStart().
+
+   What was broken before this version, and why it looked like it worked:
+     1. `Z.start` existed and had an input on the Log tab, but line ~1298 read
+        `if(Z.start!==PROGRAM_START&&!Z.startPinned)Z.start=PROGRAM_START;` and
+        `Z.startPinned` was NEVER SET ANYWHERE. Every edit silently reverted on reload.
+     2. Even when it held, `Z.start` fed only curWeek() and the Log-tab compliance
+        count. Fifteen other comparisons read the constant. Two start dates that
+        disagreed — benchTodayCard() called curWeek() while the card rendered beside it
+        on Today read the constant. */
+const PROGRAM_START_DEFAULT="2026-08-24";   /* Monday. SEED ONLY — see progStart(). */
+const ONRAMP_START="2026-08-11";            /* Tuesday. HISTORICAL, fixed — see inOnramp(). */
+/* The block start, from state. Hoisted so the functions above may call it; Z is only
+   dereferenced at call time, always after Z is initialised. */
+function progStart(){return (typeof Z!=="undefined"&&Z&&Z.start)||PROGRAM_START_DEFAULT;}
+/* True for dates after the on-ramp finished but before the block opens. Before v11.22
+   no branch owned this state, because the on-ramp was defined as "everything between
+   ONRAMP_START and the block" and the two were assumed adjacent. */
+function inGap(iso){return iso>ONRAMP[ONRAMP.length-1].d&&iso<progStart();}
 /* ============ RE-ENTRY ON-RAMP, Aug 11-16. Rewritten 2026-08-10. ============
    Six days of real training before the block opens Mon Aug 17. Not a taper, not a
    rehearsal, and no habit-coaching — he asked for training and this is training.
@@ -218,7 +242,14 @@ const ONRAMP=[
   ["\u2705 Read Monday in the Week tab","Week 1 D1: box squat, top set 3 @ RIR 3 at ~250, then 2 \u00d7 3 back-offs at RIR 4. You will have squatted 240 on Tuesday, so Monday is a 10 lb step and one less rep in reserve. Know it before you wake up."]]}
 ];
 const orIndex=iso=>ONRAMP.findIndex(o=>o.d===iso);
-const inOnramp=iso=>iso>=ONRAMP_START&&iso<PROGRAM_START;
+/* v11.22 — MEMBERSHIP, not a range. This was
+     `iso>=ONRAMP_START && iso<PROGRAM_START`
+   which silently coupled the on-ramp's END to the block's START. Moving the block from
+   Aug 17 to Aug 24 made Aug 17-23 satisfy it, orIndex() returned -1 for those dates,
+   and rToday dereferenced ONRAMP[-1].t — a TypeError that killed the Today tab on
+   today's date. The on-ramp ran Aug 11-16 and is a closed historical event; it must
+   never re-open because a later date moved. Membership cannot re-open. */
+const inOnramp=iso=>orIndex(iso)>=0;
 
 /* ---- 4D Hybrid (source of truth; rendered as written) ---- */
 /* mus: fractional weekly-set contributions for the volume model */
@@ -444,7 +475,15 @@ const GMB={
  45:{P:[["Standing Knee to Chest",60,1],["Single Leg Deadlift",60,1],["Supine Hip Circles",60,1]],R:[["Seated Hamstring",180,1],["Seated Twist",180,1],["Extended Side Angle Pose",180,1],["Wrists — Palms Down, Fingers Facing Knees",120,0],["Basic Spiderman",360,0]],Y:[["Walk Into Squat",180,0],["Sumo Frogger",360,0]]}}
 };
 const GMB_AUTO=["Hips","Spine","Shoulders","Hips","Hips","Flexion","Rotation & Sidebending"]; /* Mon..Sun */
-const GMB_ALT ={4:"Rotation & Sidebending",3:"Legs",5:"Hips"}; /* Fri alt, Thu alt, Sat alt */
+/* v11.22 — Wednesday alt added. The 2026-08-04 audit recorded thoracic mobility as
+   "covered, 3 of 7 days — Spine (Tue), Shoulders (Wed), Rotation & Sidebending (Sun)".
+   Reading the actual block contents rather than the class NAME: the Wednesday
+   "Shoulders" class contains Tall Kneeling Arm Raises, Arm Raises to Side, Quadruped
+   Shoulder Circles, Prone Bent Arm Chest Stretch, Posterior Shoulder Opener, Seated
+   Clasped Hands Extension and Crab Walk. That is glenohumeral and pec work with
+   essentially ZERO thoracic ROTATION. Real thoracic rotation runs 2 days, not 3.
+   This is an ALTERNATIVE, not added volume — the auto-pick is unchanged. */
+const GMB_ALT ={4:"Rotation & Sidebending",3:"Legs",5:"Hips",2:"Rotation & Sidebending"}; /* Fri, Thu, Sat, Wed alt */
 
 /* ---- Video library (Drive URLs verified against Mobility_Video_File_List.md) ---- */
 const V={
@@ -587,12 +626,166 @@ const TP={
 };
 const TP_DAY=["Lower","Spine","Upper","Lower","Breathing","Lower","Breathing"]; /* Mon..Sun */
 
+/* ================= v11.24 — YIN LIBRARY (pliability replacement) =================
+   71 pliability yin sessions, downloaded 2026-08-23, hosted in Drive
+   `Workout/3-Mobility/Yin-Yoga`. Identification: pliability screenshot pages
+   cross-referenced to files by download order + exact runtime, then EVERY pairing
+   frame-verified against the session's pose list (13 initial misassignments were
+   caught and fixed that way). Full records incl. pose lists and provenance:
+   `database/videos/yin-library.json`. Entry shape: id:[display, min, driveUrl, pool].
+   `lX` ("Lower Folds (unlabeled)") is the one video with NO screenshot — its poses
+   were read from frames; everything about it is content-derived, not source-labelled.
+
+   RULES THIS BLOCK LIVES BY:
+   - Yin is the nightly down-regulation slot: EXPECTED every night, but tier T3 —
+     chaosWeek() must never fire off skipped yin alone (it filters T3).
+   - Rotation is least-recently-COMPLETED (Z.yinHist), not date-seeded: an unwatched
+     pick stays first in line, and nothing repeats until its pool is exhausted.
+     That is the anti-memorization request, verbatim.
+   - Fri/Sat/Sun additionally offer a long (39–53 min) session, either/or with the
+     short — both set the same `yin` done flag.
+   - Kinstretch (Tonight's Pick) is the OPTIONAL complement: opposite region from
+     the yin pool, tie-broken toward the LEAST-loaded tissue this week, because
+     kinstretch is challenging and should not land on what is already trained. */
+const YIN={
+ h84:["Ep 84 \u00b7 Hips",23,"https://drive.google.com/file/d/1ZEYUIpchRQ3Lm0V9ucAbuzOBIO2Rg1uL/view?usp=drivesdk","hips"],
+ u77:["Ep 77 \u00b7 Upper Body",23,"https://drive.google.com/file/d/1bqFT4P2_LLDs9rDhYlvTe0BzfDY1A1b4/view?usp=drivesdk","upper"],
+ w81:["Ep 81 \u00b7 Whole Body",22,"https://drive.google.com/file/d/1esb1RYERXOSWO3R2JbfpaRXOHGKfluAE/view?usp=drivesdk","global"],
+ b73:["Ep 73 \u00b7 Total Back",22,"https://drive.google.com/file/d/1AJOZkL2_jdObfKsni2eultGA6JmAMwe_/view?usp=drivesdk","back"],
+ l94:["Ep 94 \u00b7 Lower Body",23,"https://drive.google.com/file/d/1IqMRdX56Gj6HI1Lmh6_DSmGsYC86zXUC/view?usp=drivesdk","lower"],
+ fA:["Full Body A (unnum.)",22,"https://drive.google.com/file/d/1Z3MF92K1Df3CS0LOXLuiKpxjCGizaHhp/view?usp=drivesdk","global"],
+ h83:["Ep 83 \u00b7 Hips",22,"https://drive.google.com/file/d/1UoQLK3GJoFNRW6DN0aHQH__VjAQ6KHZ0/view?usp=drivesdk","hips"],
+ u76:["Ep 76 \u00b7 Upper Body",22,"https://drive.google.com/file/d/1hgUM7inEKhjuYbED5ckUQ6i-pAnvTF1T/view?usp=drivesdk","upper"],
+ w80:["Ep 80 \u00b7 Whole Body",22,"https://drive.google.com/file/d/1ajtN7HZfWEv0KNhezxb65NHjTvHLiqln/view?usp=drivesdk","global"],
+ fB:["Full Body B (unnum.)",22,"https://drive.google.com/file/d/1Qp2_1_UI3O4ZbzJm17_C8h8H_8fL6bgO/view?usp=drivesdk","global"],
+ sS:["Sleep + Breath Short",24,"https://drive.google.com/file/d/1TPX4OmJrhX1kg5NdnMFFbkRhWn34ovJr/view?usp=drivesdk","sleep"],
+ hX:["Hips (unnum.)",22,"https://drive.google.com/file/d/1I_ZXks6Mn-fjl287K8ufbmHIs2J5oneN/view?usp=drivesdk","hips"],
+ uX:["Upper Body (unnum.)",22,"https://drive.google.com/file/d/1YD5DRWmW7rBwrWVFHJeD0fA3raVniI-4/view?usp=drivesdk","upper"],
+ w79:["Ep 79 \u00b7 Whole Body",24,"https://drive.google.com/file/d/1sdjl8VWf2FxUQj7CeKjA6TEHlqIUJW2W/view?usp=drivesdk","global"],
+ b71:["Ep 71 \u00b7 Total Back",23,"https://drive.google.com/file/d/1PETzOF94N7l8nebA6z85W4uXeXOMWQ8G/view?usp=drivesdk","back"],
+ l92:["Ep 92 \u00b7 Lower Body",23,"https://drive.google.com/file/d/1TJSgfSl8w6_r_EV_nZ0Ryb7TvT8ir3UL/view?usp=drivesdk","lower"],
+ f95:["Ep 95 \u00b7 Full Body",22,"https://drive.google.com/file/d/1hZRuKrHbOjvZ6Jrhn0c_d1eOazW1JA6P/view?usp=drivesdk","global"],
+ h81:["Ep 81 \u00b7 Hips",22,"https://drive.google.com/file/d/1V4GPRio3_MquvR5MfsNlYhLlQCR6lecf/view?usp=drivesdk","hips"],
+ u74:["Ep 74 \u00b7 Upper Body",22,"https://drive.google.com/file/d/1ZVI6-jXOEoL7piQtJnXPmU5o-7KAF1qF/view?usp=drivesdk","upper"],
+ w78:["Ep 78 \u00b7 Whole Body",22,"https://drive.google.com/file/d/1HBm2oIsqkGoG82mjPWWM4Cqq9vXWSe8w/view?usp=drivesdk","global"],
+ s68:["Ep 68 \u00b7 Sleep + Breath",27,"https://drive.google.com/file/d/1TCsbfgzoSjF3hNNjrv_y3YgII-aqbQNq/view?usp=drivesdk","sleep"],
+ h80:["Ep 80 \u00b7 Hips",21,"https://drive.google.com/file/d/1IBh6ga_GwiNFo4BZPYDaWc0lg5odJ1gN/view?usp=drivesdk","hips"],
+ u73:["Ep 73 \u00b7 Upper Body",23,"https://drive.google.com/file/d/1nj774z1iidiYN5YU4ghL_XUPJNhvpUuJ/view?usp=drivesdk","upper"],
+ w77:["Ep 77 \u00b7 Whole Body",24,"https://drive.google.com/file/d/1Vhj-D57yHNg3C9yGaqR7ke644dN7ay2y/view?usp=drivesdk","global"],
+ b69:["Ep 69 \u00b7 Total Back",22,"https://drive.google.com/file/d/1RNSs6Eo6FBS5nroKlGVvSlo6paXkmdXL/view?usp=drivesdk","back"],
+ l90:["Ep 90 \u00b7 Lower Body",22,"https://drive.google.com/file/d/1h2isTNtHDD-h3d8QbuLSjs0UXaa9-LVj/view?usp=drivesdk","lower"],
+ h79:["Ep 79 \u00b7 Hips",23,"https://drive.google.com/file/d/17GCgwDz3qQyH5BYP2f8LT4NuSI3lnQBj/view?usp=drivesdk","hips"],
+ u72:["Ep 72 \u00b7 Upper Body",22,"https://drive.google.com/file/d/1SOcrmhWe2HC7lgWZa2zSP08w2jYhwffe/view?usp=drivesdk","upper"],
+ w76:["Ep 76 \u00b7 Whole Body",22,"https://drive.google.com/file/d/1GYP8NwU8MrW2qTznIIWBIu57nS1puhzw/view?usp=drivesdk","global"],
+ b68:["Ep 68 \u00b7 Total Back",23,"https://drive.google.com/file/d/1ZyJ-0qwAqW-vEWw7qHTh_kKjHfmFrhNV/view?usp=drivesdk","back"],
+ l89:["Ep 89 \u00b7 Lower Body",22,"https://drive.google.com/file/d/1TXiPbTGec2EGyj0eEs41n56re-rSja2i/view?usp=drivesdk","lower"],
+ f92:["Ep 92 \u00b7 Full Body",22,"https://drive.google.com/file/d/1HtO19uJNqeHxLNJut8hEQoSnmfOhqCfe/view?usp=drivesdk","global"],
+ sX:["Sleep + Breath (unnum.)",27,"https://drive.google.com/file/d/1Eht2Ir458dmhH6wBdSr7ajhDy3PIJDYR/view?usp=drivesdk","sleep"],
+ h78:["Ep 78 \u00b7 Hips",22,"https://drive.google.com/file/d/1QOEnaD1cSSkO-5ZZgxqLaTExW1rLyu71/view?usp=drivesdk","hips"],
+ u71:["Ep 71 \u00b7 Upper Body",24,"https://drive.google.com/file/d/1_vK4kHcJbfLLswONGbXqrAkjixvNsWml/view?usp=drivesdk","upper"],
+ w75:["Ep 75 \u00b7 Whole Body",22,"https://drive.google.com/file/d/1kOsAO9kriBdd5daewwTp9q51iZ3_r4Xv/view?usp=drivesdk","global"],
+ b67:["Ep 67 \u00b7 Total Back",22,"https://drive.google.com/file/d/164KI6bEjs0ANVR4dXlry7ugfBHfVSRcQ/view?usp=drivesdk","back"],
+ b65:["Ep 65 \u00b7 Total Back",22,"https://drive.google.com/file/d/1oAj0gDsidYB_SSHaOvqqreHiUPlEL3Z2/view?usp=drivesdk","back"],
+ l86:["Ep 86 \u00b7 Lower Body",22,"https://drive.google.com/file/d/1RQHioHG5m-P_BfATWnf-EedyRKnbx04V/view?usp=drivesdk","lower"],
+ f89:["Ep 89 \u00b7 Full Body",23,"https://drive.google.com/file/d/1xxe2vjrATHDmb7t3_vQrZ-PVip2kbkbH/view?usp=drivesdk","global"],
+ h75:["Ep 75 \u00b7 Hips",22,"https://drive.google.com/file/d/1gwkQYpNw1nQuBNsK6_LPBQTNC_Jgpg3V/view?usp=drivesdk","hips"],
+ u68:["Ep 68 \u00b7 Upper Body",22,"https://drive.google.com/file/d/1br6thX01h-xCNO9fxnJxJp5NJHgFIxEI/view?usp=drivesdk","upper"],
+ w72:["Ep 72 \u00b7 Whole Body",24,"https://drive.google.com/file/d/19Vmvo6RmvnAq24EmECxA4BhEyYVSFkbn/view?usp=drivesdk","global"],
+ b64:["Ep 64 \u00b7 Total Back",22,"https://drive.google.com/file/d/1PVFdvIwy2O7BdcFwVj-RzAn5YJtfCmgo/view?usp=drivesdk","back"],
+ l85:["Ep 85 \u00b7 Lower Body",23,"https://drive.google.com/file/d/14pvIhJNHFZTsYQqYh4MxYk6EGvM9FNE-/view?usp=drivesdk","lower"],
+ f88:["Ep 88 \u00b7 Full Body",22,"https://drive.google.com/file/d/1nkIRa11nF_D4O5Y7tz6A-wHVjFqqs8EP/view?usp=drivesdk","global"],
+ s62:["Ep 62 \u00b7 Sleep + Breath",27,"https://drive.google.com/file/d/1Sp6jbWY9BL6-M-H3zsNg4DO5qKZdrlhO/view?usp=drivesdk","sleep"],
+ h74:["Ep 74 \u00b7 Hips",22,"https://drive.google.com/file/d/1ZFZ2NmWaKHPr8L8BnomGWkFaVSOU0Iog/view?usp=drivesdk","hips"],
+ u67:["Ep 67 \u00b7 Upper Body",23,"https://drive.google.com/file/d/1z_fS3JaZnwNitVjYg3bTP_VWjGiZNA7d/view?usp=drivesdk","upper"],
+ w71:["Ep 71 \u00b7 Whole Body",22,"https://drive.google.com/file/d/1_IxqY-dFhPZxGce2e5RC_VOOwC839Jnw/view?usp=drivesdk","global"],
+ b63:["Ep 63 \u00b7 Total Back",23,"https://drive.google.com/file/d/1crNL2m9sCnYfttYUnD2xolv0x7MdnBkT/view?usp=drivesdk","back"],
+ l84:["Ep 84 \u00b7 Lower Body",23,"https://drive.google.com/file/d/1TObAdUJrovq9034dyo8QP0D7YOTnFD0_/view?usp=drivesdk","lower"],
+ f87:["Ep 87 \u00b7 Full Body",23,"https://drive.google.com/file/d/1BE31yQf_U5B2wBOpKMpH5O9zVa6upUND/view?usp=drivesdk","global"],
+ s61:["Ep 61 \u00b7 Sleep + Breath",28,"https://drive.google.com/file/d/1OBFy2bdH85bPPBRQO4QKINxuh5VY8Hqw/view?usp=drivesdk","sleep"],
+ vhagar:["Vhagar",43,"https://drive.google.com/file/d/19XLToR4fDk3xnQv7n9Hog8VXUGFQfOhM/view?usp=drivesdk","long"],
+ syrax:["Syrax",48,"https://drive.google.com/file/d/1MNzcGP5mVIJeKHdaego68hGZTQ6aTQsE/view?usp=drivesdk","long"],
+ spartacus:["Spartacus",48,"https://drive.google.com/file/d/1fIbOwm0WSUxNf4Yjcn_QmF0qKlSRltM2/view?usp=drivesdk","long"],
+ thanos:["Thanos",39,"https://drive.google.com/file/d/1SMpzcC6Oqjt6SLtT-yYvnxAfU-FIYe-K/view?usp=drivesdk","long"],
+ thor:["Thor",40,"https://drive.google.com/file/d/1qULz-ik3QENCLXK2qWRMqxrG14Nyigey/view?usp=drivesdk","long"],
+ zelda:["Zelda",41,"https://drive.google.com/file/d/1bLqqayzptb6XuwjE2ePu1H78IEW7GIp3/view?usp=drivesdk","long"],
+ stark:["Stark",42,"https://drive.google.com/file/d/1_CTB3dksuOadM0wldQgno7hS07PHyAiR/view?usp=drivesdk","long"],
+ daenerys:["Daenerys",44,"https://drive.google.com/file/d/1vQ6HMPqYz__rNkKsj_RysdhJrYaIQjq3/view?usp=drivesdk","long"],
+ boba:["Boba Fett",45,"https://drive.google.com/file/d/19ocVek4FmnWN9tQdbH0_67wCV7vrUsvm/view?usp=drivesdk","long"],
+ han:["Han Solo",45,"https://drive.google.com/file/d/1Uz2rJe8AyZa5-Ud0G4qJbSfmVj3TCdj9/view?usp=drivesdk","long"],
+ albus:["Albus",50,"https://drive.google.com/file/d/1BfvEZQ3TgdRQ9MJB6jOewA7F8fz6RQQ7/view?usp=drivesdk","long"],
+ ares:["Ares",53,"https://drive.google.com/file/d/1_KcGr7WnqBzDNuKj7UidMIFwsZ_W7S97/view?usp=drivesdk","long"],
+ jon:["Jon Snow",41,"https://drive.google.com/file/d/17axQK6fgy5b2u2yP3k22_6Zs2Hli1stD/view?usp=drivesdk","long"],
+ yoda:["Yoda",46,"https://drive.google.com/file/d/1IdMhbVNshIMk5sqgeV5id4QhTbaakhlu/view?usp=drivesdk","long"],
+ vader:["Darth Vader",43,"https://drive.google.com/file/d/1AAuH96LZKSKdh01A2PFwePrvNRSFThSJ/view?usp=drivesdk","long"],
+ severus:["Severus",46,"https://drive.google.com/file/d/1Xo-nlVOqbrWlK8cBtb5oUlUM0Tb9s62S/view?usp=drivesdk","long"],
+ lX:["Lower Folds (unlabeled)",23,"https://drive.google.com/file/d/1SKkpKBMGaW9hmY_Q5CJSSVbSiBFEDcPK/view?usp=drivesdk","lower"]
+};
+const YIN_POOLS=(()=>{const p={};Object.keys(YIN).forEach(k=>{const c=YIN[k][3];(p[c]=p[c]||[]).push(k);});return p;})();
+const YIN_DAY=["hips","back","upper","lower","hips","lower","global"]; /* Mon..Sun primary pool, from the preceding day's load */
+const YIN_LONG_DAYS=[4,5,6];
+const YIN_POOL_LABEL={hips:"Hips",lower:"Lower Body",back:"Total Back",upper:"Upper Body",global:"Whole / Full Body",sleep:"Sleep + Breath",long:"Long (39–53 min)"};
+function yinPoolFor(dow,r){ if(isDown()||isDeloadWeek(curWeek())||(r!==null&&r<=2))return "sleep"; return YIN_DAY[dow]; }
+/* LRU: least-recently-completed first; never-completed sort to the front in stable pool order. */
+function yinPicks(pool,n){
+  const h=Z.yinHist||{};
+  const arr=(YIN_POOLS[pool]||[]).slice().sort((a,b)=>{
+    const da=h[a]||"0000-00-00",db=h[b]||"0000-00-00";
+    if(da!==db)return da<db?-1:1;
+    return YIN_POOLS[pool].indexOf(a)-YIN_POOLS[pool].indexOf(b);});
+  return arr.slice(0,n);
+}
+function togYin(dISO,k){
+  Z.yinHist=Z.yinHist||{};Z.done[dISO]=Z.done[dISO]||{};
+  if(Z.yinHist[k]===dISO){
+    delete Z.yinHist[k];
+    if(!Object.keys(Z.yinHist).some(x=>Z.yinHist[x]===dISO))Z.done[dISO].yin=false;
+  } else { Z.yinHist[k]=dISO; Z.done[dISO].yin=true; }
+  save();render();
+}
+/* Kinstretch complement. Load is sets this week relative to MAV per muscle — a crude
+   but DIRECTIONAL brake: it only has to steer the challenging active work away from
+   the most-loaded region. */
+const KIN_REGION={Lower:"lower",Upper:"upper",Spine:"back",Global:null,Breathing:null};
+const KIN_MUS={Lower:["quad","ham","glute","calf"],Upper:["chest","sdelt","rdelt"],Spine:["abs_post","back"]};
+function kinLoad(cat,tot){return KIN_MUS[cat].reduce((s,m)=>s+(tot[m]||0)/(MUS[m][2]||1),0)/KIN_MUS[cat].length;}
+function kinComplement(dow,w,r){
+  if(isDown()||(r!==null&&r<=2))return "Breathing";
+  const yreg={hips:"lower",lower:"lower",back:"back",upper:"upper",global:null,sleep:null}[yinPoolFor(dow,r)];
+  const tot=weeklyVolume(w);
+  const cands=["Spine","Upper","Lower"].filter(c=>KIN_REGION[c]!==yreg);
+  let best=cands[0],bl=Infinity;
+  cands.forEach(c=>{const L=kinLoad(c,tot);if(L<bl-1e-9){bl=L;best=c;}});
+  return best;
+}
+function tonightCard(w,dow,dISO){
+  const r=readiness(dISO);
+  const pool=yinPoolFor(dow,r);
+  const pk=yinPicks(pool,1)[0];
+  const kin=kinComplement(dow,w,r);
+  const dn=(Z.done[dISO]||{}).yin;
+  return `<div class="card spine"><h3>Tonight — Yin <span class="tiertag T3">T3</span>${dn?' <span class="chip ghost">done ✓</span>':''}</h3>
+  <div class="meta">${YIN[pk][0]} · ~${YIN[pk][1]} min${YIN_LONG_DAYS.includes(dow)&&pool!=="sleep"?" · long option up":""} · Kin complement: ${kin} (optional). <a href="#" onclick="go('night');return false">Open →</a></div></div>`;
+}
+
+
 /* Sunday gap-fill block (programmed; commercial gym) */
+/* The programmed add-on he layers on top of whatever his training partner is doing.
+   v11.22: each row carries a `mus` map and is individually loggable, because the
+   Volume tab used to credit all of it unconditionally. The partner-led portion of the
+   session is variable by design and is NOT modelled — he named that as the reason not
+   to build it, and inventing sets for it would corrupt the one number this block
+   exists to move. */
 const SUNBLOCK=w=>{const p=corePhase(w);return [
- {n:"Reverse Pec Deck (or Rear-Delt DB Fly)",rx:(p===2?4:3)+"×12–15 · RIR 1–2",why:"Rear delt — the structural hole. Always present."},
- {n:"Face Pull (rope, high cable)",rx:"3×12–15 · RIR 1–2",why:"Rear delt + mid-trap double-count."},
- {n:"Chest-Supported Row",rx:"2×10–12 · RIR 2",why:"Only if the Volume tab shows upper back under target this week."},
- {n:"Cable External Rotation",rx:"2×12–15 · RIR 2 (optional)",why:"Cuff insurance under heavy pressing + BJJ."}];};
+ {n:"Reverse Pec Deck (or Rear-Delt DB Fly)",rx:(p===2?4:3)+"×12–15 · RIR 1–2",why:"Rear delt — the structural hole. Always present.",mus:{rdelt:1}},
+ {n:"Face Pull (rope, high cable)",rx:"3×12–15 · RIR 1–2",why:"Rear delt + mid-trap double-count.",mus:{rdelt:1,back:.25}},
+ {n:"Chest-Supported Row",rx:"2×10–12 · RIR 2",why:"Only if the Volume tab shows upper back under target this week.",mus:{back:1,bicep:.5,rdelt:.25}},
+ {n:"Cable External Rotation",rx:"2×12–15 · RIR 2 (optional)",why:"Cuff insurance under heavy pressing + BJJ.",mus:{rdelt:.25}}];};
+/* Which add-on rows were actually ticked on the Sunday of program week `w`. */
+function sunISO(w){const d=new Date(progStart()+"T00:00:00");d.setDate(d.getDate()+w*7+6);return iso(d);}
+function sunLogged(w){
+  const dn=(Z.sunDone||{})[sunISO(w)]||{};
+  return SUNBLOCK(w).map((ex,i)=>({i,ex})).filter(({i})=>!!dn[i]);
+}
 
 /* Volume landmarks (sets/wk) — masters-adjusted, practical MRV pulled down for kicks/BJJ/plyos at 41 */
 const MUS={quad:["Quads",6,12,16],ham:["Hamstrings",4,10,14],glute:["Glutes",4,10,16],calf:["Calves",6,12,16],
@@ -609,18 +802,18 @@ const MUS={quad:["Quads",6,12,16],ham:["Hamstrings",4,10,14],glute:["Glutes",4,1
 
 /* What each weekday is supposed to produce. [blockId, tier, domain] */
 const EXPECT={
- 0:[["str","T1","strength"],["plyo","T2","power"],["core","T2","core"],["hooklying","T2","hip"]],
- 1:[["cond_tue","T2","z2"],["markow","T2","hip"]],
- 2:[["str","T1","strength"],["core","T2","core"],["markow","T2","hip"]],
- 3:[["str","T1","strength"],["plyo","T2","power"],["core","T2","core"],["hooklying","T2","hip"]],
- 4:[["kick","T1","skill"],["str","T1","strength"],["markow","T2","hip"]],
- 5:[["cond_sat","T2","z2"],["plyo","T2","power"],["lt","T2","skill"]],
- 6:[["bjj","T1","skill"],["sunlift","T2","strength"],["markow","T2","hip"]]
+ 0:[["str","T1","strength"],["plyo","T2","power"],["core","T2","core"],["hooklying","T2","hip"],["yin","T3","downreg"]],
+ 1:[["cond_tue","T2","z2"],["markow","T2","hip"],["yin","T3","downreg"]],
+ 2:[["str","T1","strength"],["core","T2","core"],["markow","T2","hip"],["yin","T3","downreg"]],
+ 3:[["str","T1","strength"],["plyo","T2","power"],["core","T2","core"],["hooklying","T2","hip"],["yin","T3","downreg"]],
+ 4:[["kick","T1","skill"],["str","T1","strength"],["markow","T2","hip"],["yin","T3","downreg"]],
+ 5:[["cond_sat","T2","z2"],["plyo","T2","power"],["lt","T2","skill"],["yin","T3","downreg"]],
+ 6:[["bjj","T1","skill"],["sunlift","T2","strength"],["markow","T2","hip"],["yin","T3","downreg"]]
 };
 const BLK={str:"Strength session",plyo:"Plyos / sprint",core:"Core",hooklying:"Hooklying primer",
  markow:"Markow hip",cond_tue:"Zone 2 (Tue)",cond_sat:"Zone 2 (Sat)",kick:"Kickboxing",
- lt:"Luke Thomas kick-flex",bjj:"BJJ",sunlift:"Sunday lift"};
-const DOMAIN={strength:"Strength",power:"Power",core:"Core",hip:"Hip mobility",z2:"Zone 2",skill:"Skill"};
+ lt:"Luke Thomas kick-flex",bjj:"BJJ",sunlift:"Sunday lift",yin:"Evening yin (pliability)"};
+const DOMAIN={strength:"Strength",power:"Power",core:"Core",hip:"Hip mobility",z2:"Zone 2",skill:"Skill",downreg:"Down-regulation"};
 
 /* ============ MEASURED DURATIONS — from Toggl, 2026-01-01 → 2026-08-02 ============
    339 training entries, 213 days, zero untagged, one 5h BJJ outlier excluded.
@@ -640,7 +833,10 @@ const MEAS={
  lt:       {med:12,p25:10,p75:15, n:5, src:"m",tag:"kick mobility"},
  hooklying:{med:4, p25:3, p75:5,  n:0, src:"e",tag:"3 sets, timed by hand"},
  plyo:     {med:0, p25:0, p75:0,  n:20,src:"b",tag:"bundled into the lift — you don't task-switch"},
- core:     {med:15,p25:10,p75:20, n:0, src:"e",tag:"no Toggl tag exists"}
+ core:     {med:15,p25:10,p75:20, n:0, src:"e",tag:"no Toggl tag exists"},
+ /* v11.24: med/p25/p75 from the 55 short yin videos' actual runtimes (21–29 min) — measured
+    from the files themselves, NOT from Toggl (no tag exists yet), hence src:"e". */
+ yin:      {med:23,p25:22,p75:27, n:0, src:"e",tag:"yin video runtime — measured from files, no Toggl tag yet"}
 };
 /* Solo lifting is NOT one number. Measured medians by weekday.
    CAVEAT, and it matters: this data is from AD-HOC training, not from this program.
@@ -686,7 +882,7 @@ function blockMin(blk,w,dow){
             tag:s.plyo?"Lifting — plyos bundled in":"Lifting"};}
   return m;
 }
-const MEDFLOOR={markow:5,str:12,cond_tue:24,cond_sat:24,plyo:0,core:6,hooklying:4,lt:6,kick:null,bjj:null,sunlift:12};
+const MEDFLOOR={markow:5,str:12,cond_tue:24,cond_sat:24,plyo:0,core:6,hooklying:4,lt:6,kick:null,bjj:null,sunlift:12,yin:10};
 /* Which strength day each weekday runs, for the wave-hold rule. */
 const DKEY={0:"d1",2:"d2",3:"d3",4:"d4"};
 
@@ -698,7 +894,7 @@ function scanMissed(dISO,days){
   const out=[];
   for(let i=1;i<=days;i++){
     const d=isoBack(dISO,i);
-    if(d<PROGRAM_START)continue;
+    if(d<progStart())continue;
     const dw=(new Date(d+"T00:00:00").getDay()+6)%7;
     const done=Z.done[d]||{};
     (EXPECT[dw]||[]).forEach(([b,t,dom])=>{ if(!done[b]) out.push({date:d,dow:dw,blk:b,tier:t,dom,age:i}); });
@@ -733,21 +929,24 @@ function waveHolds(dISO){
 function domainDrift(dISO){
   const exp={},miss={};
   for(let i=1;i<=21;i++){
-    const d=isoBack(dISO,i);if(d<PROGRAM_START)continue;
+    const d=isoBack(dISO,i);if(d<progStart())continue;
     const dw=(new Date(d+"T00:00:00").getDay()+6)%7;const done=Z.done[d]||{};
     (EXPECT[dw]||[]).forEach(([b,t,dom])=>{exp[dom]=(exp[dom]||0)+1;if(!done[b])miss[dom]=(miss[dom]||0)+1;});
   }
   return Object.keys(exp).filter(k=>exp[k]>=4&&(miss[k]||0)/exp[k]>0.5)
     .map(k=>({dom:k,pct:Math.round(100-((miss[k]||0)/exp[k])*100),n:exp[k]}));
 }
-/* RULE 5: 4+ misses in 7 days is a chaos week. Stop catching up. */
-function chaosWeek(dISO){return scanMissed(dISO,7).length>=4;}
+/* RULE 5: 4+ misses in 7 days is a chaos week. Stop catching up.
+   v11.24: T1/T2 only. Yin joined EXPECT on all seven days at T3, so without the
+   filter a single skipped-yin week would declare chaos with perfect training.
+   T3 is "cut first" by definition; its absence is not chaos. */
+function chaosWeek(dISO){return scanMissed(dISO,7).filter(x=>x.tier!=="T3").length>=4;}
 
 /* ---- Tiers (chaos management) ---- */
 const TIERS={
  T1:["Biolayne strength mains (top set + primary back-offs)","Friday kickboxing + pre-kick drills","Sunday BJJ","Daily protein target"],
  T2:["Strength accessories","≥1 Zone 2 ride","Markow hip mobility","Core (loaded flexion + anti-rotation)","Sunday primary KOTG"],
- T3:["GMB tissue prep","Baar micro-dose","2nd Zone 2","PZ Max (except FTP-test weeks)","Optional KOTG days","Tonight's Pick","Non-essential accessories","Sunday gap-fill extras"]};
+ T3:["GMB tissue prep","Baar micro-dose","2nd Zone 2","PZ Max (except FTP-test weeks)","Optional KOTG days","Evening yin (pliability)","Kinstretch pick","Non-essential accessories","Sunday gap-fill extras"]};
 
 /* ================= STATE ================= */
 const KEY="hybrid_v6_state";
@@ -806,8 +1005,11 @@ const HEAVY_BO_DAYS=["d1","d2","d3"];
    and BJJ on top, not a hard physiological limit. */
 function hboTrade(w){return w>=3?2:1;}
 Z.down=Z.down||null;           /* {until:dateISO} auto down-week */
-Z.assumeDismiss=Z.assumeDismiss||false;
-Z.coreLoads=Z.coreLoads||{};
+delete Z.assumeDismiss;        /* v11.23 — assumptions card removed; clears old saved state */
+/* v11.22 — `Z.coreLoads` DELETED. Declared since v9, written by nothing, read by
+   nothing. A state key that looks like it stores something is how a future session
+   reasons from the label instead of the source. If core loads ever need logging,
+   write the reader and the writer in the same commit as the key. */
 Z.altSel=Z.altSel||{};         /* dateISO -> 'bike'|'bulgarian'|'inertia' for conditioning modality */
 Z.sm=Z.sm||"self";             /* v11.1 who measured the screen */
 /* ============ v11: MED ENGINE ============
@@ -854,6 +1056,7 @@ const MEDLBL=["Below floor","Maintaining","Progressing"];
    THE SUGGESTION IS A STARTING POINT, NOT A COMMAND. RIR still governs the actual set —
    that is the point of autoregulation and it is how the 4D Hybrid source is written. */
 const MAINLIFT={bsq_top:"boxsq",bsq_bo:"boxsq",bp_top:"bench",bp_bo:"bench",tb_top:"trap",tb_bo:"trap"};
+const LIFTNAME={boxsq:"Box squat",bench:"Bench",trap:"Trap bar"};   /* v11.23 */
 function pct1RM(reps,rir){return 1/(1+(reps+(rir==null?2:rir))/30);}
 /* Rolling e1RM. Every logged top set is itself an e1RM estimate:
      e1 = weight / %1RM(reps, RIR)
@@ -865,6 +1068,68 @@ function pct1RM(reps,rir){return 1/(1+(reps+(rir==null?2:rir))/30);}
    on top of a high-volume program." Correct, and unnecessary: the programmed top sets are
    the test. */
 const E1_WINDOW=42;
+/* ================= v11.23: LAYOFF DECAY =================
+   Asked for 2026-08-23 after an episodic lumbar recurrence cost a week: "we need a decay
+   rule in case something happens within the 12 weeks, like this, where I'm down and out
+   for a period of time."
+
+   DECAY_GRACE — 14 days at zero decay. Hortobágyi 1993 detrained powerlifters for 14 days
+   and found 1RM, isometric and concentric strength essentially preserved; the losses were
+   in eccentric torque and high-velocity measures. Same basis as RX_GRACE. EVIDENCE.
+
+   DECAY_RATE — 1.5%/week past the grace. **THIS IS INFERENCE, NOT A PUBLISHED
+   COEFFICIENT.** There is no validated per-week e1RM decay figure. It is calibrated so six
+   decaying weeks land near −9%, roughly where the detraining literature puts trained
+   lifters at two months off. Chosen deliberately on the conservative side because the
+   errors are asymmetric: under-prescribing costs one easy session that self-corrects the
+   same day, over-prescribing at 84% onto a deconditioned back costs a re-injury.
+
+   DECAY_FLOOR — 15%. Past roughly twelve weeks out the number is fiction and should stop
+   implying precision.
+
+   WHY IT IS NOT SELF-TUNING. He asked whether the rate should be learned from his own
+   layoff/return pairs. It should not, and the reason is a bias, not a shortage of data:
+   a return session is deliberately conservative and may be pain-inhibited, so the logged
+   set understates true strength and the model would read that as decay. A 250 lb capacity
+   ridden at 235 for safety reads as −6% loss when the true loss is zero. With 0–2 pairs
+   per block, a known directional bias, and the estimate feeding the prescription that
+   generates the next observation, a self-tuning rate would drift invisibly. Instead the
+   pairs are RECORDED and DISPLAYED (Z.layoffObs, Test tab) so the rate can be recalibrated
+   deliberately, under his eye. Same discipline as Z.aeroZ5: observe, display, gate nothing.
+
+   SELF-CORRECTING. workingE1 takes the max, so the first logged top set back overwrites
+   the decayed figure upward immediately. An over-aggressive decay costs exactly one
+   submaximal session — which is the whole reason erring conservative is cheap. */
+const DECAY_GRACE=14, DECAY_RATE=0.015, DECAY_FLOOR=0.15;
+/* Days since this lift's own clock last reset. PER-LIFT ON PURPOSE: a lumbar episode kills
+   D1 and D3 while D2 bench keeps running, and bench preserves nothing about a trap bar.
+   Confirmed by him 2026-08-23. Any completed strength session on that day-key resets that
+   lift's clock, logged load or not — the ledger should hold, not punish, and he should
+   never be decayed for training without logging. */
+function lastLiftDay(dkey,base,dISO){
+  let last=(Z.base||{}).date||null;
+  const tk=TOPKEY[base];
+  Object.keys(Z.lifts||{}).forEach(k=>{                       /* a logged top set */
+    if(k>dISO)return;
+    const rec=(Z.lifts[k]||{})[tk];
+    if(rec&&Number(rec.w)&&(!last||k>last))last=k;
+  });
+  Object.keys(Z.done||{}).forEach(k=>{                        /* or a ticked session */
+    if(k>dISO)return;
+    if(!(Z.done[k]||{}).str)return;
+    if(DKEY[dayIdx(new Date(k+"T00:00:00"))]!==dkey)return;
+    if(!last||k>last)last=k;
+  });
+  return last;
+}
+function decayFactor(dkey,base,dISO){
+  const last=lastLiftDay(dkey,base,dISO);
+  if(!last||!ISO_RE.test(dISO))return {mult:1,pct:0,days:0,since:last};
+  const days=Math.floor((new Date(dISO+"T00:00:00")-new Date(last+"T00:00:00"))/86400000);
+  if(!(days>DECAY_GRACE))return {mult:1,pct:0,days:Math.max(0,days),since:last};
+  const loss=Math.min(DECAY_FLOOR,((days-DECAY_GRACE)/7)*DECAY_RATE);
+  return {mult:1-loss,pct:loss*100,days,since:last};
+}
 const TOPKEY={boxsq:"bsq_top",bench:"bp_top",trap:"tb_top"};
 const ISO_RE=/^\d{4}-\d{2}-\d{2}$/;
 function workingE1(base,dISO){
@@ -879,12 +1144,26 @@ function workingE1(base,dISO){
     return b0?{e1:b0,src:"on-ramp test",when:(Z.base||{}).date||null}:null;
   }
   let best=(Z.base&&Z.base[base])||null, src=best?"on-ramp test":null, when=(Z.base||{}).date||null;
+  /* v11.23 — DECAY THE BANKED BASELINE ON A LAYOFF.
+     `Z.base` was the one number in the app with no expiry. Logged estimates already age
+     out after E1_WINDOW (42 d), but when they do the reference falls back to the banked
+     figure rather than below it — so after any long layoff the app kept prescribing off
+     a number that could be months old and had never been re-earned.
+
+     This does NOT duplicate the exposure ledger. rxWeek() freezes his POSITION IN THE
+     WAVE (he returns to week 3's RIR scheme, not week 7's); it never touches the
+     REFERENCE that percentage is applied to. Two different jobs. Do not merge them. */
+  if(best){
+    const dk={boxsq:"d1",bench:"d2",trap:"d3"}[base];
+    const D=decayFactor(dk,base,dISO||todayISO());
+    if(D.mult<1){ best=best*D.mult; src="decayed "+D.pct.toFixed(1)+"% · "+D.days+" d out"; }
+  }
   const tk=TOPKEY[base], cut=isoBack(dISO||todayISO(),E1_WINDOW);
   Object.keys(Z.lifts||{}).forEach(k=>{
     if(k<cut||k>(dISO||todayISO()))return;
     const rec=(Z.lifts[k]||{})[tk]; const wt=rec&&Number(rec.w);
     if(!wt)return;
-    const d=new Date(k+"T00:00:00"), wk=Math.floor((d-new Date(PROGRAM_START+"T00:00:00"))/6048e5);
+    const d=new Date(k+"T00:00:00"), wk=Math.floor((d-new Date(progStart()+"T00:00:00"))/6048e5);
     const dk={boxsq:"d1",bench:"d2",trap:"d3"}[base];
     if(wk<0||wk>11||DKEY[dayIdx(d)]!==dk)return;
     const [,r,rir]=RX[Math.max(0,Math.min(11,wk))][dk][0];
@@ -924,7 +1203,7 @@ function exposureClass(dISO,dkey){
   const w=Number(raw);
   if(w/W.e1>=HEAVY_PCT)return "heavy";
   const d=new Date(dISO+"T00:00:00");
-  const wk=Math.max(0,Math.min(11,Math.floor((d-new Date(PROGRAM_START+"T00:00:00"))/6048e5)));
+  const wk=Math.max(0,Math.min(11,Math.floor((d-new Date(progStart()+"T00:00:00"))/6048e5)));
   const [,r,rir]=RX[wk][dkey][0];
   const target=W.e1*pct1RM(r,rir);
   return (w>=target*PRESCRIBED_TOL)?"heavy":"light";
@@ -1003,7 +1282,7 @@ function liftOffCard(dISO,editable,w,dow){
    (Hortobagyi 1993) — the ledger should hold, not punish. */
 const RX_GRACE=1;
 function liftExposures(dkey,dISO){
-  let n=0;const start=new Date(PROGRAM_START+"T00:00:00"),end=new Date(dISO+"T00:00:00");
+  let n=0;const start=new Date(progStart()+"T00:00:00"),end=new Date(dISO+"T00:00:00");
   for(let d=new Date(start);d<end;d.setDate(d.getDate()+1)){
     const k=iso(d);
     if(DKEY[dayIdx(d)]!==dkey)continue;
@@ -1216,6 +1495,11 @@ if(Z.rhr===undefined)Z.rhr=79; /* v11.12 rolling 30-day resting HR, recomputed f
    Karvonen at rhr 77 gives t4 160.6, at rhr 79 gives 160.2, both round to 160. */
 if(!Z.rhrMig1){if(Z.rhr===77)Z.rhr=79;Z.rhrMig1=true;}
 Z.vrate=Z.vrate||{};           /* videoKey -> {r:1..5, date, n} difficulty rating */
+Z.sunDone=Z.sunDone||{};       /* v11.22 {iso:{exIdx:true}} Sunday add-on, per exercise */
+Z.yinHist=Z.yinHist||{};       /* v11.24 yinId -> ISO of last COMPLETION; drives the LRU rotation */
+Z.layoffObs=Z.layoffObs||[];   /* v11.23 layoff/return pairs. OBSERVATION ONLY — nothing reads
+                                  this to compute anything. It exists so the decay rate can be
+                                  recalibrated by him, deliberately, not fitted automatically. */
 Z.screen=Z.screen||[];         /* [{date,irL,irR,ankL,ankR,kickL,kickR}] baseline battery */
 /* Measured by Robert 2026-07-28, seeded once so the block starts from real data.
    NOTE: right (11 deg) is MORE restricted than left (18 deg) — the opposite of the
@@ -1293,10 +1577,39 @@ if(Z.benchClass===undefined)Z.benchClass=null;
    changes for a reason that has nothing to do with adaptation. */
 if(Z.benchBase===undefined)Z.benchBase=null;
 /* v10: the block start is a fixed calendar date, not "most recent Monday".
-   Progression is calendar-driven on purpose — missing sessions never stalls it. */
-Z.start=Z.start||PROGRAM_START;
-if(Z.start!==PROGRAM_START&&!Z.startPinned)Z.start=PROGRAM_START;
+   Progression is calendar-driven on purpose — missing a session never stalls it.
+
+   v11.22: the seed, and ONLY the seed. The line that used to follow this one —
+     `if(Z.start!==PROGRAM_START&&!Z.startPinned)Z.start=PROGRAM_START;`
+   — reverted every edit he made on the Log tab, because `Z.startPinned` was declared
+   in that condition and set nowhere in the file. It is deleted, not commented out, so
+   no future session can restore it by uncommenting. `Z.startPinned` is gone with it.
+
+   Never re-add a line that forces Z.start back toward a constant. The constant is a
+   seed for a first run on a clean device; the state is the answer. */
+if(!Z.start)Z.start=PROGRAM_START_DEFAULT;
+delete Z.startPinned;                        /* v11.22 — retired; clears old saved state */
+/* v11.22 ONE-SHOT MIGRATION, not a policy. His phone already holds Z.start="2026-08-17"
+   from the fifth start date, and the seed above only fires on a clean install, so
+   without this the app would upgrade and still open on the old block. Stamped so it
+   runs exactly once: after this, whatever he sets on the Log tab is final and nothing
+   in this file will move it again. */
+if(Z.startMig!=="v11.22"){if(Z.start==="2026-08-17")Z.start="2026-08-24";Z.startMig="v11.22";}
 function save(){S.v9=Z;localStorage.setItem(KEY,JSON.stringify(S));}
+/* v11.22 — the only writer of Z.start. Validates rather than corrects: a bad date is
+   refused and the old one kept, because silently snapping the input to a nearby Monday
+   is how the previous control lost his edits without telling him. */
+function setStart(v){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||isNaN(new Date(v+"T00:00:00").getTime())){
+    alert("Not a valid date. Start date unchanged.");render();return;
+  }
+  const dow=(new Date(v+"T00:00:00").getDay()+6)%7;   /* Mon=0 */
+  if(dow!==0&&!confirm("That is a "+["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"][dow]+
+    ".\n\nThe block is built on Mon=D1. Starting mid-week shifts every day-of-week prescription.\n\nSet it anyway?")){
+    render();return;
+  }
+  Z.start=v;save();render();
+}
 const iso=d=>d.toISOString().slice(0,10);
 const today=()=>new Date();
 /* v11.10: every user-facing date is now derived. Three separate hardcoded dates from
@@ -1306,6 +1619,15 @@ const fmtD=s=>{const d=new Date(s+"T00:00:00");
   return isNaN(d)?s:`${["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][(d.getDay()+6)%7]} ${s}`;};
 const todayISO=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);};
 function dayIdx(d){return (d.getDay()+6)%7;} /* Mon=0 */
+/* v11.23 — the calendar week containing an arbitrary date, or null if outside the block.
+   `Math.floor((d-new Date(progStart()+"T00:00:00"))/6048e5)` was written inline in three
+   separate places (workingE1, exposureClass, the aero rollup). Duplicated date arithmetic
+   is how the two start dates desynced in the first place. One definition. */
+function calWeekOf(dISO){
+  if(!ISO_RE.test(dISO))return null;
+  const wk=Math.floor((new Date(dISO+"T00:00:00")-new Date(progStart()+"T00:00:00"))/6048e5);
+  return (wk<0||wk>11)?null:wk;
+}
 function curWeek(){ /* 0..11, clamped */
   const s=new Date(Z.start+"T00:00:00");const n=today();
   const w=Math.floor((n-s)/(7*86400000));
@@ -1343,8 +1665,14 @@ function render(){
   const w=curWeek(),phz=["Base (Wk 1–4)","Load (Wk 5–8)","Peak (Wk 9–12)"][corePhase(w)];
   document.getElementById("hdrTitle").textContent=TABS.find(t=>t[0]===cur)[1];
   const _dI=todayISO();
-  const _phase = _dI<ONRAMP_START ? `Pre-on-ramp · on-ramp starts ${ONRAMP_START}, block starts ${PROGRAM_START}`
-               : (inOnramp(_dI) ? `On-ramp Day ${orIndex(_dI)+1} of ${ONRAMP.length}` : `Week ${w+1} of 12 · ${isDeloadWeek(w)?"<b style='color:var(--z2)'>Biolayne Deload</b>":phz}`);
+  /* v11.22 — four states, not three. The gap arm is new: before it existed, a date
+     after the on-ramp but before the block fell through to "Week 1 of 12" because
+     curWeek() clamps at 0, so the header asserted the block was running when it was
+     not. Order matters — gap is tested before the block arm. */
+  const _phase = _dI<ONRAMP_START ? `Pre-on-ramp · on-ramp starts ${fmtD(ONRAMP_START)}, block starts ${fmtD(progStart())}`
+               : inOnramp(_dI) ? `On-ramp Day ${orIndex(_dI)+1} of ${ONRAMP.length}`
+               : inGap(_dI) ? `<b style='color:var(--t2)'>Layoff</b> · block starts ${fmtD(progStart())}`
+               : `Week ${w+1} of 12 · ${isDeloadWeek(w)?"<b style='color:var(--z2)'>Biolayne Deload</b>":phz}`;
   document.getElementById("hdrSub").innerHTML=`${_phase}${isDown()?" · <b style='color:var(--t2)'>DOWN-WEEK ACTIVE</b>":""} · <span style="opacity:.55">${BUILD}</span>`;
 }
 
@@ -2012,6 +2340,9 @@ function setVRate(k,v){
   save();render();
 }
 function orToggle(d,i){Z.orDone[d]=Z.orDone[d]||{};Z.orDone[d][i]=!Z.orDone[d][i];save();render();}
+/* v11.22 — per-exercise logging for the Sunday add-on. Ticking a row is what puts its
+   sets into the Volume tab; nothing is credited by default. */
+function sunToggle(d,i){Z.sunDone[d]=Z.sunDone[d]||{};Z.sunDone[d][i]=!Z.sunDone[d][i];save();render();}
 function saveScreen(){
   const g=id=>{const v=parseFloat((document.getElementById(id)||{}).value);return isNaN(v)?null:v;};
   const mEl=document.getElementById("smeth");
@@ -2038,8 +2369,62 @@ function setBaseFromPRs(){
           bench:(best["Bench Press"]||{}).e1||null,date:todayISO()};
   save();render();
 }
-function setLoad(dISO,exKey,val){Z.lifts[dISO]=Z.lifts[dISO]||{};
+function setLoad(dISO,exKey,val){
+  /* v11.23 — capture the layoff/return pair BEFORE the set is written, because writing it
+     resets the decay clock and the prediction becomes unrecoverable.
+
+     He asked whether the decay rate should learn from his own data. This is the honest
+     version of that: RECORD the pairs, DISPLAY them, tune NOTHING. A self-fitting rate
+     would train on 0-2 confounded observations per block — a return session is
+     deliberately conservative and may be pain-inhibited, so the logged set understates
+     capacity and reads as decay — and the estimate would feed the prescription that
+     generates the next observation. Recorded, he can see whether 1.5%/wk ran fast or slow
+     and change it deliberately. Same discipline as Z.aeroZ5: observe, display, gate nothing. */
+  const base=MAINLIFT[exKey];
+  if(base&&val!==""&&val!=null&&!isNaN(Number(val))&&ISO_RE.test(dISO)){
+    const dk={boxsq:"d1",bench:"d2",trap:"d3"}[base];
+    const D=decayFactor(dk,base,dISO);
+    const already=(Z.layoffObs||[]).some(o=>o.date===dISO&&o.lift===base);
+    const isTop=TOPKEY[base]===exKey;
+    if(isTop&&D.days>DECAY_GRACE&&!already){
+      const W=workingE1(base,dISO);                       /* the decayed prediction */
+      const cal=calWeekOf(dISO), dkey2=DKEY[dayIdx(new Date(dISO+"T00:00:00"))];
+      let actual=null;
+      if(cal!=null&&dkey2===dk){
+        const [,r,rir]=RX[Math.max(0,Math.min(11,cal))][dk][0];
+        actual=Number(val)/pct1RM(r,rir);                 /* what the set actually says */
+      }
+      Z.layoffObs=Z.layoffObs||[];
+      Z.layoffObs.push({date:dISO,lift:base,days:D.days,since:D.since,
+        predicted:W?Math.round(W.e1):null, actual:actual?Math.round(actual):null,
+        banked:(Z.base||{})[base]||null, lb:Number(val)});
+    }
+  }
+  Z.lifts[dISO]=Z.lifts[dISO]||{};
   Z.lifts[dISO][exKey]=Z.lifts[dISO][exKey]||{};Z.lifts[dISO][exKey].w=val;save();}
+/* v11.23 — the layoff/return ledger. Every row is one natural experiment the decay rule
+   made a prediction about. It is DISPLAY ONLY: no code reads Z.layoffObs to compute
+   anything, and qa23 asserts that changing these rows leaves every prescription identical.
+   If a future session is tempted to fit DECAY_RATE to this table, read the caveat below
+   first — the bias is structural, not noise. */
+function layoffObsCard(){
+  const obs=(Z.layoffObs||[]).filter(o=>o.predicted&&o.actual);
+  if(!obs.length)return `<div class="card"><h3>Layoff calibration</h3>
+    <div class="meta">Empty, which is the good outcome. Every time you log a top set after more than ${DECAY_GRACE} days off that lift, the row lands here: how long you were out, what the decay predicted, and what the bar actually said.</div>
+    <div class="mini" style="margin-top:6px">The −${(DECAY_RATE*100).toFixed(1)}%/week rate is <b>inference, not a published figure</b>. This table is how it earns its keep or gets changed.</div></div>`;
+  const rows=[...obs].reverse().map(o=>{
+    const err=o.actual-o.predicted, pct=(err/o.predicted*100);
+    const verdict=Math.abs(pct)<2?"about right":(pct>0?"decayed too fast":"decayed too slow");
+    return `<div class="row"><div class="nm">${LIFTNAME[o.lift]||o.lift} · ${o.date}
+      <div class="sup">${o.days} d out (since ${o.since}) · predicted <b>${o.predicted}</b> · actual <b>${o.actual}</b> from ${o.lb} lb — <b>${verdict}</b></div></div>
+      <div class="rx" style="color:${Math.abs(pct)<2?"var(--ok,#3a7)":"var(--t2)"}">${pct>0?"+":""}${pct.toFixed(1)}%</div></div>`;}).join("");
+  const mean=obs.reduce((a,o)=>a+(o.actual-o.predicted)/o.predicted,0)/obs.length*100;
+  return `<div class="card"><h3>Layoff calibration <span class="chip">${obs.length} observation${obs.length===1?"":"s"}</span></h3>
+  <div class="meta">What the decay predicted vs what the bar said, on every return from more than ${DECAY_GRACE} days off.</div>
+  ${rows}
+  <div class="mini" style="margin-top:8px">Mean error <b>${mean>0?"+":""}${mean.toFixed(1)}%</b>. Positive means you came back stronger than the rule assumed and −${(DECAY_RATE*100).toFixed(1)}%/week is too aggressive.</div>
+  <div class="mini" style="margin-top:6px;opacity:.75"><b>Read these with the confound in front of you.</b> A first session back is deliberately submaximal and may be pain-inhibited, so <b>actual</b> systematically understates what you could have done — which makes the rule look more accurate than it is. Two or three clean observations are worth more than ten hurried ones. <b>This table changes nothing on its own; it is here so you can change the rate on purpose.</b></div></div>`;
+}
 function strengthCard(w,dkey,dISO,editable){
   const R=rxWeek(dkey,w,dISO);
   const exs=EX[dkey],rx=RX[R.i][dkey];
@@ -2054,6 +2439,11 @@ function strengthCard(w,dkey,dISO,editable){
     const inp=editable?`<input class="win" inputmode="decimal" placeholder="${sg?sg.lb:(lastLoad(e.k,dISO)||"lb")}" value="${(Z.lifts[dISO]&&Z.lifts[dISO][e.k]&&Z.lifts[dISO][e.k].w)||""}" onchange="setLoad('${dISO}','${e.k}',this.value)">`:"";
     /* v11.16: a suggested lift already tells him what to load. An accessory does not, so it
        gets its last load and the change since the time before. */
+    /* v11.23 — a decayed reference must SAY it is decayed. A number that quietly moved is
+       exactly the failure this project keeps finding; the card carries the percentage and
+       the day count so the size of the adjustment is visible, not just its effect. */
+    const _dcy=(sg&&MAINLIFT[e.k])?decayFactor({boxsq:"d1",bench:"d2",trap:"d3"}[MAINLIFT[e.k]],MAINLIFT[e.k],dISO):null;
+    const dcyNote=(_dcy&&_dcy.mult<1)?`<div class="mini" style="margin-top:4px;color:var(--t2)">Reference decayed <b>−${_dcy.pct.toFixed(1)}%</b> — ${_dcy.days} days since your last ${e.tag.toLowerCase()} session (${_dcy.since}). Grace is ${DECAY_GRACE} days, then −${(DECAY_RATE*100).toFixed(1)}%/week, floored at −${DECAY_FLOOR*100}%. <b>Inference, not a published figure.</b> The first top set you log overwrites this upward.</div>`:"";
     const sub2=sg?`${e.tag} · <b>start ~${sg.lb} lb</b> (${sg.pct}% of ${sg.e1}${sg.src&&sg.src!=="on-ramp test"?` — from your ${sg.src} on ${sg.when}`:""}) — then let RIR decide`
                  :(MAINLIFT[e.k]?`${e.tag} · <i>no e1RM yet — set a baseline in the Test tab and this fills in</i>`
                                 :`${e.tag}${lastLoadTag(e.k,dISO)}`);
@@ -2068,7 +2458,7 @@ function strengthCard(w,dkey,dISO,editable){
         <div class="rx">${DE.sets}×${DE.reps}</div>
         ${editable?`<input class="win" inputmode="decimal" placeholder="${lb||"lb"}" value="${dv}" onchange="setLoad('${dISO}','bp_de',this.value)">`:""}</div>`;
     }
-    rows+=`<div class="row"><div class="nm">${e.n}${seTxt}<div class="sup">${sub2}${(i===1&&HEAVY_BO_DAYS.includes(dkey))?` · <i>${hboTrade(R.i)} set${hboTrade(R.i)===1?"":"s"} fewer than written — traded for the heavy triples above${R.i>=3?", net-neutral on volume":""}</i>`:""}</div></div><div class="rx">${useSets}×${r}${rir!=null?" · RIR "+rir:""}</div>${inp}</div>`;
+    rows+=`<div class="row"><div class="nm">${e.n}${seTxt}<div class="sup">${sub2}${(i===1&&HEAVY_BO_DAYS.includes(dkey))?` · <i>${hboTrade(R.i)} set${hboTrade(R.i)===1?"":"s"} fewer than written — traded for the heavy triples above${R.i>=3?", net-neutral on volume":""}</i>`:""}</div>${dcyNote}</div><div class="rx">${useSets}×${r}${rir!=null?" · RIR "+rir:""}</div>${inp}</div>`;
     /* the heavy back-offs sit between the top set and the hypertrophy back-offs */
     if(i===0&&HEAVY_BO_DAYS.includes(dkey)){
       const hk=e.k.replace("_top","_hbo");
@@ -2113,7 +2503,7 @@ function coreCard(w,dow,dISO,editable){
 function gmbCard(dow,dISO,editable){
   const cls=(Z.gmb.ov&&Z.gmb.ov[dISO])||GMB_AUTO[dow];
   const on=Z.gmb["on_"+dISO];
-  const alt=dow===4?GMB_ALT[4]:(dow===3?GMB_ALT[3]:(dow===5?GMB_ALT[5]:null));
+  const alt=GMB_ALT[dow]||null;   /* v11.22: table lookup — the chain hardcoded 3/4/5 and silently ignored any key added to GMB_ALT */
   return `<div class="card spine"><h3>GMB Tissue Prep <span class="tiertag T3">T3</span></h3>
   <div class="meta">Auto-pick: <b>${cls}</b>${alt&&alt!==cls?` · alt: ${alt}`:""} · ${Z.gmb.dur} min · run before the day's work</div>
   ${editable?`<div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -2237,7 +2627,11 @@ function condCard(w,dow,dISO,editable){
 function sunLiftCard(w,dISO,editable){
   return `<div class="card spine t2"><h3>Sunday Gap-Fill Lift <span class="tiertag T2">T2</span></h3>
   <div class="meta">Commercial gym, circuit-style between your partner's sets. Minimal + surgical — rear delt is the point. Do NOT add arms/side-delt (already high).</div>
-  ${SUNBLOCK(w).map(x=>`<div class="row"><div class="nm">${x.n}<div class="sup">${x.why}</div></div><div class="rx">${x.rx}</div></div>`).join("")}
+  ${SUNBLOCK(w).map((x,i)=>{
+    const on=editable&&((Z.sunDone||{})[dISO]||{})[i];
+    return `<div class="row"><div class="nm">${x.n}<div class="sup">${x.why}</div></div><div class="rx">${x.rx}</div>${
+      editable?`<div class="ck ${on?"on":""}" onclick="sunToggle('${dISO}',${i})">✓</div>`:""}</div>`;}).join("")}
+  <div class="mini" style="margin-top:6px">Tick what you actually got to. <b>Only ticked rows count toward the Volume tab</b> — rear delt is the hole this block exists to fill, so it is not credited by default. The rest of the session, whatever your partner is running, is not tracked.</div>
   ${editable?ckHTML(dISO,"sunlift"):""}</div>`;
 }
 function heavyBagCard(dow,dISO,editable){
@@ -2261,8 +2655,7 @@ function dayStack(w,dow,dISO,editable){
   h+=condCard(w,dow,dISO,editable);
   if(dow!==4)h+=skillCard(w,dow,dISO,editable);
   h+=heavyBagCard(dow,dISO,editable);
-  const tp=TP_DAY[dow];
-  h+=`<div class="card spine"><h3>Tonight's Pick <span class="tiertag T3">T3</span></h3><div class="meta">Base category: ${tp}. <a href="#" onclick="go('night');return false">Open →</a></div></div>`;
+  h+=tonightCard(w,dow,dISO); /* v11.24 — yin primary + kin complement */
   return h;
 }
 
@@ -2272,31 +2665,22 @@ function rToday(){
   const d=today(),dow=dayIdx(d),dISO=todayISO(),w=curWeek();
   const r=readiness(dISO);
   let h="";
-  if(!Z.assumeDismiss){
-    h+=`<div class="card"><h3>Confirm v11 assumptions</h3><ul class="assume">
-    <li><b>Block starts Mon 2026-08-10</b>, after a 6-day on-ramp Aug 4&ndash;9. <b>Two clocks, and this used to be stated wrong.</b> The <b>calendar</b> is calendar-driven — a missed session never stalls the block, nothing repeats, no makeup work. The <b>load</b> is completion-driven — your prescription is indexed to heavy exposures actually completed, so the bar waits for the work even though the calendar does not.</li>
-    <li><b>A week succeeds on 3 compound days, not 4.</b> Protected: D1 box squat, D2 bench, D3 trap bar. D4 is the flex day and is made up at the Sunday social lift. This is a published progression dose in your exact population, not a softened standard.</li>
-    <li><b>Intensity is the protected variable.</b> Cut frequency, cut volume, cut duration — never cut load. A 2-lift week at 85% beats a 4-lift week at 70%.</li>
-    <li><b>North star is kick height</b>, with lift-off height and the rear-view video as diagnostics. Passive hip IR is now a background metric.</li>
-    <li><b>Hard aerobic is the only gated domain</b> — 2 exposures of &ge;13 min above threshold, from any source. It is the fastest-decaying quality you have (&minus;7% VO2max at 21 days).</li>
-    <li><b>Old baselines are void.</b> Box squat 285×3 / trap 305×3 / bench 225×3 predate a two-week layoff. The on-ramp re-derives them from hard triples at RPE 7-8, not maxes.</li>
-    <li><b>Markow hip block is derived from the authored 12-week plan</b>, read session by session. Five of its fifteen classes have no video anywhere; those are labelled as substitutions in the card, with the reason.</li>
-    <li><b>Markow lands Tue / Wed / Fri / Sun.</b> Mon and Thu stay clear of hip volume because they are heavy lower-body days; Sat belongs to sprint and Luke Thomas.</li>
-    <li><b>Markow's Day-4 strength ladder is cut.</b> Lower Body Strength is redundant with 4D Hybrid. Quick Hamstring Strength is kept in wk 4-6 for sprint-block hamstring durability. Squat Class 2 is kept — its own notes are mobility, not loading.</li>
-    <li><b>Hip IR test is prone, in degrees, left vs right.</b> Not Prone Capsule CARs — no video exists to teach it and a CAR is a skill, which would confound learning with range.</li>
-    <li><b>Luke Thomas / F4F is a warm-up, not a program.</b> Its assessment battery has no internal-rotation test at all, so it cannot see your limiter.</li>
-    <li><b>No general-mobility program.</b> Full-ROM lifting raises ROM about as much as stretch training, so the barbell owns that. Total Body Mobility and 5Day Foundation dropped as redundant.</li>
-    <li><b>Your existing FTP stands.</b> Ride the Power Zone pack against it. No FTP test is scheduled and the app does not calculate one — Peloton owns that number. You are at the bottom of your current FTP after the layoff, so a retest now would only record the dip; leave it until the block has run.</li>
-    <li><b>Dynamic-effort bench on D2 is ON</b> — 6×3 @ 50%, 45 s rest, after the heavy work. Agreed 2026-07-28; it was declared but never wired in until v11.7.</li>
-    <li><b>Sex = male</b> for BMR · <b>activity 1.6</b> default · <b>protein on total BW</b> unless BF% &gt; 25%.</li>
-    <li><b>Booty Sprout bands are 45 lb and 70 lb, quantity unknown</b>, so the picker takes a count of each. The nominal total orders your progression but is <b>not</b> comparable to barbell load and is excluded from tonnage. Progression stays reps → tempo/pause → tension.</li></ul>
-    <button class="btn sm" onclick="Z.assumeDismiss=true;save();render()">Confirmed — dismiss</button></div>`;
-  }
+  /* v11.23 — the "Confirm v11 assumptions" card was REMOVED, not hidden.
+     Sixteen bullets on the Today tab every day, above the actual work. Robert asked
+     for them recorded rather than displayed. Full text, with provenance and two
+     corrections, now lives in `reference/ASSUMPTIONS.md`.
+
+     Reading them on the way out found that two were stale and one had contradicted
+     shipped behaviour since v11.12: the card said the F4F battery "cannot see your
+     limiter" while the Test tab prescribed that battery at weeks 4/8/12. An assumption
+     nobody re-reads is not documentation, it is a place for contradictions to sit.
+
+     Do not re-add this card. If an assumption changes, change ASSUMPTIONS.md. */
   if(dISO<ONRAMP_START){
     const dd=Math.round((new Date(ONRAMP_START+"T00:00:00")-new Date(dISO+"T00:00:00"))/86400000);
     const o=ONRAMP[0];
     h+=`<div class="card spine t1"><h3>On-ramp starts ${dd===1?"tomorrow":"in "+dd+" days"} — ${fmtD(ONRAMP_START)}</h3>
-    <div class="meta">Today is ${fmtD(dISO)}. Nothing is scheduled yet. The ${ONRAMP.length}-day on-ramp opens automatically on ${fmtD(ONRAMP_START)} and hands off to Week 1 on ${fmtD(PROGRAM_START)}.</div>
+    <div class="meta">Today is ${fmtD(dISO)}. Nothing is scheduled yet. The ${ONRAMP.length}-day on-ramp opens automatically on ${fmtD(ONRAMP_START)} and hands off to Week 1 on ${fmtD(progStart())}.</div>
     <div class="klabel" style="margin-top:8px">Day 1 preview — ${o.t}</div>
     ${o.items.map(it=>`<div class="row"><div class="nm">${it[0]}${it[1]?`<div class="sup">${it[1]}</div>`:""}</div></div>`).join("")}
     <div class="banner teal" style="margin-top:10px"><b>Floor:</b> ${o.floor}</div>
@@ -2310,19 +2694,40 @@ function rToday(){
     if(o){
       const dn=Z.orDone[dISO]||{};
       h+=`<div class="card spine t1"><h3>On-ramp · Day ${i+1} of ${ONRAMP.length} — ${o.t}</h3>
-      <div class="meta">${fmtD(dISO)} · full block starts ${fmtD(PROGRAM_START)}</div>
+      <div class="meta">${fmtD(dISO)} · full block starts ${fmtD(progStart())}</div>
       ${Z.orShort===dISO?`<div class="mini" style="margin:6px 0;color:var(--t2)">Showing the floor only. Everything else today is optional.</div>`
         :o.items.map((it,ix)=>`<div class="row"><div class="nm">${it[0]}${it[1]?`<div class="sup">${it[1]}</div>`:""}</div>
         <button class="btn sm ${dn[ix]?"on":""}" onclick="orToggle('${dISO}',${ix})">${dn[ix]?"✓":"○"}</button></div>`).join("")}
       <div class="seg" style="margin:10px 0 8px">
         <button class="${Z.orShort!==dISO?"on":""}" onclick="Z.orShort=null;save();render()">Full day</button>
         <button class="${Z.orShort===dISO?"on":""}" onclick="Z.orShort='${dISO}';save();render()">Short on time</button></div>
-      <div class="banner teal"><b>Floor:</b> ${o.floor}<br><span class="mini">Hit the floor and the session counted. Miss the day entirely and ${fmtD(PROGRAM_START)} is unaffected.</span></div>
-      <div class="mini" style="margin-top:8px">The minutes-planner &mdash; &ldquo;How much time do you actually have?&rdquo; &mdash; needs a programmed day structure to prioritise against, so it starts with Week 1 on ${fmtD(PROGRAM_START)}. During the on-ramp the <b>floor above is the same answer</b>: it is what this day is worth on its own.</div>
+      <div class="banner teal"><b>Floor:</b> ${o.floor}<br><span class="mini">Hit the floor and the session counted. Miss the day entirely and ${fmtD(progStart())} is unaffected.</span></div>
+      <div class="mini" style="margin-top:8px">The minutes-planner &mdash; &ldquo;How much time do you actually have?&rdquo; &mdash; needs a programmed day structure to prioritise against, so it starts with Week 1 on ${fmtD(progStart())}. During the on-ramp the <b>floor above is the same answer</b>: it is what this day is worth on its own.</div>
       <div class="mini" style="margin-top:8px">Record baselines in the <a href="#" onclick="go('test');return false">Test tab →</a></div></div>`;
     } else {
-      h+=`<div class="card"><h3>Rest before the block</h3><div class="meta">No on-ramp session scheduled for ${fmtD(dISO)}. Week 1 begins ${fmtD(PROGRAM_START)}.</div></div>`;
+      h+=`<div class="card"><h3>Rest before the block</h3><div class="meta">No on-ramp session scheduled for ${fmtD(dISO)}. Week 1 begins ${fmtD(progStart())}.</div></div>`;
     }
+    el.innerHTML=h;return;
+  }
+  /* ============ v11.22 — THE GAP BRANCH ============
+     Dates after the on-ramp closed but before the block opens. Before v11.22 no branch
+     owned this state, because the on-ramp was defined as a range ENDING at the block
+     start, so the two could not be separated. Moving the start to Aug 24 without this
+     branch made Aug 17-23 render as "Rest before the block" — an entire week silently
+     reclassified as on-ramp rest, showing no block content and flagging nothing.
+
+     This is not a rest week and must not read as one. It is a layoff with a reason. */
+  if(inGap(dISO)){
+    const dd=Math.round((new Date(progStart()+"T00:00:00")-new Date(dISO+"T00:00:00"))/86400000);
+    h+=`<div class="card"><div class="klabel">Readiness · 1–5</div>
+    <div class="seg">${[1,2,3,4,5].map(v=>`<button class="${r===v?"on":""}" onclick="setReady(${v})">${v}</button>`).join("")}</div>
+    <div class="mini" style="margin-top:6px">Worth logging through the layoff — it is the trend either side of the gap that tells you what the time off cost.</div></div>
+    <div class="card spine t2"><h3>Layoff — block opens ${dd===1?"tomorrow":"in "+dd+" days"}, ${fmtD(progStart())}</h3>
+    <div class="meta">Today is ${fmtD(dISO)}. The on-ramp closed ${fmtD(ONRAMP[ONRAMP.length-1].d)} and Week 1 has not started.</div>
+    <div class="banner teal" style="margin-top:10px"><b>Nothing is owed.</b><br><span class="mini">The block is calendar-driven: it opens on its date and nothing repeats. The load is exposure-driven, so the bar has not run ahead of you — it is still waiting at week 1. There is no makeup work to do, and doing extra now buys you nothing the ledger will read.</span></div>
+    <div class="klabel" style="margin-top:12px">Day 1 — ${fmtD(progStart())}</div>
+    <div class="row"><div class="nm">Box squat · top triple<div class="sup">The first loaded exposure of the block, and the lower-risk one — it is your cleared lumbar substitution and it falls before the trap bar on Thursday. Prescription and load are on the Week tab.</div></div></div>
+    <div class="mini" style="margin-top:10px">Change the start date on the <a href="#" onclick="go('log');return false">Log tab →</a> if this needs to move again.</div></div>`;
     el.innerHTML=h;return;
   }
   h+=`<div class="card"><div class="klabel">Readiness · 1–5 (only brake on fatigue)</div>
@@ -2616,10 +3021,18 @@ function weeklyVolume(w){
       Object.keys(e.mus).forEach(m=>tot[m]+=sets*e.mus[m]);
     });
   });
-  /* Sunday gap-fill defaults */
+  /* ---- Sunday social-lift add-on ----
+     v11.22: COUNTED ONLY IF LOGGED. Until now these sets were added unconditionally,
+     so the Volume tab credited the rear-delt work every week whether the Sunday block
+     happened or not — and rear delt is the one muscle the audit called a structural
+     hole. A number built to reveal a gap was quietly filling it in. Only the
+     programmed add-on is logged; the partner-led portion of the lift is variable and
+     is deliberately not modelled. */
   const p=corePhase(w);
-  tot.rdelt+=(p===2?4:3)+3;      /* rev pec deck + face pulls */
-  tot.back+=0.75;                 /* face pull spill + CS row partial */
+  sunLogged(w).forEach(({i,ex})=>{
+    const sets=Number(String(ex.rx).match(/^(\d+)\s*×/)?.[1]||0);
+    Object.keys(ex.mus||{}).forEach(m=>{if(tot[m]!=null)tot[m]+=sets*ex.mus[m];});
+  });
   /* Core, split by wall (evidence report). Anterior = dedicated RA/oblique work, phase-progressed.
      Posterior = light dedicated lateral/extension + fractional credit from box squat + trap bar. */
   tot.abs_ant+={0:12,1:14,2:15}[p];
@@ -2663,30 +3076,51 @@ function rVol(){
   <div class="mini">Overshoot watch: quads / glutes / arms. Undershoot flag: rear delt — owned by the Sunday block. Core is split by wall: anterior (RA/obliques) is trained directly for aesthetics; posterior (ES/MF/QL) is largely paid by box squat + trap bar, so dedicated low-back work stays minimal.</div></div>`;
 }
 
-/* ---- Tonight's Pick ---- */
+/* ---- Night tab: v11.24 — yin primary, kinstretch complement ---- */
 function rNight(){
   const el=document.getElementById("v_night");
   const dow=dayIdx(today()),dISO=todayISO(),w=curWeek();
   const r=readiness(dISO);
-  let cat=TP_DAY[dow],gate="";
-  if(isDown()||isDeloadWeek(w)){cat="Breathing";gate=`<div class="banner teal"><b>${isDown()?"Down-week":"Deload-week"} gate:</b> breathing / global only tonight.</div>`;}
-  else if(r!==null&&r<=3){cat=r<=2?"Breathing":"Global";gate=`<div class="banner amber"><b>Readiness gate (≤3):</b> switched to ${cat.toLowerCase()} work — downshift the nervous system, don't chase range.</div>`;}
+  const pool=yinPoolFor(dow,r);
+  let gate="";
+  if(isDown()||isDeloadWeek(w))gate=`<div class="banner teal"><b>${isDown()?"Down-week":"Deload-week"} gate:</b> Sleep + Breath tonight — down-regulate, don't chase range.</div>`;
+  else if(r!==null&&r<=2)gate=`<div class="banner amber"><b>Readiness gate (≤2):</b> switched to Sleep + Breath — the yin habit survives a bad day, the intensity does not.</div>`;
+  const picks=yinPicks(pool,3),pk=picks[0],alts=picks.slice(1);
+  const hist=Z.yinHist||{};
+  const row=(k,primary)=>{const v=YIN[k];const on=hist[k]===dISO;
+    return `<div class="vlink"><span>${primary?"★ ":""}${v[0]} <span class="mini">~${v[1]}m${hist[k]&&!on?` · last ${hist[k]}`:""}</span></span>
+    <span><a href="${v[2]}" target="_blank">Play ▸</a>
+    <button class="btn sm ${on?"on":""}" onclick="togYin('${dISO}','${k}')">${on?"✓ done":"did it"}</button></span>${on?vRate('y_'+k):""}</div>`;};
+  let h=gate;
+  h+=`<div class="card spine t2"><h3>Yin — ${YIN_POOL_LABEL[pool]} <span class="tiertag T3">T3</span>${(Z.done[dISO]||{}).yin?' <span class="chip ghost">done tonight ✓</span>':''}</h3>
+  <div class="meta">The nightly down-regulation slot (pliability replacement). Rotation moves only when you mark a video done — an unwatched pick stays first in line, so nothing repeats often enough to memorize. 1 primary + 2 alternates.</div>
+  ${row(pk,true)}${alts.map(a=>row(a,false)).join("")}</div>`;
+  if(YIN_LONG_DAYS.includes(dow)&&pool!=="sleep"){
+    const lp=yinPicks("long",2);
+    h+=`<div class="card spine"><h3>Long option <span class="chip ghost">39–53 min</span></h3>
+    <div class="meta">Weekend either/or: the short session above OR one long — marking either counts as tonight's yin. Longs cover the whole body and run about twice the length.</div>
+    ${lp.map((k,i)=>row(k,i===0)).join("")}</div>`;
+  }
+  const cat=kinComplement(dow,w,r);
   const usedThisWeek=new Set(mkWeekKeys(w));
-  const pool=TP[cat].vids.filter(k=>!usedThisWeek.has(k));
+  const poolK=TP[cat].vids.filter(k=>!usedThisWeek.has(k));
   const all=TP[cat].vids;
-  const seed=parseInt(dISO.replace(/-/g,""))%(pool.length||1);
-  const pick=pool.length?pool[seed]:all[0];
-  const alts=(pool.length?pool:all).filter(k=>k!==pick).slice(0,2);
+  const seed=parseInt(dISO.replace(/-/g,""))%(poolK.length||1);
+  const pick=poolK.length?poolK[seed]:all[0];
+  const kalts=(poolK.length?poolK:all).filter(k=>k!==pick).slice(0,2);
   const vrow=(k,primary)=>{const v=V[k];const dd=usedThisWeek.has(k);
     return `<div class="vlink ${dd?"dedupe":""}"><span>${primary?"★ ":""}${v[0]}${dd?" · in this week's Markow rotation":""}</span><a href="${v[1]}" target="_blank">Play ▸</a></div>`;};
-  el.innerHTML=`${gate}
-  <div class="card spine"><h3>Tonight's Pick — ${cat} <span class="chip ghost">~${TP[cat].min} min</span></h3>
-  <div class="meta">1 primary + 2 alternates · greyed = already in this week's Markow rotation (dedupe)</div>
-  ${vrow(pick,true)}${alts.map(a=>vrow(a,false)).join("")}
-  <div style="margin-top:10px">${ckHTML(dISO,"night")}<span class="mini" style="margin-left:8px">Done tonight</span></div></div>
-  <div class="card"><h3>Full library by category</h3>
+  h+=`<div class="card"><h3>Kinstretch pick — ${cat} <span class="chip ghost">~${TP[cat].min} min · optional</span></h3>
+  <div class="meta">Complements tonight's yin region and is biased away from the week's most-loaded tissue — kinstretch is challenging, so it avoids what is already trained. Never owed; skip freely.</div>
+  ${vrow(pick,true)}${kalts.map(a=>vrow(a,false)).join("")}
+  <div style="margin-top:10px">${ckHTML(dISO,"night")}<span class="mini" style="margin-left:8px">Did the kin work</span></div></div>`;
+  h+=`<div class="card"><h3>Yin library — go find something different</h3>
+  ${["hips","lower","back","upper","global","sleep","long"].map(p=>`<details><summary>${YIN_POOL_LABEL[p]} <span class="mini">${(YIN_POOLS[p]||[]).length} sessions</span></summary>${(YIN_POOLS[p]||[]).map(k=>row(k,false)).join("")}</details>`).join("")}
+  <div class="mini">"Lower Folds (unlabeled)" is the one video with no screenshot — identified from its frames only. Marking any library video done counts as tonight's yin and advances its rotation.</div></div>
+  <div class="card"><h3>Kinstretch library by category</h3>
   ${Object.keys(TP).map(c=>`<details><summary>${c} <span class="mini">~${TP[c].min} min</span></summary>${TP[c].vids.map(k=>vrow(k,false)).join("")}</details>`).join("")}
   <div class="mini">GMB classes live in the GMB tab and count as Global work.</div></div>`;
+  el.innerHTML=h;
 }
 
 /* ---- Testing / PRs ---- */
@@ -2779,6 +3213,8 @@ function rTest(){
   <div class="mini" style="margin-top:6px">Leave anything blank that you did not measure.</div>
   </div>
 
+  ${layoffObsCard()}
+
   <div class="card"><h3>History</h3>
   <div class="meta">Newest first. <b>Never mix methods in one trend</b> — a self-measure and a PT measure are not the same number, and yours differed by 14&deg; on the right.</div>
   ${Z.screen.length?[...Z.screen].reverse().slice(0,8).map(x=>{
@@ -2857,8 +3293,14 @@ function rLog(){
   el.innerHTML=`
   <div class="card"><h3>Program</h3>
   <label class="f">Week 1 start date (Monday)</label>
-  <input type="date" value="${Z.start}" onchange="Z.start=this.value;save();render()">
-  <div class="mini" style="margin-top:6px">Currently Week ${curWeek()+1} of 12. Restart preserves training history — periodization resets, adaptation doesn't.</div></div>
+  <input type="date" value="${Z.start}" onchange="setStart(this.value)">
+  <div class="mini" style="margin-top:6px">${
+    todayISO()<progStart()
+      ? `Block has not opened yet — Week 1 begins <b>${fmtD(progStart())}</b>.`
+      : `Currently <b>Week ${curWeek()+1} of 12</b>.`
+  } This date drives the whole app: the Today card, the week grid, the exposure ledger, the benchmark-ride weeks and the week-4/8/12 screens. Nothing else holds a start date.</div>
+  <div class="mini" style="margin-top:6px">Moving it <b>preserves everything you have logged</b> — readiness, lifts, HR, benchmarks are all keyed by calendar date. What resets is the periodization: which week the wave thinks you are in. Sessions logged before the new start date fall outside the block and stop counting toward the ledger, which is what you want after a layoff.</div>
+  <div class="mini" style="margin-top:6px;opacity:.7">Set to a <b>Monday</b>. Any other weekday shifts the whole D1–D4 pattern off the week and the day-of-week prescriptions will not line up.</div></div>
   <div class="card"><h3>Readiness — last 14 logged days</h3>${spark||'<div class="mini">Log readiness on the Today tab.</div>'}
   ${ks.slice().reverse().map(k=>`<div class="row"><div class="nm">${k}</div><div class="rx">${Z.readiness[k]} / 5</div></div>`).join("")}</div>
   <div class="card"><h3>This week's compliance</h3>
