@@ -7,6 +7,14 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0F1216">
 <title>Hybrid Training</title>
+<!-- v11.25 — home-screen icon. Embedded as a data URI so the single-file constraint holds
+     (README: "The app is a single self-contained HTML file"). A copy also sits beside this
+     file as apple-touch-icon.png: if the folder is dropped on Netlify rather than the file,
+     iOS probes /apple-touch-icon.png by convention and that becomes an independent fallback.
+     180x180, quantised to 128 colours, composited onto --bg because iOS renders PNG alpha
+     as BLACK on the home screen rather than honouring it. -->
+<link rel="apple-touch-icon icon" sizes="180x180" href="data:image/png;base64,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">
+<meta name="apple-mobile-web-app-title" content="Hybrid">
 <style>
 :root{
   --bg:#0F1216; --panel:#161B21; --panel2:#1E252D; --line:#2A323C;
@@ -135,7 +143,7 @@ details[open] summary:after{transform:rotate(-90deg)}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.24 · 2026-08-23";
+const BUILD="v11.25 · 2026-08-24";
 /* v11.22 — THE START DATE IS NOW STATE, NOT A CONSTANT.
    Sixth start date (Jul 28 · Aug 3 · Aug 10 · Aug 17 · Aug 24), moved for an episodic
    lumbar recurrence. The point of this change is that there must never be a seventh
@@ -153,15 +161,24 @@ const BUILD="v11.24 · 2026-08-23";
         count. Fifteen other comparisons read the constant. Two start dates that
         disagreed — benchTodayCard() called curWeek() while the card rendered beside it
         on Today read the constant. */
-const PROGRAM_START_DEFAULT="2026-08-24";   /* Monday. SEED ONLY — see progStart(). */
-const ONRAMP_START="2026-08-11";            /* Tuesday. HISTORICAL, fixed — see inOnramp(). */
+const PROGRAM_START_DEFAULT="2026-08-31";   /* Monday. SEED ONLY — see progStart(). */
+const ONRAMP_START="2026-08-11";            /* Tuesday. First on-ramp. HISTORICAL — see inOnramp(). */
 /* The block start, from state. Hoisted so the functions above may call it; Z is only
    dereferenced at call time, always after Z is initialised. */
 function progStart(){return (typeof Z!=="undefined"&&Z&&Z.start)||PROGRAM_START_DEFAULT;}
 /* True for dates after the on-ramp finished but before the block opens. Before v11.22
    no branch owned this state, because the on-ramp was defined as "everything between
-   ONRAMP_START and the block" and the two were assumed adjacent. */
-function inGap(iso){return iso>ONRAMP[ONRAMP.length-1].d&&iso<progStart();}
+   ONRAMP_START and the block" and the two were assumed adjacent.
+
+   v11.25 — rewritten because the old form read the LAST element of the array. With a second
+   on-ramp appended, `ONRAMP[ONRAMP.length-1].d` became 2026-08-30, so Aug 24 (after on-ramp 1,
+   before on-ramp 2) was no longer > that date, failed the gap test, fell through to the block
+   branch and rendered Week 1 six days early with curWeek() clamped to 0. That is the v11.22
+   bug wearing a different hat: a state defined by a RANGE between two moving endpoints.
+
+   Defined by exclusion now: a date is a gap day if it is inside the programme's span and no
+   other branch owns it. Adding a third on-ramp cannot break this. */
+function inGap(iso){return !inOnramp(iso)&&iso>ONRAMP[0].d&&iso<progStart();}
 /* ============ RE-ENTRY ON-RAMP, Aug 11-16. Rewritten 2026-08-10. ============
    Six days of real training before the block opens Mon Aug 17. Not a taper, not a
    rehearsal, and no habit-coaching — he asked for training and this is training.
@@ -204,30 +221,30 @@ function inGap(iso){return iso>ONRAMP[ONRAMP.length-1].d&&iso<progStart();}
    Kickboxing Friday 6:30 and BJJ Sunday are untouched - they are the two sessions his own
    log says he reliably keeps, and the week is built around them rather than over them. */
 const ONRAMP=[
- {d:"2026-08-11",t:"Tue · box squat + first ride back",floor:"The top triple. Fifteen minutes if that is all there is.",items:[
+ {d:"2026-08-11",b:1,t:"Tue · box squat + first ride back",floor:"The top triple. Fifteen minutes if that is all there is.",items:[
   ["Warm-up \u2014 GMB tissue prep + hooklying 3 \u00d7 10","Eight minutes. Hooklying is never scored against you."],
   ["Box squat \u2014 top triple @ RIR 4 \u00b7 ~240 lb","Belt on \u2014 the reason this lift is at home. Real work, one notch under Monday's 250 at RIR 3. Stop at 4 in reserve even if it is moving well; the block starts in six days."],
   ["Box squat \u2014 2 \u00d7 3 back-off @ ~230 lb","Same bar speed, less load. This is the pattern the whole block is built on."],
   ["Zone 2 ride \u2014 45 min, PZ Endurance","117\u2013137 bpm. First real ride in eight weeks. Ride it easy enough that it is boring \u2014 if you are pushing, it is not Zone 2."],
   ["Markow Wk1 D1 pattern","Pelvic Magic Zero + Split Squat Isometric."]]},
- {d:"2026-08-12",t:"Wed · the long ride",floor:"Any ride at all, even 20 minutes.",items:[
+ {d:"2026-08-12",b:1,t:"Wed · the long ride",floor:"Any ride at all, even 20 minutes.",items:[
   ["Zone 2 ride \u2014 60 min, PZ Endurance","The week's aerobic centrepiece. Your own data says a ride cannot balloon: 0 of 39 rides ever overran their class by >15 min, while 32 of 82 lifts ran past 90."],
   ["Optional \u2014 PZ Max instead, if legs feel good","Offered, not prescribed. Base is the priority this week and intervals on a detrained aerobic system four days out from the block is the wrong trade. If you take it, log the minutes above 160."],
   ["Markow Wk1 D2 pattern","Rolling for hip rotation + hip rotation CARs."],
   ["No lifting today","Deliberate. Tuesday's squat and Thursday's bench both need the room."]]},
- {d:"2026-08-13",t:"Thu · bench + upper",floor:"One working set of pressing.",items:[
+ {d:"2026-08-13",b:1,t:"Thu · bench + upper",floor:"One working set of pressing.",items:[
   ["Warm-up \u2014 shoulders, cuff, band pull-aparts",""],
   ["Bench \u2014 top triple @ RIR 4 \u00b7 ~205 lb","Six days before D2 on Wed the 19th. Real, not maximal."],
   ["Bench \u2014 2 \u00d7 3 back-off @ ~195 lb",""],
   ["Dynamic-effort bench \u2014 6 \u00d7 3 @ 125 lb","50% of 251, 45 s rest. Bar speed is the whole point; the load is deliberately trivial. Here so it is familiar on Aug 19."],
   ["Rows + rear delts + cuff, 2\u20133 sets each","Rear delt is the standing structural hole. Cheap to keep, expensive to ignore."],
   ["Optional Zone 2 \u2014 30 min","Only if the press felt easy."]]},
- {d:"2026-08-14",t:"Fri · kickboxing, as normal",floor:"Attend class.",items:[
+ {d:"2026-08-14",b:1,t:"Fri · kickboxing, as normal",floor:"Attend class.",items:[
   ["Kickboxing 6:30","Untouched. Your most reliable session \u2014 68% of Fridays start before 9am, median 06:47."],
   ["Pre-class \u2014 ballistic leg swings, submaximal, 5 min","The correct and only use of the Luke Thomas ballistic material."],
   ["Morpheus strap ON","Second clean read on where kickboxing actually sits against 160 bpm. Log the DAY total, all blocks summed \u2014 Aug 7 was two blocks and scored separately that reads as two failures."],
   ["No lift today","No box squat or trap bar at the MMA gym \u2014 you would have to bring the belt."]]},
- {d:"2026-08-15",t:"Sat · trap bar + ride",floor:"The top triple.",items:[
+ {d:"2026-08-15",b:1,t:"Sat · trap bar + ride",floor:"The top triple.",items:[
   ["Warm-up \u2014 full lower, hooklying, ankle work",""],
   ["Trap bar \u2014 top triple @ RIR 4 \u00b7 ~270 lb","Lift BEFORE the ride so the bar is the clean signal. Five days before D3 on Thu the 20th."],
   ["Trap bar \u2014 2 \u00d7 3 back-off @ ~255 lb",""],
@@ -235,11 +252,70 @@ const ONRAMP=[
   ["Booty Sprout, 2 sets","Log band config and reps."],
   ["Markow Wk1 D3 pattern","Pelvic Magic Cross Connect."],
   ["Sprint \u2014 mechanics only","A-skips, wall drills, acceleration posture. No build-ups, no strides, no timed runs \u2014 velocity work is readiness-gated inside the block and does not belong here."]]},
- {d:"2026-08-16",t:"Sun · BJJ + close the week out",floor:"Read Monday. Even if you train nothing else, the week succeeded.",items:[
+ {d:"2026-08-16",b:1,t:"Sun · BJJ + close the week out",floor:"Read Monday. Even if you train nothing else, the week succeeded.",items:[
   ["BJJ as normal, 13:41","Your most reliable day \u2014 87% of Sundays produce training. Sleeve, not the chest strap; it will not survive grappling."],
   ["Social lift if it fits","This is the D4 flex day the block leans on. Rear delt is still the hole."],
   ["Markow hip rotation mini, ~8 min",""],
   ["\u2705 Read Monday in the Week tab","Week 1 D1: box squat, top set 3 @ RIR 3 at ~250, then 2 \u00d7 3 back-offs at RIR 4. You will have squatted 240 on Tuesday, so Monday is a 10 lb step and one less rep in reserve. Know it before you wake up."]]}
+,
+ /* ---- v11.25 — ON-RAMP 2: Tue 2026-08-25 to Sun 2026-08-30 ----
+    The seventh start date. Programmed at his request to carry a full re-test after the
+    Aug 17-23 lumbar layoff: three top triples at RIR 1-2, an FTP re-test, light accessory
+    work, and both skill anchors untouched.
+
+    RIR 1-2 and NOT a 3RM. His words were "top triple rir 1-2". The distinction is the
+    whole safety margin: he is a week off an episodic lumbar recurrence, and the app scores
+    every logged set on reps+RIR anyway, so a clean triple with two in reserve writes a
+    perfectly good e1RM without a grinding rep. A 3RM buys precision he does not need at a
+    risk he does not have to take.
+
+    The benchmark ride is deliberately NOT in this week. It is the Layer 3 baseline for the
+    whole block and it has to be ridden AFTER the new FTP is entered, under boring repeatable
+    conditions. Riding it here — the day after a trap bar triple, on zones set from a stale
+    FTP — would poison the one measurement that tells him whether any of the aerobic work
+    is working. benchDue() is true for all of Week 1, so it has a clean day waiting. ---- */
+ {d:"2026-08-25",b:2,t:"Tue · box squat triple — re-test",floor:"The top triple. That is the entire day; everything under it is optional.",items:[
+  ["Warm-up — GMB tissue prep + hooklying 3 × 10","Eight minutes. The ramp IS the probe — if a warm-up double at 205 feels wrong, stop there and log what happened. A short honest day is data; a forced one is an injury."],
+  ["Box squat — ramp to a top triple @ RIR 1–2","Belt on. <b>Not a 3RM.</b> Stop with one or two genuinely in reserve. This is the lower-risk lift and your cleared lumbar substitution, which is why it goes first in the week."],
+  ["Box squat — 1 × 3 back-off, ~10 lb under the top set","One back-off, not two. The point of today is the number, not the volume."],
+  ["Banded RDL 2 × 10 · SL curl 2 × 12 · SL calf 2 × 12","Deliberately light. A test day with accessories attached, not a volume day."],
+  ["Pallof press 3 × 10",""],
+  ["Markow Wk1 D1 pattern","Pelvic Magic Zero + Split Squat Isometric."],
+  ["✅ Log the triple on the Test tab","Re-banks the box squat baseline at today's date, which also clears the layoff decay on this lift. Training it at all clears the decay — you do not have to beat anything."]]},
+ {d:"2026-08-26",b:2,t:"Wed · FTP re-test",floor:"The 20-minute effort. If it happens, the day succeeded.",items:[
+  ["FTP test — 20 min best effort","<b>FTP = 0.95 × your 20-min average power.</b> Peloton's own FTP Test class does that arithmetic for you and writes the result. Ride it as an even effort you can just barely hold — going out hard and fading gives you a lower number than you actually own."],
+  ["✅ Enter the new FTP in Peloton the SAME day","Every Power Zone is a percentage of FTP. Until this is entered, every zone ride in the block is prescribed off a number from before the layoff — which means your “Zone 2” has quietly been tempo."],
+  ["No lifting today","Yesterday was a top triple and tomorrow is another. The 20-minute effort needs the room, and the legs are the shared resource."],
+  ["Log the day's minutes above threshold","A 20-min effort clears the Layer 1 floor on its own. Cardio tab."],
+  ["Markow Wk1 D2 pattern","Rolling for hip rotation + hip rotation CARs."]]},
+ {d:"2026-08-27",b:2,t:"Thu · bench triple — re-test + upper",floor:"The top triple.",items:[
+  ["Warm-up — shoulders, cuff, band pull-aparts",""],
+  ["Bench — ramp to a top triple @ RIR 1–2","The one lift of the three with no lumbar exposure worth worrying about. If any day this week gets an honest hard effort, it is this one."],
+  ["Bench — 1 × 3 back-off, ~10 lb under the top set",""],
+  ["Rows 3 × 8 · <b>rear delt 3 × 15</b> · cuff 2 × 15","Rear delt is the standing structural hole — the volume audit put it at 4–5 sets a week across all four block days. Three sets here costs nothing and it is the highest-ROI aesthetic fix you have."],
+  ["Optional Zone 2 — 30 min","Only if the press felt easy. Ride it on the NEW zones."],
+  ["Markow Wk1 D3 pattern","Pelvic Magic Cross Connect."],
+  ["✅ Log the triple on the Test tab",""]]},
+ {d:"2026-08-28",b:2,t:"Fri · kickboxing, as normal",floor:"Attend class.",items:[
+  ["Kickboxing 6:30","Untouched. Your most reliable session — 68% of Fridays start before 9am."],
+  ["Pre-class — ballistic leg swings, submaximal, 5 min","The correct and only use of the Luke Thomas ballistic material."],
+  ["Polar H10 strap ON","Log the DAY total, all blocks summed. Two blocks scored separately reads as two failures; added together it clears comfortably."],
+  ["No lift today","No box squat or trap bar at the MMA gym."],
+  ["<b>A flag, not an instruction.</b>","This session and Sunday's BJJ are the two your back is most likely to object to — rotation-plus-extension at speed, then loaded flexion and unplanned scrambles. Neither has been cut and neither should be pre-emptively. But if something has to be modified this week, the honest answer is one of these, not the box squat."]]},
+ {d:"2026-08-29",b:2,t:"Sat · trap bar triple — re-test + ride",floor:"The top triple.",items:[
+  ["Warm-up — full lower, hooklying, ankle work",""],
+  ["Trap bar — ramp to a top triple @ RIR 1–2","<b>Lift BEFORE the ride</b> so the bar is the clean signal. Last of the three on purpose: it is the most lumbar-loaded of them and it gets the most recovered week behind it. <b>If the back has objected at any point since Tuesday, take RIR 3 and bank a smaller honest number.</b> A conservative bank costs nothing — the rolling e1RM takes the best of your trailing 42 days or the baseline, whichever is higher."],
+  ["Trap bar — 1 × 3 back-off, ~15 lb under the top set",""],
+  ["Zone 2 ride — 45 min","On the new zones. First ride that is actually Zone 2 rather than whatever the old FTP was calling Zone 2."],
+  ["Booty Sprout, 2 sets","Log band config and reps."],
+  ["Sprint — mechanics only","A-skips, wall drills, acceleration posture. No build-ups, no strides, no timed runs. Velocity work is readiness-gated inside the block and does not belong in a test week."],
+  ["✅ Log the triple on the Test tab","Third of three. After this the whole baseline is current and the decay is cleared across all three lifts."]]},
+ {d:"2026-08-30",b:2,t:"Sun · BJJ + close the week out",floor:"Read Monday. Even if you train nothing else, the week succeeded.",items:[
+  ["BJJ as normal, 13:41","Sleeve, not the chest strap — it will not survive grappling."],
+  ["Social lift — rear delt add-on","The programmed add-on is the loggable part; whatever your partner is running is not modelled and does not need to be."],
+  ["Markow hip rotation mini, ~8 min",""],
+  ["<b>No benchmark ride this week.</b>","It is the Layer 3 baseline for the whole block and it has to come after the new FTP, on a day that costs nothing. Week 1 is a benchmark week for all seven days — ride it on a clean one."],
+  ["✅ Read Monday in the Week tab","Week 1 D1: box squat, top set 3 @ RIR 3, then 2 × 3 back-offs at RIR 4. The suggested load will have re-derived itself from Tuesday's triple. Know it before you wake up."]]}
 ];
 const orIndex=iso=>ONRAMP.findIndex(o=>o.d===iso);
 /* v11.22 — MEMBERSHIP, not a range. This was
@@ -250,6 +326,19 @@ const orIndex=iso=>ONRAMP.findIndex(o=>o.d===iso);
    today's date. The on-ramp ran Aug 11-16 and is a closed historical event; it must
    never re-open because a later date moved. Membership cannot re-open. */
 const inOnramp=iso=>orIndex(iso)>=0;
+/* v11.25 — there is now MORE THAN ONE on-ramp, so "Day N of M" has to be answered within
+   a block rather than across the array. Before this, appending the Aug 25-30 days would
+   have made Aug 25 render as "Day 7 of 12" — the array index leaking into the UI.
+   Membership still decides IF a date is an on-ramp day; these only decide WHICH one. */
+const orDay=iso=>ONRAMP[orIndex(iso)]||null;
+const orBlockOf=iso=>{const o=orDay(iso);return o?o.b:null;};
+const orDays=b=>ONRAMP.filter(o=>o.b===b);
+const orDayNo=iso=>{const o=orDay(iso);return o?orDays(o.b).findIndex(x=>x.d===iso)+1:null;};
+const orLen=iso=>{const o=orDay(iso);return o?orDays(o.b).length:0;};
+/* The next on-ramp day strictly after `iso`, or null. Lets the gap card point at a pending
+   on-ramp instead of at the block, which is the difference between "nothing is owed for
+   another week" and "you start tomorrow". */
+const orNext=iso=>ONRAMP.filter(o=>o.d>iso).sort((a,b)=>a.d<b.d?-1:1)[0]||null;
 
 /* ---- 4D Hybrid (source of truth; rendered as written) ---- */
 /* mus: fractional weekly-set contributions for the volume model */
@@ -1304,6 +1393,22 @@ function rxWeek(dkey,w,dISO){
    resting HR does not silently lower the bar. ---- */
 const HRMAX=195;                  /* Whoop-derived. The observed 203 was a motion
                                      artifact: avg HR 138, only 3% of session in Z5. */
+/* v11.25 — ONE near-max threshold, and it is Karvonen 85% HRR.
+
+   The app used to carry TWO numbers two bpm apart, from two derivations, both user-facing:
+   Karvonen 85% HRR (178, as `hrThreshold().t5`, printed as "Hard bursts: 178+ bpm" and named
+   in the strap-configuration instruction) and 90% of HRmax (176, as `z5Threshold()`, the label
+   on the box and the value everything actually stored). He set Heart Graph to **160 and 178**,
+   matching the instruction.
+
+   So the Karvonen derivation is the survivor and the 90%-of-HRmax one is gone — not hidden,
+   gone, because a second derivation left in the source is a second number waiting to be
+   printed again. Both are now produced by ONE function from ONE formula.
+
+   THE ONLY REASON THIS IS A HAZARD: the near-max figure is an observation that gates nothing,
+   so a wrong threshold fails SILENTLY. `aeroZ5Bad()` only catches near-max minutes EXCEEDING
+   gate minutes; a threshold set too low just quietly inflates the column with no warning.
+   If the strap app and this file ever disagree again, nothing will tell you. */
 function hrThreshold(){const rhr=(Z.rhr||77);
   return {t4:Math.round(rhr+0.70*(HRMAX-rhr)), t5:Math.round(rhr+0.85*(HRMAX-rhr)), rhr:rhr};}
 const AERO_MIN=13;                /* minutes above t4 for a session to qualify */
@@ -1329,7 +1434,10 @@ function z2Band(){return {lo:Math.round(0.60*HRMAX), hi:Math.round(0.70*HRMAX)};
    able to verify. It is logged because it answers a descriptive question nothing else can:
    does his combat work reach near-VO2max intensity AT ALL, and which modality gets there.
    BJJ in particular has been "unknown" in this project since July. ---- */
-function z5Threshold(){return Math.round(0.90*HRMAX);}   /* 176 at HRMAX 195 */
+/* v11.25 — the single accessor, now delegating rather than deriving a second time.
+   Was Math.round(0.90*HRMAX) = 176, which disagreed with the 178 the card told him to
+   configure. Keep calling z5Threshold(); it is the only near-max number in the app. */
+function z5Threshold(){return hrThreshold().t5;}   /* Karvonen 85% HRR — 178 at RHR 79 / max 195 */
 const AERO_MODE={kick:"Kickboxing",bjj:"BJJ",bag:"Bag rounds",pz:"Power Zone",pzmax:"PZ Max",hiit:"Other HIIT"};
 /* Minutes above 176 are a SUBSET of minutes above 160. If z5 > hard, one of the two was
    misread — flag it rather than storing a contradiction. */
@@ -1568,6 +1676,11 @@ Z.bs=Z.bs||{};                 /* dateISO -> {b45,b70,reps,pause} Booty Sprout b
 Z.vo2=Z.vo2||{on:false,proto:"4x4",start:null,done:{}};
 /* v11.19 LAYER 3 — benchmark rides. [{date,cls,kj,hr,hrr}] */
 Z.aeroBench=Z.aeroBench||[];
+/* v11.25 — the FTP Peloton is currently using. {w,date,prev}. Additive; no migration.
+   The app does not calculate this and must not: Peloton owns it. This exists so the number
+   has a DATE on it, so a change is visible rather than silent, and so the Layer 3 baseline
+   can be broken deliberately at the moment it moves. */
+if(Z.ftp===undefined)Z.ftp=null;
 /* v11.20 — the CHOSEN class, pinned once. {name,set}. A benchmark you have to remember
    is not a benchmark; the comparison is only as good as the repeat. */
 if(Z.benchClass===undefined)Z.benchClass=null;
@@ -1594,7 +1707,37 @@ delete Z.startPinned;                        /* v11.22 — retired; clears old s
    without this the app would upgrade and still open on the old block. Stamped so it
    runs exactly once: after this, whatever he sets on the Log tab is final and nothing
    in this file will move it again. */
-if(Z.startMig!=="v11.22"){if(Z.start==="2026-08-17")Z.start="2026-08-24";Z.startMig="v11.22";}
+/* v11.25 — A LADDER, NOT A PILE OF INDEPENDENT ONE-SHOTS.
+   v11.25 first shipped a second stamp check written in the same shape as v11.22's:
+       if(Z.startMig!=="v11.22"){...Z.startMig="v11.22";}
+       if(Z.startMig!=="v11.25"){...Z.startMig="v11.25";}
+   Two independent equality checks against ONE key. The v11.25 line sets the stamp to
+   "v11.25", which makes the v11.22 line's condition true on the very next load, which
+   resets the stamp to "v11.22", which re-arms v11.25. The pair oscillates forever and
+   NEITHER migration is one-shot. Values happened not to move, because after the first
+   pass neither `from` matched any more — so it looked fine and was not.
+
+   Why that matters rather than being tidy-up: it means a start date he sets HIMSELF to
+   2026-08-24 on the Log tab would be silently moved to 2026-08-31 on the next reload.
+   That is precisely the v10 clobber that v11.22 was built to kill, reintroduced by a
+   migration instead of by a constant. qa22 section 1 guards the constant; it did not
+   guard this, and section 7 caught it as a behavioural failure instead.
+
+   The ladder fixes it structurally. Ordering is the ARRAY INDEX, never a string compare
+   on the version — "v11.9" sorts above "v11.22" lexicographically, which would silently
+   skip steps the moment a two-digit minor met a one-digit one. The stamp records the head
+   of the ladder, so once stamped nothing below it can run again.
+
+   Adding a step: append it. Never edit an existing one, and never renumber. */
+const START_MIGRATIONS=[
+  {v:"v11.22",from:"2026-08-17",to:"2026-08-24"},  /* the fifth start date -> the sixth */
+  {v:"v11.25",from:"2026-08-24",to:"2026-08-31"}   /* the sixth -> the seventh; on-ramp 2 needs Aug 25-30 */
+];
+{
+  const done=START_MIGRATIONS.findIndex(m=>m.v===Z.startMig);   /* -1 when never migrated */
+  START_MIGRATIONS.forEach((m,i)=>{ if(i>done&&Z.start===m.from)Z.start=m.to; });
+  Z.startMig=START_MIGRATIONS[START_MIGRATIONS.length-1].v;
+}
 function save(){S.v9=Z;localStorage.setItem(KEY,JSON.stringify(S));}
 /* v11.22 — the only writer of Z.start. Validates rather than corrects: a bad date is
    refused and the old one kept, because silently snapping the input to a nearby Monday
@@ -1651,7 +1794,25 @@ function fmtT(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
 const esc=t=>String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;");
 
 /* ================= TABS ================= */
-const TABS=[["today","Today"],["week","Week"],["gmb","GMB"],["vol","Volume"],["night","Night"],["test","Test"],["log","Log"]];
+/* v11.25 — CARDIO joins the tab strip, between Week and GMB.
+   Layer 1 (the hard-aerobic maintenance floor) and Layer 2 (the VO2max block) used to render
+   in full on Today, every single day. Between them that was about ninety lines of card below
+   the work: the Hickson result, the Karvonen derivation, the Whoop-vs-Polar instrument notes,
+   the withdrawn Morpheus export instruction, a per-modality rollup, a seven-day backfill
+   table and a dormant Layer 2 stub. All of it true, none of it a thing to do today.
+
+   Robert's own words: "the information and logging ... aren't in the correct section. It
+   makes the Today section very busy ... there's no cardio programmed, so I'm not sure why
+   that's showing up under the Today section for Monday."
+
+   The second half of that is the sharper point. Layer 1 is deliberately day-agnostic — the
+   week needs two qualifying days and ANY source counts — so the card cannot simply be hidden
+   on days with no ride programmed, or the Friday kickboxing minutes would have nowhere to go.
+   What it can stop doing is occupying the day. Today keeps a single line with the week's
+   count on it; everything else moved here. Same precedent as v11.23 moving the assumptions
+   card out to reference/ASSUMPTIONS.md — and the evidence prose has gone the same way, to
+   reference/AEROBIC.md, because a card nobody re-reads is where contradictions go to sit. */
+const TABS=[["today","Today"],["week","Week"],["cardio","Cardio"],["gmb","GMB"],["vol","Volume"],["night","Night"],["test","Test"],["log","Log"]];
 let cur="today";
 function buildTabs(){
   const tb=document.getElementById("tabbar");
@@ -1661,7 +1822,7 @@ function buildTabs(){
 }
 function go(t){cur=t;buildTabs();render();window.scrollTo(0,0);}
 function render(){
-  ({today:rToday,week:rWeek,gmb:rGMB,vol:rVol,night:rNight,test:rTest,log:rLog})[cur]();
+  ({today:rToday,week:rWeek,cardio:rCardio,gmb:rGMB,vol:rVol,night:rNight,test:rTest,log:rLog})[cur]();
   const w=curWeek(),phz=["Base (Wk 1–4)","Load (Wk 5–8)","Peak (Wk 9–12)"][corePhase(w)];
   document.getElementById("hdrTitle").textContent=TABS.find(t=>t[0]===cur)[1];
   const _dI=todayISO();
@@ -1670,8 +1831,9 @@ function render(){
      curWeek() clamps at 0, so the header asserted the block was running when it was
      not. Order matters — gap is tested before the block arm. */
   const _phase = _dI<ONRAMP_START ? `Pre-on-ramp · on-ramp starts ${fmtD(ONRAMP_START)}, block starts ${fmtD(progStart())}`
-               : inOnramp(_dI) ? `On-ramp Day ${orIndex(_dI)+1} of ${ONRAMP.length}`
-               : inGap(_dI) ? `<b style='color:var(--t2)'>Layoff</b> · block starts ${fmtD(progStart())}`
+               : inOnramp(_dI) ? `On-ramp Day ${orDayNo(_dI)} of ${orLen(_dI)}`   /* v11.25 — within the block */
+               : inGap(_dI) ? (orNext(_dI)?`<b style='color:var(--t2)'>Between blocks</b> · on-ramp resumes ${fmtD(orNext(_dI).d)}`
+                                          :`<b style='color:var(--t2)'>Layoff</b> · block starts ${fmtD(progStart())}`)
                : `Week ${w+1} of 12 · ${isDeloadWeek(w)?"<b style='color:var(--z2)'>Biolayne Deload</b>":phz}`;
   document.getElementById("hdrSub").innerHTML=`${_phase}${isDown()?" · <b style='color:var(--t2)'>DOWN-WEEK ACTIVE</b>":""} · <span style="opacity:.55">${BUILD}</span>`;
 }
@@ -1969,6 +2131,65 @@ function setAeroSrc(dISO,k){Z.aeroSrc=Z.aeroSrc||{};
    the rolling e1RM at Z.base and nothing could write it, so a bad seed was permanent. */
 function setBase(k,v){Z.base=Z.base||{boxsq:null,trap:null,bench:null,date:null};
   Z.base[k]=(v===""||v==null)?null:Number(v);save();render();}
+/* ---- v11.25 — RE-BANK FROM A TOP TRIPLE.
+   He is re-testing all three lifts in on-ramp 2 (Aug 25/27/29) at RIR 1-2 after the layoff.
+   Before this the only way to update the baseline was to type an e1RM into the three boxes
+   below — which means doing the reps+RIR arithmetic in his head, on the exact scale the
+   Aug 9 handoff records him getting wrong once already (285x3 at RPE 8 banked as 280 on
+   reps-performed instead of 298 on reps+RIR: "two scales for one quantity, and a floor on
+   the wrong scale is not a floor").
+
+   So: enter what the bar actually weighed and how many were left. The app does the
+   conversion on its OWN scale, the same pct1RM() every logged top set already uses, and
+   stamps today's date.
+
+   The date stamp is the part that matters beyond the number. `lastLiftDay` falls back to
+   Z.base.date, so re-banking also resets the layoff decay clock for that lift. Robert asked
+   to "reset the decay clock on start" — this is the honest version of that: the clock resets
+   because a real, dated observation replaced an extrapolation, not because the countdown was
+   silently zeroed. Nothing about the drift/adaptation clock is touched here; that is a
+   different mechanism and merging them is forbidden by qa23 §5. ---- */
+function triE1(w,reps,rir){
+  if(!(w>0))return null;
+  return Math.round(w/pct1RM(reps,rir));
+}
+function rebankTriple(k){
+  const wEl=document.getElementById("tri_"+k), rEl=document.getElementById("trir_"+k);
+  const w=Number(wEl&&wEl.value), rir=Number(rEl&&rEl.value);
+  if(!(w>0)){alert("Enter the weight you actually lifted.");return;}
+  if(!(rir>=0&&rir<=5)){alert("Enter reps in reserve, 0 to 5. If you genuinely had none left, enter 0.");return;}
+  const e1=triE1(w,3,rir);
+  const prev=(Z.base||{})[k];
+  const msg=`${w} lb x 3 @ RIR ${rir}  =  e1RM ${e1}`+
+    (prev?`\n\nPrevious banked figure: ${prev}${e1<prev?`  (down ${prev-e1})`:e1>prev?`  (up ${e1-prev})`:""}`:"")+
+    `\n\nBank it and date it today? This also clears the layoff decay on this lift.`;
+  if(!confirm(msg))return;
+  Z.base=Z.base||{boxsq:null,trap:null,bench:null,date:null};
+  Z.base[k]=e1; Z.base.date=todayISO(); Z.base.conv="reps+RIR";
+  /* A dated observation of a lift is also a layoff/return pair worth keeping, and the Test
+     tab's ledger is where those accumulate. It is an OBSERVATION — nothing computes from it.
+     qa23 §6 asserts that absurd values here leave every prescription bit-identical. */
+  Z.layoffObs=Z.layoffObs||[];
+  Z.layoffObs.push({date:todayISO(),lift:k,e1,prev:prev??null,src:"re-bank triple"});
+  save();render();
+}
+/* ---- v11.25 — FTP. The app still calculates no FTP; Peloton owns the number. What it does
+   now is REMEMBER it, date it, and notice when it moves — because an FTP change silently
+   invalidates the Layer 3 benchmark comparison, and that is the one failure mode that
+   poisons data rather than obviously breaking it. ---- */
+function setFTP(){
+  const el=document.getElementById("ftpNew");
+  const v=Number(el&&el.value);
+  if(!(v>0)){alert("Enter the new FTP in watts.");return;}
+  const prev=(Z.ftp&&Z.ftp.w)||null;
+  Z.ftp={w:v,date:todayISO(),prev};
+  save();
+  if(prev&&v!==prev&&(Z.aeroBench||[]).length){
+    if(confirm(`FTP ${prev} → ${v} W.\n\nPower Zone targets are a percentage of FTP, so every benchmark ride logged at the old FTP was ridden at different watts. Comparing across the change measures the FTP move, not adaptation.\n\nStart a new Layer 3 baseline here?`))
+      benchNewBaseline();
+  }
+  render();
+}
 function setRHR(v){if(v!==""&&v!=null)Z.rhr=Number(v);save();render();}
 function whoopCard(dISO){
   const r=(Z.whoop||{})[dISO]||{},H=hrThreshold(),gate=velocityGated(dISO);
@@ -2040,8 +2261,34 @@ const TIERTXT={
 /* ---- Adaptive layer. Replaces \"repeat the week\" with \"change next week.\"
    Weeks never repeat — progression is calendar-driven by design. What adapts is
    the prescription. ---- */
+/* v11.25 — THE PRE-BLOCK WEEKS ARE NOT FAILURES.
+   This walked back three calendar weeks and scored each one with no regard for whether
+   the block had opened. On Aug 24 that read the layoff week (Aug 17-23, the week the app
+   itself renders as "Nothing is owed") and the on-ramp week (Aug 10-16, a different
+   structure that scores nothing) as two consecutive strength zeros, and adaptations()
+   announced that strength had been below its maintenance floor three weeks running and
+   would be cut to the MED — on the opening morning of the block, off two weeks the app
+   had declared owed nothing.
+
+   `domainDrift` already had exactly this guard (`if(d<progStart())continue`). This
+   function did not. Same failure family as the v11.22 gap bug: a mechanism reading dates
+   before the block as if they were block weeks.
+
+   A week counts only if its MONDAY is on or after the block start, so a partial first
+   week cannot count either. adaptations() requires tr.length===3, so no adaptation can
+   fire until three real block weeks exist. That is the intended behaviour, not a side
+   effect: three weeks of evidence means three weeks of the block.
+
+   NOT to be confused with the e1RM decay clock, which is a different mechanism answering
+   a different question and self-clears the moment a lift is trained. See qa23 section 5. */
 function domainTrend(dISO,dom,weeks){
-  const out=[];for(let i=0;i<weeks;i++){out.push(weekScore(isoBack(dISO,i*7)).st[dom]);}return out;}
+  const out=[];
+  for(let i=0;i<weeks;i++){
+    const k=isoBack(dISO,i*7);
+    if(weekBounds(k)[0]<progStart())continue;
+    out.push(weekScore(k).st[dom]);
+  }
+  return out;}
 function adaptations(dISO){
   const A=[];
   ["strength","aerobic","hip","skill"].forEach(dom=>{
@@ -2079,15 +2326,60 @@ function scoreCard(dISO){
   h+=`<div class="mini" style="margin-top:8px"><b>Weeks never repeat.</b> Progression is calendar-driven. When a domain stalls, the prescription changes \u2014 the calendar does not.</div></div>`;
   return h;
 }
-/* ---- Aerobic quota card ---- */
+/* ---- v11.25 — the Today STRIP. One line, and it is the whole of Layer 1 and Layer 2's
+   presence on the Today tab.
+
+   GATED ON THE WEEK, NOT ON THE DAY (his call, 2026-08-24). It renders while the week is
+   short of the floor and goes silent for the rest of the week the moment two qualifying days
+   are banked. Nags while there is something to fix; disappears when there is not.
+
+   The rejected alternative was gating on "is cardio programmed today", and it is worth
+   recording why that is the wrong axis, because it is the intuitive one and it will be
+   proposed again:
+
+     - Tue and Sat ARE the programmed cardio days and they feed this floor with NOTHING.
+       They are 90 min of PZ Endurance at 60-70% HRmax — the protected Zone 2 base,
+       deliberately walled off from hard work. The floor needs 13 min above ~160 bpm.
+     - Wednesday's optional ride is the real hard-cardio slot and DOES feed it: WED_RIDE.pz
+       is threshold/sweet-spot for the 20-min FTP bucket, WED_RIDE.pzmax is zone 5-7 for the
+       1-5 min bucket, and ALT.bulgarian / ALT.inertia are swaps for that same slot. That
+       session does double duty — FTP power-curve data and hard-aerobic minutes.
+     - Friday kickboxing and Sunday BJJ are tagged `skill` in EXPECT and are the two sessions
+       most likely to clear the floor outright.
+
+   So "programmed cardio" and "feeds the floor" are close to uncorrelated, and a day-of-week
+   gate would surface this on Tue and Sat and hide it on Fri and Sun. The weekly count is the
+   quantity the layer is actually about; gate on that.
+
+   Backfill is unaffected either way: the Cardio tab is always one tap away in the tab bar,
+   so a silent strip never costs him the ability to enter minutes for any day. ---- */
+function aeroStrip(dISO){
+  const w=weekScore(dISO), H=hrThreshold(), mins=(Z.aero||{})[dISO];
+  const met=w.aero>=2, some=w.aero===1;
+  if(met)return "";                 /* floor cleared — nothing to nag about until Monday */
+  const col=some?"var(--warn)":"var(--dim)";
+  const vo2=vo2On()?` · <span style="color:var(--warn)">VO2 block ${vo2WeekCount(dISO)}/${VO2_SESS}</span>`:"";
+  const todayBit = mins==null
+    ? `<span class="mini" style="opacity:.75">nothing logged today</span>`
+    : (aeroQualify(mins)?`<span class="mini" style="color:var(--good)">✓ ${mins} min today</span>`
+                        :`<span class="mini" style="color:var(--warn)">${mins} min today — short by ${AERO_MIN-mins}</span>`);
+  return `<div class="card" style="padding:10px 14px;cursor:pointer" onclick="go('cardio')">
+  <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+    <span style="color:${col}">●</span>
+    <b>Hard aerobic — ${w.aero} of 2 this week</b>${vo2}
+    <span style="margin-left:auto;color:var(--mut)">Cardio ›</span>
+  </div>
+  <div style="margin-top:2px">${todayBit} <span class="mini" style="opacity:.6">· ≥${AERO_MIN} min above ${H.t4} bpm, any source</span></div></div>`;
+}
+/* ---- Aerobic quota card. Rendered on the CARDIO tab from v11.25, not on Today. ---- */
 function aeroCard(dISO){
   const w=weekScore(dISO),H=hrThreshold(),mins=(Z.aero||{})[dISO];
   const bb=mins!=null?bagBlocks(mins):null;
   let h=`<div class="card spine t2"><h3>Layer 1 · Hard aerobic — maintenance floor, ${w.aero} of 2 this week <span class="tiertag T2">T2</span></h3>
-  <div class="banner ${w.aero>=2?"teal":"amber"}"><b>This holds VO2max. It does not raise it.</b> Hickson 1981 found 2 sessions/wk of 13&ndash;26 min at unreduced intensity preserved VO2max for &ge;15 weeks. That is a <i>maintenance</i> result: clearing it means you provably lost nothing, not that you gained. <b>Progression is Layer 2 below.</b> Whether you actually gained is Layer 3, on the Test tab.</div>
+  <div class="banner ${w.aero>=2?"teal":"amber"}"><b>This holds VO2max. It does not raise it.</b> Clearing it means you provably lost nothing, not that you gained. <b>Progression is Layer 2. Whether you gained is Layer 3.</b> <span class="mini">Evidence: reference/AEROBIC.md § Hickson.</span></div>
   <div class="meta">A <b>day</b> qualifies at <b>\u226513 min above ${H.t4} bpm</b>. Any source counts: sparring, bag rounds, PZ Max, a Peloton HIIT. Nothing is scheduled \u2014 the week just needs two. This layer runs every week whatever else is on, and it is what protects you in a chaotic one.</div>
   <div class="mini" style="margin-bottom:6px"><b>Enter the DAY\u2019s total, summed across every block.</b> Aug 7 was two kickboxing blocks, 43 min and 23 min \u2014 roughly 9 and 8 minutes over threshold. Scored separately that is two failures; added together it clears comfortably. One number per day.</div>
-  <div class="mini" style="margin-bottom:6px">Threshold is Karvonen off your current 30-day RHR (${H.rhr}) and a max of ${HRMAX}. Hard bursts: <b>${H.t5}+ bpm</b>. Stated in bpm on purpose, and <b>fixed</b>. Two different problems that avoids. <b>Whoop</b> re-estimated your max HR once, part-way through six quarters of data, which moved its zone boundaries between then and now \u2014 it does <i>not</i> change them day to day. <b>Morpheus</b> does: it recalculates its bands every morning from that day\u2019s recovery (High started at 171 on Fri Aug 7, 174 on Sat Aug 8). Either way, a boundary that moves cannot show progress \u2014 so this one never moves.</div>`;
+  <div class="mini" style="margin-bottom:6px">Threshold is Karvonen off your 30-day RHR (${H.rhr}) and a max of ${HRMAX}. Near-max: <b>${z5Threshold()}+ bpm</b> — the second zone to set on the strap. Stated in bpm and <b>fixed</b> — a boundary that moves cannot show progress. <span class="mini">Why Whoop's and Morpheus's own zones disagree with it: reference/AEROBIC.md § Instruments.</span></div>`;
   if(mins==null){
     h+=`<div class="mini" style="color:var(--t2)"><b>No HR minutes logged for today.</b> Enter them after the session and the app will tell you the exact backfill.</div>`;
   } else if(aeroQualify(mins)){
@@ -2100,8 +2392,8 @@ function aeroCard(dISO){
   /* ---- v11.21: Z5 minutes + which activity. Hard-aerobic sessions only. ---- */
   {const Z5=z5Threshold(), z5v=(Z.aeroZ5||{})[dISO], md=(Z.aeroMode||{})[dISO]||"";
    h+=`<div class="card" style="margin:8px 0 0;padding:10px 12px;background:transparent;border:1px dashed var(--dim,#555)">
-   <div class="klabel">Near-max minutes — ${Z5}+ bpm <span class="mini">(90% of ${HRMAX})</span></div>
-   <div class="mini" style="margin:4px 0 6px"><b>Observation, not a gate.</b> Nothing scores off this and nothing should &mdash; time above 90% of max HR ranks interval protocols in the <i>wrong order</i> (short bursts score ~50% higher on it while delivering less actual time near VO2max), and it errs in the direction that flatters kickboxing, which is the session we can verify least. It is here to answer a question nothing else can: <b>which of your hard sessions actually gets near-maximal, and does BJJ ever get there.</b> That has been unknown in this project since July.</div>
+   <div class="klabel">Near-max minutes — ${Z5}+ bpm <span class="mini">(Karvonen, 85% of heart-rate reserve)</span></div>
+   <div class="mini" style="margin:4px 0 6px"><b>Observation, not a gate.</b> Nothing scores off this and nothing should &mdash; time near maximal HR ranks interval protocols in the <i>wrong order</i> (short bursts score ~50% higher on it while delivering less actual time near VO2max), and it errs in the direction that flatters kickboxing, which is the session we can verify least. It is here to answer a question nothing else can: <b>which of your hard sessions actually gets near-maximal, and does BJJ ever get there.</b> That has been unknown in this project since July.</div>
    <div class="grid2">
     <div><label class="f">Min above ${Z5}</label><input type="number" inputmode="decimal" placeholder="min ≥ ${Z5}" value="${z5v??""}" onchange="setAeroZ5('${dISO}',this.value)"></div>
     <div><label class="f">Min above ${H.t4} (the gate)</label><input type="number" inputmode="decimal" placeholder="min ≥ ${H.t4}" value="${mins??""}" onchange="setAero('${dISO}',this.value)"></div>
@@ -2156,16 +2448,19 @@ function aeroCard(dISO){
   const src=(Z.aeroSrc||{})[dISO]||"";
   h+=`<div class="mini" style="margin-top:8px"><b>Measured with</b>
   <span class="seg" style="display:inline-flex;margin-left:6px">
-   ${[["morpheus","Morpheus"],["whoop","Whoop sleeve"],["other","Other"]].map(([k,lb])=>
+   ${[["heartgraph","Heart Graph (H10)"],["whoop","Whoop sleeve"],["other","Other"]]
+      /* v11.25 — Morpheus is retired as a CHOICE but kept as a LABEL, so the sessions already
+         tagged with it keep their provenance instead of silently becoming untagged. It only
+         appears when this day already carries it. */
+      .concat(src==="morpheus"?[["morpheus","Morpheus (retired)"]]:[]).map(([k,lb])=>
      `<button class="${src===k?"on":""}" onclick="setAeroSrc('${dISO}','${k}')">${lb}</button>`).join("")}
   </span></div>
   ${src==="whoop"?`<div class="banner amber" style="margin-top:6px"><b>The sleeve undercounts this number.</b> On Aug 7 it reported 6.2 min above 156 bpm while the chest strap reported 8.5 min above <b>171</b>. Both cannot be true \u2014 PPG smooths away short bursts, which is the exact shape of a kickboxing round. Treat a Whoop figure as a floor, and put the strap on when you mean the session to count.</div>`:""}
-  <div class="mini" style="margin-top:6px"><b>Instrument notes, corrected 2026-08-09.</b> The Whoop <b>bicep sleeve is validated</b> \u2014 against the chest strap across three Aug 7 sessions its average HR was off by 1.7 bpm, better than the wrist's 3.8 bpm on four Spin sessions. The underwear band is retired. The sleeve is accurate for strain, average and max; it is <b>not</b> accurate for time in the top zone, which is the only thing this card needs. So: sleeve by default, <b>chest strap whenever the session is meant to bank an exposure</b>.
+  <div class="mini" style="margin-top:6px"><b>Sleeve by default; chest strap whenever the session is meant to bank an exposure.</b> Polar H10 first choice, Morpheus M7 backup. <span class="mini">Validation figures and the reasoning: reference/AEROBIC.md § Instruments.</span></div>
   <br><br><b>Strap order, revised 2026-08-14 &mdash; the Polar H10 is now first choice.</b> It has extensive peer-reviewed validation against reference ECG (r &gt; 0.99 for HR, and better RR signal quality than the reference during vigorous movement). No published validation of the Morpheus M7 could be found. The H10 pairs with everything, including the Morpheus app, so switching costs nothing. Keep the M7 as backup. Practical note: on an old strap the sensor pod is usually fine but the fabric electrode band loses conductivity &mdash; if readings look erratic, replace the band, not the sensor.</div>
-  <div class="banner amber" style="margin-top:6px"><b>Correction, 2026-08-14 — this card used to point you at a Morpheus &ldquo;raw export&rdquo; reachable from the daily screen. No such export could be found</b>, and Morpheus does not write workouts to Apple Health either (it only reads sleep, steps, calories and distance; workouts come in from Garmin Connect only). That instruction was inferred, never verified, and it is withdrawn. This is the same failure mode as the High-floor-read-off-a-chart-axis error: <b>a number in a picture is not a measurement.</b>
+  <div class="mini" style="margin-top:6px"><b>Heart Graph, fixed zones at ${H.t4} and ${z5Threshold()}.</b> Read both numbers straight off the session summary. <b>Set 2026-08-24.</b> Near-max minutes logged before that date were measured against a 176 boundary and are ~2 bpm non-comparable — it gates nothing, so nothing is at risk, but do not read a step change across that date as a finding. <span class="mini">The old Morpheus procedure — bound the day between its High and Moderate bands, log "unknown" when indeterminate — is retired with the device and recorded in reference/AEROBIC.md § Instruments. Fixed zones give the number directly, so there is nothing left to bound.</span></div>
   <br><br><b>What to do instead.</b> Morpheus reports three zones and its Moderate band straddles ${H.t4}, so its readout can only ever <i>bound</i> this number, never give it. Read the zone floors off the app (they are shown as numerals), then: if High minutes alone &ge; ${AERO_MIN}, the day qualifies outright. If High + Moderate &lt; ${AERO_MIN}, it failed. Anything between is <b>indeterminate — log it as unknown rather than guessing a number.</b> To resolve the middle case, pair the H10 to an app with fixed, user-set zones at ${H.t4} and ${H.t5}, and let Morpheus keep only the morning recovery test. They do not overlap, so nothing needs to run twice.</div>
-  <div class="mini" style="margin-top:6px">Do not read minutes from Morpheus zone times \u2014 its High band is recovery-derived and floats, and it always sits well above ${H.t4}, so its High minutes are a permanent undercount of what qualifies here.</div>
-  <div class="mini" style="margin-top:6px;opacity:.8">BJJ: previously written off here as unmeasurable. The sleeve makes it measurable and it is now worth logging. Whether it ever clears this gate is <b>unknown</b> \u2014 one session on Jul 19 is not evidence either way, and that one was on the retired underwear band.</div></div>`;
+  <div class="mini" style="margin-top:6px;opacity:.8">BJJ is worth logging — whether it ever clears this gate is still <b>unknown</b>. One session on Jul 19, on the retired band, is not evidence either way.</div></div>`;
   return h;
 }
 /* ---- v11.19 LAYER 3 CARD — adaptation readout. Lives on the Test tab because it is
@@ -2254,7 +2549,7 @@ function benchCard(w){
   <b>Same class, warm, similar time of day, similar sleep.</b> The comparison is only as good as the repeat. If you have to change class, start a new baseline rather than pretending the old one carries over.</div></details>
   <div class="banner amber" style="margin-top:10px"><b>If your FTP changes mid-block, this comparison breaks.</b> Power Zone targets are a percentage of FTP, so a new FTP means the class prescribes different watts — and your output moves for a reason that has nothing to do with adaptation. This is the one thing that would silently poison the data rather than obviously breaking it.
   <div style="margin-top:6px"><button onclick="benchNewBaseline()">FTP changed — start a new baseline here</button></div></div>
-  <div class="mini" style="margin-top:8px">No FTP test, ever. You are at the bottom of your FTP after the layoff and a retest now would only record the dip. Peloton owns that number.</div></div>`;
+  <div class="mini" style="margin-top:8px"><b>Superseded 2026-08-24.</b> This line previously ruled out an FTP re-test outright. It was right while the block was about to open: a dip tested then would have been banked into it. After a second layoff, with the block still not started, it inverts — an untested FTP from before the detraining prescribes zones that are too hard, and every "Zone 2" ride off it is really tempo. He is re-testing in on-ramp 2. <b>Record it on the Cardio tab BEFORE the week-1 benchmark ride</b>, never between rides. Peloton still owns the number; the app only dates it.</div></div>`;
   return h;
 }
 
@@ -2680,7 +2975,7 @@ function rToday(){
     const dd=Math.round((new Date(ONRAMP_START+"T00:00:00")-new Date(dISO+"T00:00:00"))/86400000);
     const o=ONRAMP[0];
     h+=`<div class="card spine t1"><h3>On-ramp starts ${dd===1?"tomorrow":"in "+dd+" days"} — ${fmtD(ONRAMP_START)}</h3>
-    <div class="meta">Today is ${fmtD(dISO)}. Nothing is scheduled yet. The ${ONRAMP.length}-day on-ramp opens automatically on ${fmtD(ONRAMP_START)} and hands off to Week 1 on ${fmtD(progStart())}.</div>
+    <div class="meta">Today is ${fmtD(dISO)}. Nothing is scheduled yet. The ${orDays(1).length}-day on-ramp opens automatically on ${fmtD(ONRAMP_START)} and hands off to Week 1 on ${fmtD(progStart())}.</div>
     <div class="klabel" style="margin-top:8px">Day 1 preview — ${o.t}</div>
     ${o.items.map(it=>`<div class="row"><div class="nm">${it[0]}${it[1]?`<div class="sup">${it[1]}</div>`:""}</div></div>`).join("")}
     <div class="banner teal" style="margin-top:10px"><b>Floor:</b> ${o.floor}</div>
@@ -2689,11 +2984,12 @@ function rToday(){
   }
   if(inOnramp(dISO)){
     const i=orIndex(dISO),o=ONRAMP[i];
+    const dNo=orDayNo(dISO),dLen=orLen(dISO);   /* v11.25 — within the block, not across the array */
     h+=`<div class="card"><div class="klabel">Readiness · 1–5</div>
     <div class="seg">${[1,2,3,4,5].map(v=>`<button class="${r===v?"on":""}" onclick="setReady(${v})">${v}</button>`).join("")}</div></div>`;
     if(o){
       const dn=Z.orDone[dISO]||{};
-      h+=`<div class="card spine t1"><h3>On-ramp · Day ${i+1} of ${ONRAMP.length} — ${o.t}</h3>
+      h+=`<div class="card spine t1"><h3>On-ramp · Day ${dNo} of ${dLen} — ${o.t}</h3>
       <div class="meta">${fmtD(dISO)} · full block starts ${fmtD(progStart())}</div>
       ${Z.orShort===dISO?`<div class="mini" style="margin:6px 0;color:var(--t2)">Showing the floor only. Everything else today is optional.</div>`
         :o.items.map((it,ix)=>`<div class="row"><div class="nm">${it[0]}${it[1]?`<div class="sup">${it[1]}</div>`:""}</div>
@@ -2721,12 +3017,22 @@ function rToday(){
     const dd=Math.round((new Date(progStart()+"T00:00:00")-new Date(dISO+"T00:00:00"))/86400000);
     h+=`<div class="card"><div class="klabel">Readiness · 1–5</div>
     <div class="seg">${[1,2,3,4,5].map(v=>`<button class="${r===v?"on":""}" onclick="setReady(${v})">${v}</button>`).join("")}</div>
-    <div class="mini" style="margin-top:6px">Worth logging through the layoff — it is the trend either side of the gap that tells you what the time off cost.</div></div>
-    <div class="card spine t2"><h3>Layoff — block opens ${dd===1?"tomorrow":"in "+dd+" days"}, ${fmtD(progStart())}</h3>
-    <div class="meta">Today is ${fmtD(dISO)}. The on-ramp closed ${fmtD(ONRAMP[ONRAMP.length-1].d)} and Week 1 has not started.</div>
-    <div class="banner teal" style="margin-top:10px"><b>Nothing is owed.</b><br><span class="mini">The block is calendar-driven: it opens on its date and nothing repeats. The load is exposure-driven, so the bar has not run ahead of you — it is still waiting at week 1. There is no makeup work to do, and doing extra now buys you nothing the ledger will read.</span></div>
-    <div class="klabel" style="margin-top:12px">Day 1 — ${fmtD(progStart())}</div>
-    <div class="row"><div class="nm">Box squat · top triple<div class="sup">The first loaded exposure of the block, and the lower-risk one — it is your cleared lumbar substitution and it falls before the trap bar on Thursday. Prescription and load are on the Week tab.</div></div></div>
+    <div class="mini" style="margin-top:6px">Worth logging through the layoff — it is the trend either side of the gap that tells you what the time off cost.</div></div>`;
+    /* v11.25 — a gap day can now sit BEFORE a pending on-ramp, not only before the block.
+       Pointing at Week 1 from here would have been true and useless: the thing that happens
+       next is the on-ramp, and it is tomorrow. Also stops reading the last element of ONRAMP
+       to name "the on-ramp that closed" — with two on-ramps that element is in the future. */
+    const nx=orNext(dISO);
+    const closed=ONRAMP.filter(o=>o.d<dISO).sort((a,b)=>a.d<b.d?-1:1).pop();
+    const nd=nx?Math.round((new Date(nx.d+"T00:00:00")-new Date(dISO+"T00:00:00"))/86400000):null;
+    h+=`<div class="card spine t2"><h3>${nx?`On-ramp resumes ${nd===1?"tomorrow":"in "+nd+" days"}, ${fmtD(nx.d)}`:`Layoff — block opens ${dd===1?"tomorrow":"in "+dd+" days"}, ${fmtD(progStart())}`}</h3>
+    <div class="meta">Today is ${fmtD(dISO)}.${closed?` The last on-ramp closed ${fmtD(closed.d)}.`:""} Week 1 opens ${fmtD(progStart())}.</div>
+    <div class="banner teal" style="margin-top:10px"><b>Nothing is owed today.</b><br><span class="mini">The block is calendar-driven: it opens on its date and nothing repeats. The load is exposure-driven, so the bar has not run ahead of you — it is still waiting at week 1. There is no makeup work to do, and doing extra now buys you nothing the ledger will read.</span></div>
+    ${nx?`<div class="klabel" style="margin-top:12px">Next — ${fmtD(nx.d)} · ${nx.t}</div>
+    ${nx.items.slice(0,3).map(it=>`<div class="row"><div class="nm">${it[0]}${it[1]?`<div class="sup">${it[1]}</div>`:""}</div></div>`).join("")}
+    <div class="banner teal" style="margin-top:8px"><b>Floor:</b> ${nx.floor}</div>`
+    :`<div class="klabel" style="margin-top:12px">Day 1 — ${fmtD(progStart())}</div>
+    <div class="row"><div class="nm">Box squat · top triple<div class="sup">The first loaded exposure of the block, and the lower-risk one — it is your cleared lumbar substitution and it falls before the trap bar on Thursday. Prescription and load are on the Week tab.</div></div></div>`}
     <div class="mini" style="margin-top:10px">Change the start date on the <a href="#" onclick="go('log');return false">Log tab →</a> if this needs to move again.</div></div>`;
     el.innerHTML=h;return;
   }
@@ -2744,10 +3050,48 @@ function rToday(){
      were not — the D1 card had been rendering the whole time, five cards down. Nothing
      below this line tells him what to do today. */
   h+=benchTodayCard(dISO);  /* v11.20 — only on weeks 1/4/8/12, silent otherwise */
-  h+=aeroCard(dISO);
-  h+=vo2Card(dISO);      /* v11.19 Layer 2 — renders a dormant stub when the block is off */
+  h+=aeroStrip(dISO);    /* v11.25 — one line. aeroCard + vo2Card now live on the Cardio tab. */
   h+=scoreCard(dISO);
   h+=realityCard(dow);
+  el.innerHTML=h;
+}
+
+/* ---- v11.25 — THE CARDIO TAB. The three-layer model in one place, in order.
+   The layers are ordered floor -> progression -> readout because that is the order in which
+   they become relevant, and because Layer 1 is the one that runs every week whatever else is
+   happening. Layer 3 is NOT duplicated here: it is a measurement rather than a session and it
+   lives on the Test tab with the other measurements. This tab links to it instead, because
+   two copies of a card is how the assumptions card ended up contradicting shipped behaviour
+   for eleven versions. ---- */
+function rCardio(){
+  const el=document.getElementById("v_cardio");
+  const dISO=todayISO(), w=curWeek(), H=hrThreshold();
+  let h=`<div class="card" style="padding:12px 14px">
+  <div class="klabel">Three layers, three different questions</div>
+  <div class="mini" style="margin-top:6px">
+  <b>Layer 1 — the floor.</b> Did you do enough hard aerobic work to lose nothing? Weekly, any source, every week of the block.<br>
+  <b>Layer 2 — the progression.</b> An inserted block of intervals to raise VO2max, then out. Off by default.<br>
+  <b>Layer 3 — the readout.</b> Did any of it work? A benchmark ride at weeks ${BENCH_WEEKS.join(", ")}, on the <a href="#" onclick="go('test');return false">Test tab →</a>
+  </div>
+  <div class="mini" style="margin-top:8px;opacity:.75">They run on different clocks and do not substitute for each other. Clearing the floor is not progress; it is the absence of loss.</div></div>`;
+  /* v11.25 — FTP sits above the layers because every one of them is prescribed off it.
+     Power Zones are a percentage of FTP; a stale FTP means the zones are wrong and the
+     "Zone 2" rides have quietly been tempo. */
+  {const F=Z.ftp, age=F&&F.date?Math.round((new Date(dISO+"T00:00:00")-new Date(F.date+"T00:00:00"))/86400000):null;
+   h+=`<div class="card ${F?"":"spine t2"}"><h3>FTP — ${F?`${F.w} W`:"not recorded"}</h3>
+   <div class="meta">${F?`Set ${fmtD(F.date)}${age!=null?` · ${age} days ago`:""}${F.prev?` · previously ${F.prev} W`:""}.`:"The app does not calculate this and should not — Peloton owns the number. Record it here so it has a date on it."}</div>
+   ${!F||age>90?`<div class="banner amber"><b>${!F?"No FTP on record.":"This number is "+age+" days old."}</b> Every Power Zone is a percentage of FTP, so a stale figure does not make the rides easier — it makes them the <i>wrong intensity</i>, and a Zone 2 ride prescribed off an FTP you no longer have is tempo work wearing a Zone 2 label.</div>`:""}
+   <div class="grid2" style="margin-top:8px">
+     <div><label class="f">New FTP (W)</label><input type="number" id="ftpNew" inputmode="decimal" placeholder="watts"></div>
+     <div style="display:flex;align-items:flex-end"><button onclick="setFTP()">Record it</button></div>
+   </div>
+   <div class="mini" style="margin-top:8px"><b>Test protocol:</b> 20 min best effort, <b>FTP = 0.95 × the 20-min average power</b>. Peloton's own FTP Test class does that arithmetic and writes the result. Ride it as an even effort you can just barely hold — going out hard and fading returns a lower number than you actually own.
+   <br><br><b>Sequencing, and this one matters.</b> Recording a change here offers to break the Layer 3 baseline, because Power Zone targets move with FTP: the same class prescribes different watts, and output changes for a reason that has nothing to do with adaptation. <b>Re-test FTP BEFORE the week-1 benchmark ride</b>, never between benchmark rides. This is the one failure mode that silently poisons the data instead of obviously breaking it.</div>
+   <div class="mini" style="margin-top:6px;opacity:.75"><b>Superseded 2026-08-24.</b> This card previously ruled out an FTP re-test outright, on the grounds that he was at the bottom of his FTP after the layoff and a re-test would only record the dip. That was written when the block was about to open and a dip would have been recorded <i>into</i> it. After a further layoff and with the block not yet started, the argument inverts: an untested FTP from before the detraining prescribes zones that are too hard, which is worse than an honest low number. He asked to re-test; the reasoning is recorded here rather than quietly deleted.</div></div>`;}
+  h+=aeroCard(dISO);
+  h+=vo2Card(dISO);      /* v11.19 Layer 2 — renders a dormant stub when the block is off */
+  h+=`<div class="card" style="padding:10px 14px">
+  <div class="mini">The evidence behind the threshold, the Hickson maintenance result, the instrument comparisons and the withdrawn Morpheus instruction are written up in <b>reference/AEROBIC.md</b> rather than repeated on this tab. Change the file, not a card.</div></div>`;
   el.innerHTML=h;
 }
 
@@ -2764,11 +3108,20 @@ function rWeek(){
   if(w===-1){
     h=`<div class="card"><div class="klabel">Look ahead — the on-ramp, or any week of the block</div>
     <div class="wksel"><button class="on" onclick="wkView=-1;render()">On-ramp</button>${Array.from({length:12},(_,i)=>`<button onclick="wkView=${i};render()">${i+1}</button>`).join("")}</div>
-    <div class="mini">Preview only — logging happens on Today.</div></div>
-    <div class="card spine t1"><h3>On-ramp — Tue Aug 4 to Sun Aug 9</h3>
-    <div class="meta">Six days. Re-establish real numbers, meet the two things that are new, and settle the conditioning question. <b>Week 1 starts Mon Aug 10 regardless of what happens here.</b></div>
+    <div class="mini">Preview only — logging happens on Today.</div></div>`;
+    /* v11.25 — pick ONE on-ramp block and derive its title from its own dates.
+       This card carried the literal "Tue Aug 4 to Sun Aug 9" while the days underneath it
+       rendered Aug 11-16: a hardcoded date that had been wrong since the on-ramp moved and
+       that v11.10's sweep missed because it only scanned the Today tab. With a second
+       on-ramp appended it would also have listed all twelve days as one continuous block.
+       Shows the on-ramp you are in, else the one coming, else the last one that ran. */
+    const _tI=todayISO();
+    const _vb=orBlockOf(_tI)||(orNext(_tI)?orBlockOf(orNext(_tI).d):ONRAMP[ONRAMP.length-1].b);
+    const _vd=orDays(_vb);
+    h+=`<div class="card spine t1"><h3>On-ramp — ${fmtD(_vd[0].d)} to ${fmtD(_vd[_vd.length-1].d)}</h3>
+    <div class="meta">${_vd.length} days. Re-establish real numbers and settle what the layoff actually cost. <b>Week 1 starts ${fmtD(progStart())} regardless of what happens here.</b></div>
     <div class="banner teal"><b>Nothing here can be failed.</b> Every day has a floor. Hit the floor and the day counted. Miss a day entirely and Monday is unaffected — nothing repeats, nothing is owed.</div></div>`;
-    ONRAMP.forEach((o,ix)=>{
+    _vd.forEach((o,ix)=>{
       const dn=(new Date(o.d+"T00:00:00")).getDay();
       h+=`<div class="card spine ${ix===2||ix===4?"t1":"t2"}"><h3>Day ${ix+1} · ${DAYS[(dn+6)%7]} — ${o.t}</h3>
       <div class="meta">${o.d}</div>
@@ -3149,9 +3502,9 @@ function rTest(){
   const boundary=w>=10;
   el.innerHTML=`
   ${due?`<div class="banner teal"><b>Week ${w+1} — screen week.</b> Kick height (capacity), active and passive rotation, and the <b>F4F battery</b> — hip flexion, hamstring, adductor. Ankle DF only every 12 weeks now. About twenty minutes, <b>no barbell</b>.
-       <span class="mini"><b>No strength retest. Not this week, not any week.</b> Your programmed top sets already are the test — every one you log is an e1RM estimate, and the suggestions have been tracking it all along. Adding max attempts on top of a high-volume block buys a number you already have, at a fatigue cost you cannot afford.</span></div>`
-       :`<div class="mini" style="margin-bottom:8px">Week ${w+1}. Next screen: <b>week ${nextDue}</b>${nextDue-(w+1)>0?` — ${nextDue-(w+1)} week${nextDue-(w+1)===1?"":"s"} out`:""}. Measurements only, ~15 min, <b>no barbell</b>. Strength never gets a separate retest — the programmed top sets already are the test.</div>`}
-  ${boundary?`<div class="banner amber"><b>Block boundary.</b> Weeks 11&ndash;12 already prescribe the heaviest top sets of the block (2&times;3 @ RIR 1&ndash;2, 88% of e1RM). <b>Those are your end-of-block numbers</b> — log them and the block closes itself out. Screen plus a kick-height check on top. No FTP test; Peloton owns that number.</div>`:""}
+       <span class="mini"><b>No strength retest MID-BLOCK.</b> Your programmed top sets already are the test — every one you log is an e1RM estimate, and the suggestions have been tracking it all along. Adding max attempts on top of a high-volume block buys a number you already have, at a fatigue cost you cannot afford. <b>Scoped 2026-08-24:</b> this rule previously extended to every week of the year, which also ruled out the case it was never arguing against — a re-test in a gap week, with no block volume to compete with, after a layoff has made the banked figure an extrapolation rather than an observation. That is what on-ramp 2 is for, and the fatigue argument does not reach it.</span></div>`
+       :`<div class="mini" style="margin-bottom:8px">Week ${w+1}. Next screen: <b>week ${nextDue}</b>${nextDue-(w+1)>0?` — ${nextDue-(w+1)} week${nextDue-(w+1)===1?"":"s"} out`:""}. Measurements only, ~15 min, <b>no barbell</b>. <b>No strength retest MID-BLOCK</b> — the programmed top sets already are the test, and max attempts on top of a high-volume block buy a number you already have at a fatigue cost you cannot afford. <b>Scoped 2026-08-24:</b> a re-test in a gap week after a layoff is a different case and is not covered by this rule.</div>`}
+  ${boundary?`<div class="banner amber"><b>Block boundary.</b> Weeks 11&ndash;12 already prescribe the heaviest top sets of the block (2&times;3 @ RIR 1&ndash;2, 88% of e1RM). <b>Those are your end-of-block numbers</b> — log them and the block closes itself out. Screen plus a kick-height check on top. No FTP test at the block boundary — a fresh FTP here would move the Power Zones underneath your last benchmark ride and make the two ends of the block incomparable. Re-test it between blocks, not inside one.</div>`:""}
   ${(w+1)===6?`<div class="banner amber"><b>Week 6 decision point.</b> If passive IR has not moved, stop spending the block chasing range — the lift-off number is the one that matters, and it can climb while passive ROM sits still.</div>`:""}
   <div class="card spine t1"><h3>Where you stand</h3>
   ${row("Kick height — the north star",(kc.kcapL!=null||kc.kcapR!=null)?`L ${kc.kcapL??"—"} / R ${kc.kcapR??"—"} in`:"not measured yet",
@@ -3171,6 +3524,23 @@ function rTest(){
   ${bat.date?row("F4F battery",`Flex ${bat.flexL??"—"}/${bat.flexR??"—"} \u00b7 Ham ${bat.hamL??"—"}/${bat.hamR??"—"} \u00b7 Abd ${bat.addL??"—"}/${bat.addR??"—"}`,`Live candidate limiters \u00b7 ${bat.date}`):""}
   ${row("Ankle DF",s.ankL!=null?`L ${s.ankL}\u00b0 / R ${s.ankR}\u00b0`:"—",
      (s.ankL!=null&&Math.min(s.ankL,s.ankR)>=35)?"<b>Not a limiter.</b> At or above normal weight-bearing range — demoted to a 12-week rescreen. Nothing in the kick is restricted here.":"")}
+  </div>
+
+  <div class="card spine t2"><h3>Re-bank from a top triple</h3>
+  <div class="meta">Enter what the bar weighed and how many you had left. The app converts on its own scale — the same reps+RIR arithmetic every logged top set already uses — and stamps today's date.</div>
+  <div class="banner ${inOnramp(todayISO())?"teal":""}" style="${inOnramp(todayISO())?"":"background:transparent;border:1px dashed var(--dim,#555)"}">
+  <b>${inOnramp(todayISO())?"On-ramp 2 is the re-test window.":"Use this after a layoff, not mid-block."}</b>
+  Box squat ${fmtD("2026-08-25")} &middot; bench ${fmtD("2026-08-27")} &middot; trap bar ${fmtD("2026-08-29")}, each a top triple at <b>RIR 1&ndash;2</b>.
+  <span class="mini"><b>Not a 3RM.</b> Stop with one or two genuinely in reserve. A clean triple writes a perfectly good e1RM; a grinding one buys precision you do not need at a risk you do not have to take, a week after a lumbar recurrence. If the back objects, take RIR 3 and bank a smaller honest number — the rolling e1RM takes the best of your trailing 42 days <i>or</i> the baseline, so a conservative bank cannot cost you anything.</span></div>
+  ${[["boxsq","Box squat"],["bench","Bench"],["trap","Trap bar"]].map(([k,lb])=>`
+    <div class="row" style="align-items:flex-end">
+      <div class="nm">${lb}<div class="sup">banked ${(Z.base||{})[k]??"—"}${(Z.base||{}).date?` · ${fmtD((Z.base||{}).date)}`:""}</div></div>
+      <input class="win" id="tri_${k}" inputmode="decimal" placeholder="lb">
+      <input class="win" id="trir_${k}" inputmode="decimal" placeholder="RIR">
+      <button class="btn sm" onclick="rebankTriple('${k}')">Bank</button>
+    </div>`).join("")}
+  <div class="mini" style="margin-top:8px"><b>Re-banking also clears the layoff decay on that lift</b>, because a dated observation has replaced an extrapolation. You do not have to beat the old number, and you do not even have to use this card — training the lift at all clears the decay. The decay was never the thing that needed resetting by hand.</div>
+  <div class="mini" style="margin-top:6px;opacity:.75">Three reps assumed. It is the only rep count in the re-test.</div>
   </div>
 
   <div class="card"><h3>Block baselines — the floor under every suggested load</h3>
