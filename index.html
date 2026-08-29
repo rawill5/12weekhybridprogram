@@ -165,7 +165,7 @@ details[open] summary:after{transform:rotate(-90deg)}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.27 · 2026-08-29";
+const BUILD="v11.31 · 2026-08-29";
 /* v11.22 — THE START DATE IS NOW STATE, NOT A CONSTANT.
    Sixth start date (Jul 28 · Aug 3 · Aug 10 · Aug 17 · Aug 24), moved for an episodic
    lumbar recurrence. The point of this change is that there must never be a seventh
@@ -1460,7 +1460,14 @@ function z2Band(){return {lo:Math.round(0.60*HRMAX), hi:Math.round(0.70*HRMAX)};
    Was Math.round(0.90*HRMAX) = 176, which disagreed with the 178 the card told him to
    configure. Keep calling z5Threshold(); it is the only near-max number in the app. */
 function z5Threshold(){return hrThreshold().t5;}   /* Karvonen 85% HRR — 178 at RHR 79 / max 195 */
-const AERO_MODE={kick:"Kickboxing",bjj:"BJJ",bag:"Bag rounds",pz:"Power Zone",pzmax:"PZ Max",hiit:"Other HIIT"};
+/* v11.27a — `lift` added at his request: "sometimes that ends up being relatively cardio for
+   me." Worth having as its own tag rather than folded into "Other HIIT", because the per-modality
+   rollup exists precisely to answer which activities actually deliver hard minutes, and lifting
+   is the one where the answer is least obvious. Note the interaction with the strength ledger:
+   tagging a day `lift` does NOT make it a strength exposure and does not touch `exposureClass()`
+   — the two are counted from different keys and must stay that way, or a hard breathing day
+   would start advancing the barbell wave. */
+const AERO_MODE={kick:"Kickboxing",bjj:"BJJ",bag:"Bag rounds",pz:"Power Zone",pzmax:"PZ Max",lift:"Lifting",hiit:"Other HIIT"};
 /* Minutes above 176 are a SUBSET of minutes above 160. If z5 > hard, one of the two was
    misread — flag it rather than storing a contradiction. */
 function aeroZ5Bad(dISO){const hh=(Z.aero||{})[dISO], z=(Z.aeroZ5||{})[dISO];
@@ -1469,10 +1476,40 @@ function median(a){if(!a.length)return null;const s=a.slice().sort((x,y)=>x-y),m
   return s.length%2?s[m]:(s[m-1]+s[m])/2;}
 /* Per-modality rollup. Median, not mean — n is small and one outlier session should not
    move the answer to "does BJJ ever get hard." */
+/* v11.27b — ATTRIBUTION MOVED FROM THE DAY TO THE SESSION.
+
+   Robert, on the way into week 1: "I think I will regularly log two hard sessions on one day
+   with different sources." That breaks the old shape, and not cosmetically. `Z.aeroMode` is
+   keyed by DATE and holds ONE tag, so a day of bag rounds plus an evening lift credited the
+   WHOLE day's minutes — both sessions — to whichever source was tagged last. This card exists
+   to answer "which of your hard sessions actually gets near-maximal", and day-level attribution
+   answers it wrongly the moment a day holds two sources. It is a data-quality fault, not a
+   display limitation: the number it produced was confidently incorrect.
+
+   So: where SESSION RECORDS exist for a day, each session is attributed to its own source with
+   its own minutes. Where they do not — every day logged before v11.27, and any day typed
+   straight into the grid — the old day-level tag is still used. A day is read one way or the
+   other, never both, so nothing is double-counted.
+
+   `n` counts SESSIONS now, not days. That is the honest unit for this question, and the card
+   says "sessions tagged" already. */
+function aeroSessFor(date){return aeroLogArr().filter(r=>r.date===date);}
+function aeroSessModes(date){return [...new Set(aeroSessFor(date).map(r=>r.mode).filter(Boolean))];}
 function aeroByMode(){
   const out={};
   Object.keys(AERO_MODE).forEach(k=>out[k]={n:0,hard:[],z5:[]});
+  const seen={};
+  /* 1. Session-level, where we have it. */
+  aeroLogArr().forEach(r=>{
+    seen[r.date]=true;
+    const k=r.mode; if(!k||!out[k])return;
+    out[k].n++;
+    if(r.mins!=null)out[k].hard.push(Number(r.mins));
+    if(r.z5!=null)out[k].z5.push(Number(r.z5));
+  });
+  /* 2. Day-level fallback, ONLY for days with no session records. */
   Object.keys(Z.aeroMode||{}).forEach(d=>{
+    if(seen[d])return;                       /* already attributed per session */
     const k=Z.aeroMode[d]; if(!out[k])return;
     const hh=(Z.aero||{})[d], z=(Z.aeroZ5||{})[d];
     if(hh==null&&z==null)return;
@@ -2185,8 +2222,17 @@ function benchAdd(){
   /* Default to the pinned class so he never has to retype it — that is the whole point
      of pinning it. He can still override, and an override gets flagged, not hidden. */
   const typed=(ce&&ce.value)?ce.value.trim():"";
-  const rec={date:todayISO(),cls:typed||benchClassName()||"",kj:g("bnKJ"),hr:g("bnHR"),hrr:g("bnHRR")};
+  const obs=obsDate("bnDate");                            /* v11.31 — dated, not assumed */
+  if(!obs)return;
+  const rec={date:obs,cls:typed||benchClassName()||"",kj:g("bnKJ"),hr:g("bnHR"),hrr:g("bnHRR"),entered:todayISO()};
   if(rec.kj==null&&rec.hr==null&&rec.hrr==null)return;   /* refuse an empty record */
+  /* Layer 3 compares rides against a baseline that an FTP change invalidates. A ride dated
+     BEFORE the current FTP date was ridden at different watts than one dated after it, so
+     silently filing it alongside the others would do exactly the thing benchNewBaseline()
+     exists to prevent. Warn; do not block — he knows which zones he rode. */
+  if(Z.ftp&&Z.ftp.date&&obs<Z.ftp.date){
+    if(!confirm(`That ride is dated ${obs}, BEFORE your current FTP was set (${Z.ftp.date}).\n\nPower Zone targets are a percentage of FTP, so it was ridden at different watts than rides after the change. Comparing it with them measures the FTP move, not adaptation.\n\nLog it anyway?`))return;
+  }
   Z.aeroBench=Z.aeroBench||[];Z.aeroBench.push(rec);save();render();}
 /* v11.20 — pin / clear the class, and break the baseline when FTP moves. */
 function benchSetClass(){const e=document.getElementById("bnPin");
@@ -2250,8 +2296,14 @@ function aeroAdd(date,mins,z5,mode){
   Z.aero=Z.aero||{}; Z.aeroZ5=Z.aeroZ5||{}; if(!Array.isArray(Z.aeroLog))Z.aeroLog=[];
   Z.aero[date]=Number(((Z.aero[date]||0)+m).toFixed(2));
   if(z!=null&&isFinite(z)&&z>0)Z.aeroZ5[date]=Number(((Z.aeroZ5[date]||0)+z).toFixed(2));
-  if(mode)setAeroMode(date,mode);            /* last tag wins; the rollup is per-day */
   Z.aeroLog.push({date,mins:m,z5:(z!=null&&isFinite(z)&&z>0)?z:null,mode:mode||null,ts:todayISO()});
+  /* The DAY tag now only describes a day whose sessions agree. With bag rounds in the morning
+     and a lift in the evening, no single tag is true, so the day carries none rather than
+     claiming the last one entered — which is what it used to do, and what made the rollup wrong.
+     Attribution for such a day comes off the session records instead. */
+  {const ms=aeroSessModes(date);
+   if(ms.length===1)setAeroMode(date,ms[0]);
+   else if(Z.aeroMode)delete Z.aeroMode[date];}
   save();render();return true;
 }
 function aeroAddFromForm(){
@@ -2326,24 +2378,100 @@ function triE1(w,reps,rir){
   if(!(w>0))return null;
   return Math.round(w/pct1RM(reps,rir));
 }
+/* ================= v11.31 — ONE DATED-OBSERVATION PRIMITIVE =================
+   Robert: "Seems to make sense that the benchmark ride, the FTP, the kick height screen —
+   really anything that I log, I'm able to control the date, doesn't it?"
+
+   Yes. v11.30 solved this for ONE card and left three with the same gap. The wrong way to
+   finish the job is four more bolt-on date boxes: the input is the easy part and the GUARDS
+   are the hard part, and four copies of a guard is four chances to get one wrong and no way to
+   tell which. So there is one validator and one control, and every measurement logger calls it.
+
+   THE SPLIT THAT MATTERS, and it is now the whole model — two mechanisms, no third:
+     DAY-LOGGING     follows the date cursor. Session ticks, readiness, GMB, on-ramp toggles,
+                     cardio sessions. Nothing is typed; the cursor is the date.
+     MEASUREMENTS    carry an EXPLICIT TYPED date, defaulting to today. Never read the cursor.
+                     A stamp that moves because a navigation control moved is the bug; a date
+                     he typed on purpose is not.
+
+   `obsDate()` refuses the future outright — a measurement cannot have been observed tomorrow,
+   which is exactly where the day cursor's deliberate permissiveness would be wrong — and
+   refuses anything that is not a real ISO date, because several of these dates are read back
+   as the head of a clock (`Z.base.date` -> `lastLiftDay()` -> the layoff decay) where an
+   Invalid Date propagates silently. ============================================== */
+function obsDate(inputId){
+  const el=document.getElementById(inputId);
+  const v=((el&&el.value)||"").trim()||todayISO();
+  if(!ISO_RE.test(v)||isNaN(new Date(v+"T00:00:00").getTime())){
+    alert("Enter a valid date for the session, or leave it on today.");return null;}
+  if(v>todayISO()){
+    alert("That date is in the future. A measurement can only be dated on or before the day it was taken.");return null;}
+  return v;
+}
+/* The control. One shape everywhere so the affordance is recognisable, and `max` blocks the
+   future in the picker as well as in the validator — belt and braces, because the validator is
+   the one that matters and the attribute is the one he sees. */
+function obsDateInput(id,extra){
+  return `<input type="date" id="${id}" value="${todayISO()}" max="${todayISO()}" title="The day this actually happened"${extra||""}>`;
+}
+function obsAgo(d){return Math.floor((new Date(todayISO()+"T00:00:00")-new Date(d+"T00:00:00"))/86400000);}
+function obsLateNote(d){const n=obsAgo(d);return n>0?` (${n} day${n===1?"":"s"} ago)`:"";}
+
+/* ================= v11.30 — THE OBSERVATION CARRIES ITS OWN DATE =================
+   Robert, having logged Thursday's bench triple and come back to it on Saturday: "I think now
+   I can just go back to that day and log it, right, since we added that feature."
+
+   Not quite, and the gap he found is real. The date cursor governs day-logging; measurement
+   stamps deliberately ignore it, and that rule stands (see below). But `rebankTriple` stamped
+   `todayISO()` with no way to say otherwise — so the rationale behind the rule, "record when
+   the measurement was actually TAKEN", was being violated by the card itself the moment he
+   logged late. Which, by his own account, is the normal case.
+
+   THIS IS NOT THE CHANGE THE v11.26 HANDOFF FORBIDS. That one is measurement stamps
+   *silently* following the cursor, where a stamp moves because a navigation control moved and
+   nobody typed anything. This is the opposite: an explicit, visible, typed date, defaulting to
+   today, which makes the observation date deliberate instead of assumed. `viewISO()` is NOT
+   read here and must not be — qa26 §11 asserts the field defaults to today even with the
+   cursor parked on another day.
+
+   Three guards, because this date drives the decay clock through `lastLiftDay()`, which reads
+   `Z.base.date` as its starting point:
+     - FUTURE DATES REFUSED. A measurement cannot have been observed tomorrow. This is exactly
+       where the day cursor's deliberate permissiveness would be wrong.
+     - OLDER THAN THE CURRENT BANK -> warned in the confirm. Banking a stale observation over a
+       newer one silently moves the decay clock BACKWARDS and re-ages a lift that is current.
+     - OLDER THAN THE 42-DAY WINDOW -> warned. Outside `E1_WINDOW` the rolling e1RM would not
+       have looked at it anyway, so banking it as the baseline is probably not what was meant.
+   All three are warnings-then-confirm rather than hard blocks, except the future date. He is
+   the one who knows what happened; the card's job is to make sure he means it. ============ */
 function rebankTriple(k){
   const wEl=document.getElementById("tri_"+k), rEl=document.getElementById("trir_"+k);
   const w=Number(wEl&&wEl.value), rir=Number(rEl&&rEl.value);
   if(!(w>0)){alert("Enter the weight you actually lifted.");return;}
   if(!(rir>=0&&rir<=5)){alert("Enter reps in reserve, 0 to 5. If you genuinely had none left, enter 0.");return;}
+  const obs=obsDate("trid_"+k);            /* v11.31 — shared validator; was inline */
+  if(!obs)return;
   const e1=triE1(w,3,rir);
-  const prev=(Z.base||{})[k];
+  const prev=(Z.base||{})[k], prevDate=(Z.base||{}).date||null;
+  const late=obs!==todayISO();
+  let warn="";
+  if(prevDate&&obs<prevDate)warn+=`\n\nWARNING: this session (${obs}) is OLDER than the currently banked date (${prevDate}). Banking it moves the layoff-decay clock backwards and re-ages a lift that is currently fresh.`;
+  const age=Math.floor((new Date(todayISO()+"T00:00:00")-new Date(obs+"T00:00:00"))/86400000);
+  if(age>E1_WINDOW)warn+=`\n\nWARNING: that was ${age} days ago, outside the ${E1_WINDOW}-day rolling window. The e1RM would not have been reading it anyway.`;
   const msg=`${w} lb x 3 @ RIR ${rir}  =  e1RM ${e1}`+
     (prev?`\n\nPrevious banked figure: ${prev}${e1<prev?`  (down ${prev-e1})`:e1>prev?`  (up ${e1-prev})`:""}`:"")+
-    `\n\nBank it and date it today? This also clears the layoff decay on this lift.`;
+    warn+
+    `\n\nBank it dated ${late?obs+" ("+age+" day"+(age===1?"":"s")+" ago)":"today, "+obs}? This also clears the layoff decay on this lift.`;
   if(!confirm(msg))return;
   Z.base=Z.base||{boxsq:null,trap:null,bench:null,date:null};
-  Z.base[k]=e1; Z.base.date=todayISO(); Z.base.conv="reps+RIR";
+  Z.base[k]=e1; Z.base.date=obs; Z.base.conv="reps+RIR";
   /* A dated observation of a lift is also a layoff/return pair worth keeping, and the Test
      tab's ledger is where those accumulate. It is an OBSERVATION — nothing computes from it.
-     qa23 §6 asserts that absurd values here leave every prescription bit-identical. */
+     qa23 §6 asserts that absurd values here leave every prescription bit-identical.
+     `entered` records when it was TYPED, so a late entry is distinguishable from a same-day
+     one without either date having to lie about the other. */
   Z.layoffObs=Z.layoffObs||[];
-  Z.layoffObs.push({date:todayISO(),lift:k,e1,prev:prev??null,src:"re-bank triple"});
+  Z.layoffObs.push({date:obs,lift:k,e1,prev:prev??null,src:"re-bank triple",entered:todayISO()});
   save();render();
 }
 /* ---- v11.25 — FTP. The app still calculates no FTP; Peloton owns the number. What it does
@@ -2354,8 +2482,19 @@ function setFTP(){
   const el=document.getElementById("ftpNew");
   const v=Number(el&&el.value);
   if(!(v>0)){alert("Enter the new FTP in watts.");return;}
+  const obs=obsDate("ftpDate");                           /* v11.31 — the day Peloton got it */
+  if(!obs)return;
   const prev=(Z.ftp&&Z.ftp.w)||null;
-  Z.ftp={w:v,date:todayISO(),prev};
+  /* Backdating an FTP RE-PARTITIONS the benchmark history: every ride logged on or after this
+     date is now treated as having been ridden on the new number. That is usually the point —
+     he enters the FTP in Peloton on one day and records it here later — but it is destructive
+     if the date is set earlier than the change actually happened, and it fails silently
+     because nothing about a ride's stored figures says which FTP produced them. */
+  const affected=(Z.aeroBench||[]).filter(r=>r.date>=obs).length;
+  if(obs!==todayISO()&&affected){
+    if(!confirm(`Dating this FTP ${obs}${obsLateNote(obs)}.\n\n${affected} benchmark ride${affected===1?" is":"s are"} logged on or after that date. ${affected===1?"It":"They"} will now be read as having been ridden on the NEW number.\n\nOnly do this if Peloton actually had the new FTP by then.\n\nContinue?`))return;
+  }
+  Z.ftp={w:v,date:obs,prev,entered:todayISO()};
   save();
   if(prev&&v!==prev&&(Z.aeroBench||[]).length){
     if(confirm(`FTP ${prev} → ${v} W.\n\nPower Zone targets are a percentage of FTP, so every benchmark ride logged at the old FTP was ridden at different watts. Comparing across the change measures the FTP move, not adaptation.\n\nStart a new Layer 3 baseline here?`))
@@ -2568,14 +2707,21 @@ function aeroCard(dISO){
    h+=`<div class="card" style="margin:8px 0 0;padding:10px 12px;background:transparent;border:1px dashed var(--dim,#555)">
    <div class="klabel">Near-max minutes — ${Z5}+ bpm <span class="mini">(Karvonen, 85% of heart-rate reserve)</span></div>
    <div class="mini" style="margin:4px 0 6px"><b>Observation, not a gate.</b> Nothing scores off this and nothing should &mdash; time near maximal HR ranks interval protocols in the <i>wrong order</i> (short bursts score ~50% higher on it while delivering less actual time near VO2max), and it errs in the direction that flatters kickboxing, which is the session we can verify least. It is here to answer a question nothing else can: <b>which of your hard sessions actually gets near-maximal, and does BJJ ever get there.</b> That has been unknown in this project since July.</div>
+   ${(()=>{const S=aeroSessFor(dISO);
+     if(!S.length)return `<div class="mini" style="margin:6px 0 8px;opacity:.8"><b>No sessions logged for ${fmtD(dISO)}.</b> Add one below — that is the way in. The boxes here overwrite the day\u2019s total and exist for corrections.</div>`;
+     return `<div class="mini" style="margin:8px 0 4px"><b>${S.length} session${S.length===1?"":"s"} on ${fmtD(dISO)}</b> \u2014 these are what the rollup reads</div>`
+      +S.map(r=>`<div class="row"><div class="nm">${r.mode?(AERO_MODE[r.mode]||r.mode):"<i>untagged</i>"}<div class="sup">${r.mins} min \u2265${H.t4}${r.z5?` \u00b7 ${r.z5} min \u2265${Z5}`:""}</div></div></div>`).join("")
+      +(aeroSessModes(dISO).length>1?`<div class="mini" style="margin-top:4px;opacity:.75">Two sources on one day, so the day carries no single tag \u2014 each session is credited to its own.</div>`:"");})()}
+   <details style="margin-top:8px"><summary class="mini"><b>Correct the day\u2019s total</b> \u2014 overwrites, does not add</summary>
+   <div class="mini" style="margin:6px 0"><b>These two boxes REPLACE the day\u2019s figures.</b> The session form below <i>adds</i> to them. Same numbers, opposite verbs \u2014 use this only to fix a total that is wrong, not to log a session.</div>
    <div class="grid2">
-    <div><label class="f">Min above ${Z5}</label><input type="number" inputmode="decimal" placeholder="min ≥ ${Z5}" value="${z5v??""}" onchange="setAeroZ5('${dISO}',this.value)"></div>
-    <div><label class="f">Min above ${H.t4} (the gate)</label><input type="number" inputmode="decimal" placeholder="min ≥ ${H.t4}" value="${mins??""}" onchange="setAero('${dISO}',this.value)"></div>
+    <div><label class="f">Day total: min above ${Z5}</label><input type="number" inputmode="decimal" placeholder="min ≥ ${Z5}" value="${z5v??""}" onchange="setAeroZ5('${dISO}',this.value)"></div>
+    <div><label class="f">Day total: min above ${H.t4} (the gate)</label><input type="number" inputmode="decimal" placeholder="min ≥ ${H.t4}" value="${mins??""}" onchange="setAero('${dISO}',this.value)"></div>
    </div>
-   <div class="mini" style="margin:8px 0 4px"><b>Which activity?</b> Tag it or the numbers pool into one meaningless average.</div>
+   <div class="mini" style="margin:8px 0 4px"><b>Day tag</b> \u2014 only meaningful for a day logged without sessions. ${aeroSessModes(dISO).length>1?"<b>This day has two sources; leave it blank.</b>":""}</div>
    <div class="seg" style="display:flex;flex-wrap:wrap;gap:4px">
     ${Object.keys(AERO_MODE).map(k=>`<button class="${md===k?"on":""}" onclick="setAeroMode('${dISO}','${k}',true)">${AERO_MODE[k]}</button>`).join("")}
-   </div>`;
+   </div></details>`;
    if(aeroZ5Bad(dISO)){
      h+=`<div class="banner red" style="margin-top:8px"><b>Impossible: ${z5v} min above ${Z5} but only ${mins} min above ${H.t4}.</b> Every beat above ${Z5} is also above ${H.t4}, so the first number cannot exceed the second. One of the two was misread &mdash; check you did not take the ${H.t4} figure from a zone that starts higher than ${H.t4}.</div>`;
    }
@@ -2609,11 +2755,12 @@ function aeroCard(dISO){
    const wk=weekBounds(dISO), wkSess=L.filter(r=>wk.indexOf(r.date)>=0).length;
    h+=`<div class="card" style="margin:8px 0 0;padding:10px 12px;background:transparent;border:1px dashed var(--t2,#888)">
    <div class="klabel">Log a session — any date</div>
-   <div class="mini" style="margin:4px 0 8px">For a session you did not log on the day. <b>Minutes add into that date's total</b>, they do not replace it — two blocks on one day are one qualifying day, not two short ones. ${wkSess?`<b>${wkSess}</b> session${wkSess===1?"":"s"} logged this week.`:""}</div>
+   <div class="mini" style="margin:4px 0 8px"><b>This is the way in.</b> Every hard session goes here, on the day it happened. <b>Minutes add into that date&rsquo;s total</b>, they do not replace it — two blocks on one day are one qualifying day, not two short ones, and each keeps its own source. ${wkSess?`<b>${wkSess}</b> session${wkSess===1?"":"s"} logged this week.`:""}</div>
    <div class="grid2">
     <div><label class="f">Date</label><input type="date" id="aeSessDate" value="${viewISO()}"></div>
     <div><label class="f">Min above ${H.t4} (the gate)</label><input type="number" inputmode="decimal" id="aeSessMin" placeholder="min ≥ ${H.t4}"></div>
     <div><label class="f">Min above ${z5Threshold()} (optional)</label><input type="number" inputmode="decimal" id="aeSessZ5" placeholder="near-max"></div>
+    <div style="grid-column:1/-1"><div class="mini" style="opacity:.8"><b>These two nest; they do not add.</b> On your zones \u2014 ${H.t4}\u2013${z5Threshold()} is Z4 and ${z5Threshold()}+ is Z5 \u2014 the gate box takes <b>Z4 + Z5 together</b> and the near-max box takes <b>Z5 alone</b>. 6 min in Z4 and 4 in Z5 is <b>10</b> and <b>4</b>, not 6 and 4. Every beat above ${z5Threshold()} is also above ${H.t4}.</div></div>
     <div><label class="f">Source</label><select id="aeSessMode">
       <option value="">—</option>
       ${Object.keys(AERO_MODE).map(m=>`<option value="${m}">${AERO_MODE[m]}</option>`).join("")}
@@ -2641,18 +2788,20 @@ function aeroCard(dISO){
      h+=`<div class="mini" style="margin-top:8px;opacity:.75">No sessions logged this way yet. Days entered straight into the grid below are unaffected and still count.</div>`;
    }
    h+=`</div>`;}
-  h+=`<details style="margin-top:8px"><summary class="mini"><b>Log a different day</b> — Peloton, a PZ Max, a session you forgot</summary>
-  <div class="mini" style="margin:6px 0">Any source counts. Enter minutes above ${H.t4} bpm for any day this week.</div>
+  h+=`<details style="margin-top:8px"><summary class="mini"><b>This week at a glance</b> — and day-total corrections</summary>
+  <div class="mini" style="margin:6px 0"><b>These boxes REPLACE a day&rsquo;s totals.</b> To log a session, use the form above — it adds, and it keeps the source per session. This grid is for seeing the week and fixing a number that is wrong.</div>
   ${weekBounds(dISO).map(k=>{const v=(Z.aero||{})[k];const q=aeroQualify(v);
     return `<div class="row"><div class="nm">${DAYS[(new Date(k+"T00:00:00").getDay()+6)%7]} <span class="sup">${k}</span></div>
     <div class="rx" style="color:${v==null?"var(--dim)":(q?"var(--ok,#3a7)":"var(--t2)")}">${v==null?"—":(q?"\u2713 "+v:v+" min")}</div>
     <input class="win" inputmode="decimal" value="${v??""}" onchange="setAero('${k}',this.value)" placeholder="hard">
     <input class="win" inputmode="decimal" value="${(Z.aeroZ5||{})[k]??""}" onchange="setAeroZ5('${k}',this.value)" placeholder="${z5Threshold()}+">
     <input class="win" inputmode="decimal" value="${(Z.z2||{})[k]??""}" onchange="setZ2('${k}',this.value)" placeholder="Z2">
-    <select onchange="setAeroMode('${k}',this.value)" style="max-width:96px">
+    ${aeroSessModes(k).length>1
+      ? `<div class="rx mini" style="max-width:96px;opacity:.8" title="${aeroSessModes(k).map(m=>AERO_MODE[m]||m).join(" + ")}">Mixed (${aeroSessModes(k).length})</div>`
+      : `<select onchange="setAeroMode('${k}',this.value)" style="max-width:96px">
      <option value=""${!(Z.aeroMode||{})[k]?" selected":""}>—</option>
      ${Object.keys(AERO_MODE).map(m=>`<option value="${m}"${(Z.aeroMode||{})[k]===m?" selected":""}>${AERO_MODE[m]}</option>`).join("")}
-    </select></div>`;}).join("")}
+    </select>`}</div>`;}).join("")}
   <div class="mini" style="margin-top:4px">Boxes, left to right: minutes above ${H.t4} (the gate) · minutes above ${z5Threshold()} (observation) · minutes in Zone 2 · which activity. <b>Leave the ${z5Threshold()}+ box and the tag blank on Zone 2 rides</b> — an easy ride never reaches either.</div>
   </details>`;
   /* v11.12: instrument provenance. Morpheus minutes and Whoop minutes are not the same
@@ -2745,8 +2894,9 @@ function benchCard(w){
   } else if(L.length===1){
     h+=`<div class="mini" style="margin-top:8px">One benchmark logged. That is your baseline — the readout starts at the second.</div>`;
   }
-  h+=`<div class="mini" style="margin-top:10px"><b>Log a benchmark</b> (today, ${todayISO()})${cn?` — class auto-fills as <b>${cn}</b>, leave it blank`:""}</div>
+  h+=`<div class="mini" style="margin-top:10px"><b>Log a benchmark</b>${cn?` — class auto-fills as <b>${cn}</b>, leave it blank`:""}</div>
   <div class="grid2" style="margin-top:4px">
+   <div><label class="f">Date ridden</label>${obsDateInput("bnDate",' style="width:100%"')}</div>
    <div><label class="f">Class ${cn?"(override only)":"(name or ID)"}</label><input id="bnClass" type="text" placeholder="${cn?cn:"e.g. 45 min Power Zone Endurance — Matt"}"></div>
    <div><label class="f">Total Output (kJ)</label><input id="bnKJ" type="number" inputmode="decimal"></div>
    <div><label class="f">Avg HR (bpm)</label><input id="bnHR" type="number" inputmode="decimal"></div>
@@ -2950,7 +3100,9 @@ function sunToggle(d,i){Z.sunDone[d]=Z.sunDone[d]||{};Z.sunDone[d][i]=!Z.sunDone
 function saveScreen(){
   const g=id=>{const v=parseFloat((document.getElementById(id)||{}).value);return isNaN(v)?null:v;};
   const mEl=document.getElementById("smeth");
-  const rec={date:todayISO(),method:(mEl&&mEl.value)||Z.sm||"self",
+  const obs=obsDate("scrDate");                            /* v11.31 — dated, not assumed */
+  if(!obs)return;
+  const rec={date:obs,entered:todayISO(),method:(mEl&&mEl.value)||Z.sm||"self",
     irL:g("irL"),irR:g("irR"),erL:g("erL"),erR:g("erR"),
     airL:g("airL"),airR:g("airR"),aerL:g("aerL"),aerR:g("aerR"),   /* v11.1 active ROM */
     ankL:g("ankL"),ankR:g("ankR"),kickL:g("kickL"),kickR:g("kickR"),
@@ -3405,8 +3557,10 @@ function rCardio(){
    ${!F||age>90?`<div class="banner amber"><b>${!F?"No FTP on record.":"This number is "+age+" days old."}</b> Every Power Zone is a percentage of FTP, so a stale figure does not make the rides easier — it makes them the <i>wrong intensity</i>, and a Zone 2 ride prescribed off an FTP you no longer have is tempo work wearing a Zone 2 label.</div>`:""}
    <div class="grid2" style="margin-top:8px">
      <div><label class="f">New FTP (W)</label><input type="number" id="ftpNew" inputmode="decimal" placeholder="watts"></div>
+     <div><label class="f">Date Peloton got it</label>${obsDateInput("ftpDate",' style="width:100%"')}</div>
      <div style="display:flex;align-items:flex-end"><button onclick="setFTP()">Record it</button></div>
    </div>
+   <div class="mini" style="margin-top:6px;opacity:.85"><b>Date it the day Peloton actually had the new number</b>, not the day you get round to recording it here. Every benchmark ride on or after that date is read as having been ridden on the new FTP, and nothing about a stored ride says which FTP produced it.</div>
    <div class="mini" style="margin-top:8px"><b>Test protocol:</b> 20 min best effort, <b>FTP = 0.95 × the 20-min average power</b>. Peloton's own FTP Test class does that arithmetic and writes the result. Ride it as an even effort you can just barely hold — going out hard and fading returns a lower number than you actually own.
    <br><br><b>Sequencing, and this one matters.</b> Recording a change here offers to break the Layer 3 baseline, because Power Zone targets move with FTP: the same class prescribes different watts, and output changes for a reason that has nothing to do with adaptation. <b>Re-test FTP BEFORE the week-1 benchmark ride</b>, never between benchmark rides. This is the one failure mode that silently poisons the data instead of obviously breaking it.</div>
    <div class="mini" style="margin-top:6px;opacity:.75"><b>Superseded 2026-08-24.</b> This card previously ruled out an FTP re-test outright, on the grounds that he was at the bottom of his FTP after the layoff and a re-test would only record the dip. That was written when the block was about to open and a dip would have been recorded <i>into</i> it. After a further layoff and with the block not yet started, the argument inverts: an untested FTP from before the detraining prescribes zones that are too hard, which is worse than an honest low number. He asked to re-test; the reasoning is recorded here rather than quietly deleted.</div></div>`;}
@@ -3849,7 +4003,8 @@ function rTest(){
   </div>
 
   <div class="card spine t2"><h3>Re-bank from a top triple</h3>
-  <div class="meta">Enter what the bar weighed and how many you had left. The app converts on its own scale — the same reps+RIR arithmetic every logged top set already uses — and stamps today's date.</div>
+  <div class="meta">Enter what the bar weighed, how many you had left, and <b>the day you actually lifted it</b>. The app converts on its own scale — the same reps+RIR arithmetic every logged top set already uses.</div>
+  <div class="mini" style="margin:4px 0 8px;opacity:.85">The date defaults to today and <b>will not accept a future one</b>. It is here because logging a session two days later should not date the observation two days late — that date starts the layoff-decay clock. It is typed on purpose and is <b>not</b> moved by the day cursor on Today.</div>
   <div class="banner ${inOnramp(todayISO())?"teal":""}" style="${inOnramp(todayISO())?"":"background:transparent;border:1px dashed var(--dim,#555)"}">
   <b>${inOnramp(todayISO())?"On-ramp 2 is the re-test window.":"Use this after a layoff, not mid-block."}</b>
   Box squat ${fmtD("2026-08-25")} &middot; bench ${fmtD("2026-08-27")} &middot; trap bar ${fmtD("2026-08-29")}, each a top triple at <b>RIR 1&ndash;2</b>.
@@ -3859,6 +4014,7 @@ function rTest(){
       <div class="nm">${lb}<div class="sup">banked ${(Z.base||{})[k]??"—"}${(Z.base||{}).date?` · ${fmtD((Z.base||{}).date)}`:""}</div></div>
       <input class="win" id="tri_${k}" inputmode="decimal" placeholder="lb">
       <input class="win" id="trir_${k}" inputmode="decimal" placeholder="RIR">
+      <input type="date" id="trid_${k}" value="${todayISO()}" max="${todayISO()}" style="max-width:140px" title="The day the session actually happened">
       <button class="btn sm" onclick="rebankTriple('${k}')">Bank</button>
     </div>`).join("")}
   <div class="mini" style="margin-top:8px"><b>Re-banking also clears the layoff decay on that lift</b>, because a dated observation has replaced an extrapolation. You do not have to beat the old number, and you do not even have to use this card — training the lift at all clears the decay. The decay was never the thing that needed resetting by hand.</div>
@@ -3901,6 +4057,9 @@ function rTest(){
   <div class="klabel" style="margin-top:12px">Measured by</div>
   <div class="seg"><button class="${Z.sm!=="pt"?"on":""}" onclick="Z.sm='self';save();render()">Me</button>
   <button class="${Z.sm==="pt"?"on":""}" onclick="Z.sm='pt';save();render()">PT</button></div>
+  <div class="klabel" style="margin-top:12px">Date measured</div>
+  ${obsDateInput("scrDate")}
+  <div class="mini" style="margin-top:4px;opacity:.8">Defaults to today. Set it back if you are entering a screen you took earlier — the trend is read off these dates.</div>
   <button class="btn" style="margin-top:10px" onclick="saveScreen()">Save screen</button>
   <div class="mini" style="margin-top:6px">Leave anything blank that you did not measure.</div>
   </div>
