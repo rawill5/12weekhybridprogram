@@ -165,7 +165,7 @@ details[open] summary:after{transform:rotate(-90deg)}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.25 · 2026-08-24";
+const BUILD="v11.27 · 2026-08-29";
 /* v11.22 — THE START DATE IS NOW STATE, NOT A CONSTANT.
    Sixth start date (Jul 28 · Aug 3 · Aug 10 · Aug 17 · Aug 24), moved for an episodic
    lumbar recurrence. The point of this change is that there must never be a seventh
@@ -1691,6 +1691,7 @@ Z.aeroSrc=Z.aeroSrc||{};       /* v11.12 dateISO -> 'morpheus'|'whoop'|'other' *
 Z.z2=Z.z2||{};                 /* v11.12a dateISO -> minutes in the Zone 2 band */
 Z.aeroZ5=Z.aeroZ5||{};         /* v11.21 dateISO -> minutes above 90% HRmax. Observation only. */
 Z.aeroMode=Z.aeroMode||{};     /* v11.21 dateISO -> which activity produced the hard minutes */
+Z.aeroLog=Array.isArray(Z.aeroLog)?Z.aeroLog:[];  /* v11.27 append-only session record. OBSERVES, never drives — same rule as Z.layoffObs. Array-checked rather than ||[] because a restored or hand-edited state can hold a string here, and every reader below iterates it. */
 Z.orDone=Z.orDone||{};         /* on-ramp day completion */
 Z.mkMedDefault=Z.mkMedDefault||false; /* hip block permanently on the short version */
 Z.bs=Z.bs||{};                 /* dateISO -> {b45,b70,reps,pause} Booty Sprout band config */
@@ -1878,7 +1879,70 @@ function regBanner(dISO){
 }
 function startDown(){const d=new Date();d.setDate(d.getDate()+7);Z.down={until:iso(d)};save();render();}
 function endDown(){Z.down=null;save();render();}
-function setReady(v){Z.readiness[todayISO()]=v;save();render();}
+function setReady(v){Z.readiness[viewISO()]=v;save();render();}
+
+/* ================= v11.26 — THE DATE CURSOR =================
+   Robert asked to be able to log a previous or future day: "even though I'm not supposed to,
+   if I decide to make up a little bit of a previous day ... I want to be able to log what I do."
+
+   THE STORAGE ALREADY SUPPORTED THIS. `Z.done` has always been keyed by ISO date and
+   `tog(dISO,id)` has always taken the date as a parameter. Every card in dayStack() already
+   receives `dISO` and writes through it. What was hardcoded was the VIEW: rToday() called
+   todayISO() and there was no way to hand it anything else. So this is a cursor, not a
+   migration — no new shape, no data moved, nothing renamed.
+
+   `Z.view` is null in the normal case and holds an ISO date when the cursor is moved. It is
+   deliberately NOT persisted as "the current day" in any other sense: nothing outside the
+   Today tab reads it, and it resets to today on demand.
+
+   WHAT THE CURSOR GOVERNS, and what it does not — this boundary is load-bearing:
+     GOVERNED  day-logging on Today. Session checkboxes, readiness, GMB, the on-ramp toggles.
+               These are all "what did I do on that day", and they were already date-keyed.
+     NOT       measurement stamps on the Test/Cardio tabs — a banked e1RM, a screen row, an
+               FTP date, a benchmark ride. Those record WHEN THE MEASUREMENT WAS TAKEN, and
+               backdating them would put a dated observation in the ledger on a day it was not
+               observed. That is the one thing the layoff-decay logic must be able to trust.
+               They keep calling todayISO() on purpose. Do not "make them consistent".
+
+   The exposure ledger is safe in both directions and needs no guard: rxWeek() is
+   min(calendarWeek, completedExposures+1), so logging a future day cannot run the load ahead
+   of the calendar, and backfilling a past day can only ever return the ledger to where honest
+   completion would have put it. ============================================================ */
+/* VALIDATES ON READ, not only on write. viewSet() already rejects a bad value, but a stored
+   one reaches this function without ever passing through it — a hand-edited backup, a partial
+   restore, an older build. qa26 §7 caught exactly that: `Z.view="not-a-date"` produced an
+   Invalid Date, dayIdx() returned NaN, and tonightCard threw on YIN[undefined][0], taking the
+   whole Today tab down with it. A cursor is a navigation control; it must never be able to
+   make the day unrenderable. */
+function viewISO(){
+  const v=Z&&Z.view;
+  return (v&&ISO_RE.test(v)&&!isNaN(new Date(v+"T00:00:00").getTime()))?v:todayISO();
+}
+function viewOff(){return viewISO()!==todayISO();}
+function viewSet(v){
+  if(!ISO_RE.test(v||""))return;
+  Z.view=(v===todayISO())?null:v; save(); render();
+}
+function viewShift(n){
+  const d=new Date(viewISO()+"T00:00:00"); d.setDate(d.getDate()+n); viewSet(iso(d));
+}
+function viewToday(){Z.view=null;save();render();}
+/* The cursor bar. Rendered at the top of EVERY rToday() branch — pre-on-ramp, on-ramp, gap
+   and block — because a day he wants to backfill can sit in any of them, and a cursor that
+   silently disappears in one branch is worse than none. */
+function viewBar(){
+  const v=viewISO(), off=viewOff();
+  const rel=Math.round((new Date(v+"T00:00:00")-new Date(todayISO()+"T00:00:00"))/86400000);
+  return `<div class="card" style="padding:8px 12px;${off?"border:2px solid var(--warn,#c80);background:rgba(200,136,0,.08)":""}">
+   <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+    <button class="btn sm sec" onclick="viewShift(-1)">‹</button>
+    <input type="date" value="${v}" onchange="viewSet(this.value)" style="flex:1;min-width:130px">
+    <button class="btn sm sec" onclick="viewShift(1)">›</button>
+    ${off?`<button class="btn sm" onclick="viewToday()">Today</button>`:""}
+   </div>
+   ${off?`<div class="mini" style="margin-top:6px"><b>Logging ${fmtD(v)}</b> — ${rel<0?`${-rel} day${rel===-1?"":"s"} ago`:`${rel} day${rel===1?"":"s"} ahead`}, not today. Anything you tick goes on that date.
+   ${rel>0?`<b>This day has not happened yet.</b> The wave cannot run ahead of the calendar — rxWeek() caps the earned week at the calendar week — but the scorecard reads what you tick, so ticking a session you have not done makes the scorecard wrong rather than making the program advance.`:``}</div>`:``}</div>`;
+}
 
 /* ================= BLOCK RENDER HELPERS ================= */
 function ckHTML(dISO,id){
@@ -2148,6 +2212,89 @@ function setAeroZ5(dISO,v){Z.aeroZ5=Z.aeroZ5||{};
   if(v===""||v==null)delete Z.aeroZ5[dISO];else Z.aeroZ5[dISO]=Number(v);save();render();}
 /* toggle=true only from the segmented buttons, where tapping the active one should clear
    it. A <select> re-emitting the same value must NOT wipe the tag. */
+/* ================= v11.27 — SESSION-LEVEL AERO LOGGING, ANY DATE =================
+   Robert: "The Cardio tab logging function needs to be able to log single cardio
+   high-intensity sessions and indicate the date that they were done so that if I don't log it
+   immediately after the session, I can do it retrospectively. It will compile over the week to
+   meet the floor or progression requirements."
+
+   What already existed, and why it was not enough: the "Log a different day" block has been on
+   this card since v11.13, but it is a grid over `weekBounds(dISO)` — SEVEN FIXED ROWS, the
+   current week only. A session from ten days ago had nowhere to go, and neither did a session
+   he wanted to enter before the week it belongs to came round. Retrospective entry was
+   possible for six days and impossible on the seventh.
+
+   THE DAY REMAINS THE UNIT OF THE FLOOR, and this is the constraint that shapes everything
+   below. `weekScore()` counts DAYS that clear 13 min; two sessions on one day that are scored
+   separately are two failures, whereas summed they clear — that is not hypothetical, it is
+   Aug 7 (two kickboxing blocks, ~9 and ~8 min over threshold), and the card has warned about
+   it in prose since v11.13. So a session entry ADDS INTO the day's total rather than standing
+   beside it. Sessions compile into days; days compile into the week. Both of his sentences.
+
+   `Z.aero[date]` therefore stays exactly what it was — the single number the floor reads, and
+   still directly editable. Nothing about `weekScore`, `aeroQualify`, `aeroZ5Bad` or the
+   week grid changes, and there is no migration.
+
+   `Z.aeroLog` is an APPEND-ONLY RECORD OF WHAT WAS ENTERED AND WHEN. It computes nothing.
+   Same pattern and same rule as `Z.layoffObs` — a ledger that observes rather than drives, so
+   that an absurd value in it cannot move a prescription. If it and the day total disagree
+   (because a day total was hand-edited in the grid, which is still allowed), the card SAYS SO
+   and offers to reconcile. It does not silently fix it: two places holding one fact is how
+   this project has been bitten before, and the honest resolution is to show the drift.
+   ================================================================================= */
+function aeroAdd(date,mins,z5,mode){
+  if(!ISO_RE.test(date||""))return false;
+  const m=Number(mins);
+  if(!isFinite(m)||m<=0)return false;
+  const z=(z5===""||z5==null)?null:Number(z5);
+  Z.aero=Z.aero||{}; Z.aeroZ5=Z.aeroZ5||{}; if(!Array.isArray(Z.aeroLog))Z.aeroLog=[];
+  Z.aero[date]=Number(((Z.aero[date]||0)+m).toFixed(2));
+  if(z!=null&&isFinite(z)&&z>0)Z.aeroZ5[date]=Number(((Z.aeroZ5[date]||0)+z).toFixed(2));
+  if(mode)setAeroMode(date,mode);            /* last tag wins; the rollup is per-day */
+  Z.aeroLog.push({date,mins:m,z5:(z!=null&&isFinite(z)&&z>0)?z:null,mode:mode||null,ts:todayISO()});
+  save();render();return true;
+}
+function aeroAddFromForm(){
+  const g=id=>{const e=document.getElementById(id);return e?e.value:"";};
+  const date=g("aeSessDate")||viewISO();
+  if(!aeroAdd(date,g("aeSessMin"),g("aeSessZ5"),g("aeSessMode"))){
+    alert("Enter a date and a positive number of minutes above the threshold.");return;
+  }
+  ["aeSessMin","aeSessZ5"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});
+}
+/* Removing a session subtracts what it added, so the day total and the record stay in step.
+   Clamped at zero — a hand-edit between the add and the remove could otherwise drive it
+   negative, and a negative minute count would quietly fail aeroQualify forever. */
+function aeroUnlog(i){
+  if(!Array.isArray(Z.aeroLog))return;
+  const L=Z.aeroLog, r=L[i]; if(!r||!ISO_RE.test(r.date||"")||!isFinite(Number(r.mins)))return;
+  if(Z.aero&&Z.aero[r.date]!=null){
+    const v=Number((Z.aero[r.date]-r.mins).toFixed(2));
+    if(v>0)Z.aero[r.date]=v; else delete Z.aero[r.date];
+  }
+  if(r.z5&&Z.aeroZ5&&Z.aeroZ5[r.date]!=null){
+    const v=Number((Z.aeroZ5[r.date]-r.z5).toFixed(2));
+    if(v>0)Z.aeroZ5[r.date]=v; else delete Z.aeroZ5[r.date];
+  }
+  L.splice(i,1);save();render();
+}
+/* Sum of logged sessions per date. Used ONLY to detect drift against the day total — it is
+   never substituted for the day total, because the grid entry is still a legitimate way in. */
+/* Every reader goes through this. qa26 §8 seeds Z.aeroLog as a string and as an array of
+   malformed records — both of which reached the Cardio tab and threw before this existed.
+   A stored value is not a value your code wrote: validate on read. */
+function aeroLogArr(){
+  if(!Array.isArray(Z.aeroLog))return [];
+  return Z.aeroLog.filter(r=>r&&typeof r==="object"&&ISO_RE.test(r.date||"")&&isFinite(Number(r.mins))&&Number(r.mins)>0);
+}
+function aeroLogSum(date){return aeroLogArr().filter(r=>r.date===date).reduce((a,r)=>a+Number(r.mins),0);}
+function aeroDrift(date){
+  const L=aeroLogArr().filter(r=>r.date===date); if(!L.length)return null;
+  const s=Number(aeroLogSum(date).toFixed(2)), t=Number((((Z.aero||{})[date])||0).toFixed(2));
+  return Math.abs(s-t)<0.01?null:{sum:s,total:t};
+}
+function aeroReconcile(date){Z.aero=Z.aero||{};Z.aero[date]=Number(aeroLogSum(date).toFixed(2));save();render();}
+
 function setAeroMode(dISO,k,toggle){Z.aeroMode=Z.aeroMode||{};
   if(!k||(toggle&&Z.aeroMode[dISO]===k))delete Z.aeroMode[dISO];else Z.aeroMode[dISO]=k;
   save();render();}
@@ -2393,9 +2540,10 @@ function aeroStrip(dISO){
   <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
     <span style="color:${col}">●</span>
     <b>Hard aerobic — ${w.aero} of 2 this week</b>${vo2}
-    <span style="margin-left:auto;color:var(--mut)">Cardio ›</span>
+    <span style="margin-left:auto;color:var(--mut)">Log on Cardio ›</span>
   </div>
-  <div style="margin-top:2px">${todayBit} <span class="mini" style="opacity:.6">· ≥${AERO_MIN} min above ${H.t4} bpm, any source</span></div></div>`;
+  <div style="margin-top:2px">${todayBit} <span class="mini" style="opacity:.6">· ≥${AERO_MIN} min above ${H.t4} bpm, any source</span></div>
+  <div class="mini" style="margin-top:4px;opacity:.6">Tap to log — <b>any date</b>, so a session you forgot still counts toward this week.</div></div>`;
 }
 /* ---- Aerobic quota card. Rendered on the CARDIO tab from v11.25, not on Today. ---- */
 function aeroCard(dISO){
@@ -2455,6 +2603,44 @@ function aeroCard(dISO){
    <div class="mini" style="margin:4px 0 6px">Minutes in the band today. <b>Not gated</b> — this is aerobic base and recovery support, and no weekly dose is prescribed until there is enough logged to set one honestly. 60–70% of your ${HRMAX} max, a %max band on purpose: Karvonen would put Z2 at 149–160 and collide with the hard threshold. Morpheus will show a different Zone 2 (133–151 on Fri Aug 7) because its bands float with recovery.</div>
    <input type="number" inputmode="decimal" placeholder="min in Zone 2" value="${(Z.z2||{})[dISO]??""}" onchange="setZ2('${dISO}',this.value)">
    <div class="mini" style="margin-top:6px">This week: <b>${z2w}</b> min.</div></div>`;}
+  /* ---- v11.27 — ANY-DATE SESSION ENTRY. The grid below covers the current week only; this
+     covers everything else, which is where a forgotten session actually lives. ---- */
+  {const L=aeroLogArr(), recent=L.map((r,i)=>({r,i})).sort((a,b)=>a.r.date<b.r.date?1:-1).slice(0,8);
+   const wk=weekBounds(dISO), wkSess=L.filter(r=>wk.indexOf(r.date)>=0).length;
+   h+=`<div class="card" style="margin:8px 0 0;padding:10px 12px;background:transparent;border:1px dashed var(--t2,#888)">
+   <div class="klabel">Log a session — any date</div>
+   <div class="mini" style="margin:4px 0 8px">For a session you did not log on the day. <b>Minutes add into that date's total</b>, they do not replace it — two blocks on one day are one qualifying day, not two short ones. ${wkSess?`<b>${wkSess}</b> session${wkSess===1?"":"s"} logged this week.`:""}</div>
+   <div class="grid2">
+    <div><label class="f">Date</label><input type="date" id="aeSessDate" value="${viewISO()}"></div>
+    <div><label class="f">Min above ${H.t4} (the gate)</label><input type="number" inputmode="decimal" id="aeSessMin" placeholder="min ≥ ${H.t4}"></div>
+    <div><label class="f">Min above ${z5Threshold()} (optional)</label><input type="number" inputmode="decimal" id="aeSessZ5" placeholder="near-max"></div>
+    <div><label class="f">Source</label><select id="aeSessMode">
+      <option value="">—</option>
+      ${Object.keys(AERO_MODE).map(m=>`<option value="${m}">${AERO_MODE[m]}</option>`).join("")}
+    </select></div>
+   </div>
+   <div style="margin-top:8px"><button onclick="aeroAddFromForm()">Add session</button></div>`;
+   if(recent.length){
+     h+=`<div class="mini" style="margin:10px 0 4px"><b>Logged sessions</b> — most recent first</div>`;
+     recent.forEach(({r,i})=>{
+       h+=`<div class="row"><div class="nm">${fmtD(r.date)}${r.mode?` · ${AERO_MODE[r.mode]||r.mode}`:""}
+       <div class="sup">${r.mins} min ≥${H.t4}${r.z5?` · ${r.z5} min ≥${z5Threshold()}`:""}${r.ts&&r.ts!==r.date?` · entered ${fmtD(r.ts)}`:""}</div></div>
+       <button class="btn sm sec" onclick="aeroUnlog(${i})">Remove</button></div>`;
+     });
+     if(L.length>recent.length)h+=`<div class="mini" style="margin-top:4px;opacity:.7">${L.length-recent.length} older session${L.length-recent.length===1?"":"s"} not shown.</div>`;
+     /* Drift. Shown, never silently fixed. */
+     const drifted=[...new Set(L.map(r=>r.date))].map(d=>({d,x:aeroDrift(d)})).filter(o=>o.x);
+     if(drifted.length){
+       h+=`<div class="banner amber" style="margin-top:8px"><b>${drifted.length} day${drifted.length===1?"":"s"} where the day total and the logged sessions disagree.</b>
+       <span class="mini">Both are legitimate ways in — the grid below edits the day total directly — so this is not an error, but only one of them can be right. The day total is what the floor reads.</span>`;
+       drifted.forEach(o=>{h+=`<div class="row"><div class="nm">${fmtD(o.d)}<div class="sup">day total <b>${o.x.total}</b> · sessions sum to <b>${o.x.sum}</b></div></div>
+       <button class="btn sm sec" onclick="aeroReconcile('${o.d}')">Use ${o.x.sum}</button></div>`;});
+       h+=`</div>`;
+     }
+   } else {
+     h+=`<div class="mini" style="margin-top:8px;opacity:.75">No sessions logged this way yet. Days entered straight into the grid below are unaffected and still count.</div>`;
+   }
+   h+=`</div>`;}
   h+=`<details style="margin-top:8px"><summary class="mini"><b>Log a different day</b> — Peloton, a PZ Max, a session you forgot</summary>
   <div class="mini" style="margin:6px 0">Any source counts. Enter minutes above ${H.t4} bpm for any day this week.</div>
   ${weekBounds(dISO).map(k=>{const v=(Z.aero||{})[k];const q=aeroQualify(v);
@@ -2597,6 +2783,103 @@ function benchTodayCard(dISO){
   Afterwards log three numbers on the <b>Test tab</b>: Total Output (kJ), Avg HR, and HRR60.</div>
   <div class="mini" style="margin-top:6px">This is the only thing in the program that tells you whether the aerobic work is <i>working</i>. It is a normal endurance ride, not a test — it costs nothing from the fatigue budget and doubles as base volume.${w===0?" <b>Week 1 is the baseline: skip it and the readout is dead for the whole block.</b>":""}</div>
   <div class="mini" style="margin-top:6px">HRR60: note your HR the moment you stop, and again exactly 60 s later. Enter the drop.</div></div>`;
+}
+
+/* ================= v11.26 — THE DUE-WORK REGISTER =================
+   Robert: "I think we need to update the app to give me some sort of reminder when to do
+   those things, since I don't always get in the Fitness Programming project on Claude."
+
+   This generalises benchTodayCard(), whose own comment already stated the principle:
+   "A measurement he has to remember to take is a measurement that does not happen."
+   The benchmark ride had a reminder; four other recurring obligations did not, and lived
+   only as bullet points in STATE.md's "Open — carried forward" list, which he does not read
+   at 6am and which no session reliably re-reads either.
+
+   NOT hardcoded dates — this is the whole design constraint, and he asked for it directly.
+   Every item below is either WEEK-INDEXED (derived through calWeekOf/progStart, so it moves
+   with Z.start automatically) or ELAPSED-DAYS (pure arithmetic against a stamp). There is not
+   one calendar literal in this block. The QA suite's ~300 date literals are the largest
+   maintenance liability in the project and already went stale once overnight when a start
+   date rolled; nothing added here is allowed to join that pile.
+
+   The registry is a table, not a chain of ifs, so adding a sixth obligation is one row.
+
+   Cadence rationale, per item:
+     export  7 days   The backup is the only copy. Every logged day exists in exactly one
+                      place — localStorage on one phone — and the restore path only arrived
+                      in v11.25. Weekly is the ritual the project already specified.
+     kick    weeks    The north star. Week-indexed to the measurement screens so it lands on
+             1/4/8/12 the same weeks as the F4F battery and the benchmark ride, and cannot
+                      drift out of phase with them when the start date moves.
+     whoop   28 days  Recovery-distribution re-fit. The readiness gate reads live off the
+                      device daily; the export only re-checks whether his p10/median bands
+                      have moved. Roughly per block.
+     toggl   week 6   The duration re-fit checkpoint, to compare planned against real session
+                      lengths once the block has actually run. One-shot, not recurring.
+
+   `Z.due` is additive and holds one ISO stamp per item. Absent = never done. ============ */
+const DUE_REG=[
+  {k:"export", n:"Back up the log",           tier:"T1", every:7,
+   what:"Log tab → <b>Copy backup JSON</b>, then file it at <code>database/logs/raw/YYYY-MM-DD.json</code>.",
+   why:"This is the only copy. Every day you have logged lives in localStorage on one phone — including the Aug 6–8 banked baselines the whole block is programmed against. A Safari storage clear ends the dataset."},
+  {k:"kick",   n:"Kick height + rear-view video", tier:"T2", weeks:[1,4,8,12],
+   what:"One best-effort target-cued kick height, both sides. Reshoot the rear-view set: tripod, 1× lens, camera at hip height, vertical reference in your plane. Record on the <b>Test tab</b>.",
+   why:"The north star of the whole program, and the only metric here that is not instrumented automatically. Same weeks as the benchmark ride and the F4F battery, so one setup covers all three."},
+  {k:"whoop",  n:"Export Whoop",              tier:"T3", every:28,
+   what:"Whoop app → export, then drop the CSV in the project folder.",
+   why:"Re-fits the readiness gate. The gate reads recovery live off the device every day, so this is not urgent — it only re-checks whether your p10 and median bands have moved enough to change where the gate fires."},
+  {k:"toggl",  n:"Re-export Toggl",           tier:"T3", weeks:[6],
+   what:"Toggl → export the block to date, into the project folder.",
+   why:"Re-fits planned session durations against what the sessions actually take, once there is a real block to measure. One checkpoint, not a recurring job."}
+];
+function dueStamp(k){return (Z.due||{})[k]||null;}
+function dueMark(k){Z.due=Z.due||{};Z.due[k]=viewISO();save();render();}
+function dueClear(k){if(Z.due)delete Z.due[k];save();render();}
+/* Days since the stamp, or null if never stamped. Elapsed-days items with no stamp are due
+   on sight — "never backed up" is the strongest possible case for backing up. */
+function dueAge(k,dISO){
+  const s=dueStamp(k); if(!s)return null;
+  return Math.round((new Date(dISO+"T00:00:00")-new Date(s+"T00:00:00"))/86400000);
+}
+function dueIsDue(it,dISO,w){
+  if(it.weeks){                                  /* week-indexed */
+    if(w==null||it.weeks.indexOf(w+1)<0)return false;
+    const s=dueStamp(it.k);                      /* done already IN THIS WEEK? */
+    return !(s&&calWeekOf(s)===w);
+  }
+  const a=dueAge(it.k,dISO);                     /* elapsed-days */
+  return a===null||a>=it.every;
+}
+function dueList(dISO,w){return DUE_REG.filter(it=>dueIsDue(it,dISO,w));}
+/* The card. Silent when nothing is due — the register must be able to say nothing, or it
+   becomes another permanent block of text on Today, which is exactly what v11.25 spent a
+   whole version removing. */
+function dueCard(dISO){
+  const w=calWeekOf(dISO);
+  const due=dueList(dISO,w);
+  if(!due.length){
+    const nxt=DUE_REG.map(it=>{
+      if(it.weeks){const n=it.weeks.find(x=>w!=null&&x>w+1);return n?`${it.n} · week ${n}`:null;}
+      const a=dueAge(it.k,dISO); return a===null?null:`${it.n} · ${it.every-a}d`;
+    }).filter(Boolean);
+    return `<div class="card" style="padding:10px 12px;background:transparent;border:1px dashed var(--ok,#3a7)">
+    <div class="klabel">Nothing due ✓</div>
+    ${nxt.length?`<div class="mini" style="margin-top:4px">Next: ${nxt.join(" · ")}.</div>`:""}</div>`;
+  }
+  let h=`<div class="card spine ${due[0].tier==="T1"?"t1":"t2"}"><h3>Due — ${due.length} item${due.length===1?"":"s"} <span class="tiertag ${due[0].tier}">${due[0].tier}</span></h3>
+  <div class="meta">Recurring work that does not belong to a training day, so nothing else on this tab would ever surface it.</div>`;
+  due.forEach(it=>{
+    const a=dueAge(it.k,dISO), s=dueStamp(it.k);
+    const when=it.weeks?`week ${(w??0)+1}`
+      :(a===null?"never done":`${a} days since ${fmtD(s)}`);
+    h+=`<div class="row" style="align-items:flex-start"><div class="nm">${it.n}
+      <div class="sup">${it.what}</div>
+      <div class="sup" style="opacity:.75;margin-top:3px">${it.why}</div>
+      <div class="sup" style="margin-top:3px"><b>${when}</b></div></div>
+      <button class="btn sm" onclick="dueMark('${it.k}')">Done</button></div>`;
+  });
+  h+=`<div class="mini" style="margin-top:8px">“Done” stamps ${viewOff()?`<b>${fmtD(viewISO())}</b> — the date the cursor is on, not today`:"today"} and the item goes quiet until it comes round again.</div></div>`;
+  return h;
 }
 
 /* ---- v11.19 LAYER 2 CARD — VO2max block. Renders a one-line dormant stub when off,
@@ -2983,9 +3266,16 @@ function dayStack(w,dow,dISO,editable){
 /* ================= VIEWS ================= */
 function rToday(){
   const el=document.getElementById("v_today");
-  const d=today(),dow=dayIdx(d),dISO=todayISO(),w=curWeek();
+  /* v11.26 — every one of these now derives from the CURSOR, not from the clock.
+     `w` was curWeek(), which reads today() and would have rendered a backdated day against
+     the wrong week's prescription — the exact "two clocks that disagree" bug v11.22 was
+     built to kill, reintroduced through the back door. calWeekOf(dISO) is the date-taking
+     form and already existed; it returns null outside the block, so clamp for the branches
+     below that only run inside it. */
+  const dISO=viewISO(), d=new Date(dISO+"T00:00:00"), dow=dayIdx(d);
+  const w=(calWeekOf(dISO)!=null)?calWeekOf(dISO):curWeek();
   const r=readiness(dISO);
-  let h="";
+  let h=viewBar();
   /* v11.23 — the "Confirm v11 assumptions" card was REMOVED, not hidden.
      Sixteen bullets on the Today tab every day, above the actual work. Robert asked
      for them recorded rather than displayed. Full text, with provenance and two
@@ -3076,6 +3366,9 @@ function rToday(){
      were not — the D1 card had been rendering the whole time, five cards down. Nothing
      below this line tells him what to do today. */
   h+=benchTodayCard(dISO);  /* v11.20 — only on weeks 1/4/8/12, silent otherwise */
+  h+=dueCard(dISO);         /* v11.26 — the due-work register. Below the work, deliberately:
+                               none of it is training, and v11.13 taught that anything above
+                               the lifts gets read as the reason the lifts are missing. */
   h+=aeroStrip(dISO);    /* v11.25 — one line. aeroCard + vo2Card now live on the Cardio tab. */
   h+=scoreCard(dISO);
   h+=realityCard(dow);
@@ -3091,7 +3384,10 @@ function rToday(){
    for eleven versions. ---- */
 function rCardio(){
   const el=document.getElementById("v_cardio");
-  const dISO=todayISO(), w=curWeek(), H=hrThreshold();
+  /* v11.27 — the Cardio tab follows the date cursor, like Today. The card is full of
+     per-day figures ("nothing logged today", the backfill arithmetic); reading them off the
+     clock while the cursor sits on another day is the two-clocks bug in miniature. */
+  const dISO=viewISO(), w=(calWeekOf(dISO)!=null)?calWeekOf(dISO):curWeek(), H=hrThreshold();
   let h=`<div class="card" style="padding:12px 14px">
   <div class="klabel">Three layers, three different questions</div>
   <div class="mini" style="margin-top:6px">
