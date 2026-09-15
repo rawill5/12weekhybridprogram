@@ -150,6 +150,18 @@ details[open] summary:after{transform:rotate(-90deg)}
 .daysel{display:flex;gap:6px;margin-bottom:10px}
 .daysel button{flex:1;padding:8px 0;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--mut);font-weight:800;font-size:12px;cursor:pointer}
 .daysel button.on{background:var(--ink);color:#12161B}
+/* v11.32 — compact mode, collapsed done-cards, per-card "why" */
+body.compact .why{display:none!important}
+body.compact .card.showwhy div.why,body.compact .card.showwhy .banner.why{display:block!important}
+body.compact .card.showwhy span.why,body.compact .card.showwhy i.why{display:inline!important}
+.cardbtn{margin-left:auto;padding:3px 9px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--mut);font-size:11px;font-weight:700;cursor:pointer}
+.whybtn{display:none}
+body.compact .whybtn{display:inline-block}
+.card.collapsed{padding:9px 14px;opacity:.6}
+.card.collapsed>*:not(h3){display:none!important}
+.card.collapsed h3{margin:0;font-size:14.5px}
+.hdrbtn{position:absolute;right:16px;top:calc(env(safe-area-inset-top) + 14px)}
+.hdr{position:relative}
 </style>
 </head>
 <body>
@@ -157,6 +169,7 @@ details[open] summary:after{transform:rotate(-90deg)}
   <div class="brand">Hybrid Training</div>
   <h1 id="hdrTitle">Today</h1>
   <div class="sub" id="hdrSub"></div>
+  <button class="cardbtn hdrbtn" id="compactBtn" onclick="toggleCompact()">compact</button>
 </div>
 <div class="tabs" id="tabbar"></div>
 <div id="views"></div>
@@ -165,7 +178,7 @@ details[open] summary:after{transform:rotate(-90deg)}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.31 · 2026-08-29";
+const BUILD="v11.32 · 2026-09-15";
 /* v11.22 — THE START DATE IS NOW STATE, NOT A CONSTANT.
    Sixth start date (Jul 28 · Aug 3 · Aug 10 · Aug 17 · Aug 24), moved for an episodic
    lumbar recurrence. The point of this change is that there must never be a seventh
@@ -183,7 +196,7 @@ const BUILD="v11.31 · 2026-08-29";
         count. Fifteen other comparisons read the constant. Two start dates that
         disagreed — benchTodayCard() called curWeek() while the card rendered beside it
         on Today read the constant. */
-const PROGRAM_START_DEFAULT="2026-08-31";   /* Monday. SEED ONLY — see progStart(). */
+const PROGRAM_START_DEFAULT="2026-09-14";   /* Monday. SEED ONLY — see progStart(). v11.32: block start per STATE.md, set 2026-09-09. */
 const ONRAMP_START="2026-08-11";            /* Tuesday. First on-ramp. HISTORICAL — see inOnramp(). */
 /* The block start, from state. Hoisted so the functions above may call it; Z is only
    dereferenced at call time, always after Z is initialised. */
@@ -474,15 +487,19 @@ const CORE={
    ["Hanging Leg Raise — 3×10 (straighter lever)","Cable Crunch — 3×10 (heavier)"],
    ["Weighted Hanging Leg Raise — 3×8","Cable Crunch, top load — 4×8"]],
   lib:["Tier-1 RA: hanging leg/knee raise, roll-out, pike","Loaded flexion: cable crunch, weighted decline sit-up (controlled)","Psoas: ASLR eccentric, resisted hip flexion (band, 30–60°)","Prehab: Flutter Kick, Oblique Crunch, Curl-Up Segmental"]},
- thu:{lbl:"Anti-lateral only — trunk pre-taxed by trap bar",tier:"T3",focus:"QL / lateral wall, kept light",ph:[
-   ["Side Plank — 2×30s/side (Tier-1 QL)","Suitcase Carry — 3×40yd/side"],
-   ["Side Plank + top-leg lift — 2×25s/side","Suitcase Carry, heavier — 3×40yd/side"],
-   ["Side Plank Row (band) — 2×10/side","Front-Rack Carry, unilateral — 3×30yd/side"]],
-  lib:["Tier-1 QL/lateral: side plank (toes), side plank row","Carries: suitcase, front-rack, waiter","Prehab: Incline Adductor Side Plank, Copenhagen (knees)"]},
- fri:{lbl:"Obliques (V-taper) + anti-lateral + rotation",tier:"T2",focus:"EO/IO — pike is Tier-1 (84% MVIC)",ph:[
-   ["Pike (Power-Wheel/Swiss-ball) — 3×10","Adductor Side Plank — 2×20s/side"],
-   ["Pike — 3×12 (or feet-elevated)","Copenhagen Plank (knees) — 2×25s/side","Standing band rotation — 2×10/side"],
-   ["Pike — 4×10 (deficit)","Copenhagen Plank (full) — 2×20s/side","Medball Side Slam — 3×8/side"]],
+ /* v11.32 — Copenhagen ladder from WEEK 1, Thu + Fri, on Robert's instruction ("we lost our
+    adductor work"). The Copenhagen is still an anti-lateral trunk exercise, so it replaces the
+    side plank here rather than adding to the day; the side plank moves to the library.
+    Progression per Markow's Golden Groin cue: bent-knee -> full -> straight-leg. */
+ thu:{lbl:"Anti-lateral + adductor — trunk pre-taxed by trap bar",tier:"T3",focus:"QL / lateral wall + adductors, kept light",ph:[
+   ["Copenhagen Plank (knees) — 2×20s/side (hip higher than the top knee)","Suitcase Carry — 3×40yd/side"],
+   ["Copenhagen Plank (full, foot on bench) — 2×25s/side","Suitcase Carry, heavier — 3×40yd/side"],
+   ["Copenhagen Plank (straight-leg, per Golden Groin) — 2×20s/side","Front-Rack Carry, unilateral — 3×30yd/side"]],
+  lib:["Tier-1 QL/lateral: side plank (toes), side plank + top-leg lift, side plank row","Carries: suitcase, front-rack, waiter","Prehab: Incline Adductor Side Plank, Copenhagen (knees)"]},
+ fri:{lbl:"Obliques (V-taper) + adductor + rotation",tier:"T2",focus:"EO/IO — pike is Tier-1 (84% MVIC)",ph:[
+   ["Pike (Power-Wheel/Swiss-ball) — 3×10","Copenhagen Plank (knees) — 2×20s/side"],
+   ["Pike — 3×12 (or feet-elevated)","Copenhagen Plank (full) — 2×25s/side","Standing band rotation — 2×10/side"],
+   ["Pike — 4×10 (deficit)","Copenhagen Plank (straight-leg) — 2×20s/side","Medball Side Slam — 3×8/side"]],
   lib:["Tier-1 EO: pike, front plank (brace), side bridge on toes","Rotation: resisted cable/band rotation, medball side slam","Prehab: Plank Oblique Crunch (SB), Hollow Hold/Rock, Copenhagen"]},
  sun:{lbl:"Optional rotation — BJJ prep",tier:"T3",focus:"transverse-plane power",ph:[
    ["Half-Kneeling Lift (band) — 2×10/side"],
@@ -495,7 +512,12 @@ const corePhase=w=>w<4?0:(w<8?1:2);
 /* ---- KOTG (carried from v7 unchanged) ---- */
 const KOTG={
  mon:{t:"KOTG — Tibialis Raises 2×20 + Patrick Steps 2×10/side (home)",tier:"T2"},
- wed:{t:"KOTG — Tibialis Raises 2×20 + ATG Split Squat 2×8/side",tier:"T2"},
+ /* v11.32 — Nordic curl added here on Robert's instruction (2026-09-15). Never in any earlier
+    version. Wednesday: shortest day, no lower lift, 48 h from Friday kicks, legs warm from
+    the ride if he took it. Low volume is enough — 1×10/wk matched 4×40 for fascicle length in
+    the mobility evidence report (Lacome 2020, as cited there). Feet under a loaded bar in the
+    rack; hands catch at the bottom. Counted as 2 hamstring sets when ticked. */
+ wed:{t:"KOTG — Tibialis Raises 2×20 + ATG Split Squat 2×8/side + Nordic Curl 2×3–6 (feet under a loaded bar; hands catch)",tier:"T2"},
  fri:{t:"KOTG — Backward treadmill 5 min (MMA gym, optional)",tier:"T3"},
  sat:{t:"KOTG — Optional outdoor/home backward walk + calf work",tier:"T3"},
  sun:{t:"KOTG PRIMARY — Backward sled/treadmill 5 min · Slant-board calf raise 2×25 · Elephant walk 2×10/side",tier:"T2"}
@@ -586,6 +608,10 @@ const GMB={
  45:{P:[["Standing Knee to Chest",60,1],["Single Leg Deadlift",60,1],["Supine Hip Circles",60,1]],R:[["Seated Hamstring",180,1],["Seated Twist",180,1],["Extended Side Angle Pose",180,1],["Wrists — Palms Down, Fingers Facing Knees",120,0],["Basic Spiderman",360,0]],Y:[["Walk Into Squat",180,0],["Sumo Frogger",360,0]]}}
 };
 const GMB_AUTO=["Hips","Spine","Shoulders","Hips","Hips","Flexion","Rotation & Sidebending"]; /* Mon..Sun */
+/* v11.32 — Wednesday stays "Shoulders" deliberately. Robert's rule (2026-09-15): GMB is tissue
+   prep for the LIFT, and Wednesday's lift is bench — pec stretch, posterior shoulder opener and
+   clasped-hands extension are the right prep for pressing. Markow's shoulder-rotation session
+   runs AFTER the bench work as the loaded end-range dose; the only overlap is the wrist hold. */
 /* v11.22 — Wednesday alt added. The 2026-08-04 audit recorded thoracic mobility as
    "covered, 3 of 7 days — Spine (Tue), Shoulders (Wed), Rotation & Sidebending (Sun)".
    Reading the actual block contents rather than the class NAME: the Wednesday
@@ -653,7 +679,26 @@ const V={
  qhs:["Quick hamstring strength","https://drive.google.com/file/d/1tzEGQRsRL98VQmAVNJfhqricgHfJ-qRt/view?usp=drive_link"],
  ankfoot:["Ankle & foot mini","https://drive.google.com/file/d/1Pl-PeWcIHKxYldpZT_4nDDOmFCNVASQu/view?usp=drive_link"],
  glutsol:["Gluteus soleus","https://drive.google.com/file/d/18y0rCygAthLRaIzlljiNiC215M83kYWQ/view?usp=drive_link"],
- squat2:["Stay in the elevator squat","https://drive.google.com/file/d/1H7A_kGpCgn1BI7LB51DJ_27PoXLDWTgZ/view?usp=drive_link"]
+ squat2:["Stay in the elevator squat","https://drive.google.com/file/d/1H7A_kGpCgn1BI7LB51DJ_27PoXLDWTgZ/view?usp=drive_link"],
+ /* v11.32 — upper-body and adductor classes the Markow Total Body Mobility Plan calls for.
+    URLs from Mobility_Video_File_List.md; every key below is a file that exists. */
+ shstart:["Shoulder rotation — start here","https://drive.google.com/file/d/1iaZ2JpUAPX6B9xomu6cTDgd1YC3597Qa/view?usp=drive_link"],
+ shir:["Shoulder IR","https://drive.google.com/file/d/10KzJLpBFZ5XcyTf_sxG3WwvbHzA-0zsp/view?usp=drive_link"],
+ sher:["Shoulder external rotation","https://drive.google.com/file/d/1goe34ajHgKBghy3bILZg2LMoFF0GhdO8/view?usp=drive_link"],
+ shcars:["Shoulder rotation CARs","https://drive.google.com/file/d/168frCx0j-3Bs0PC9uSxYsqB0zSM-EqCS/view?usp=drive_link"],
+ armbar:["The arm bar sequence","https://drive.google.com/file/d/1EV4ZjkUP0LhkFUAY-li3b4kyHiuMjwxb/view?usp=drive_link"],
+ scap:["Scapula","https://drive.google.com/file/d/1F8ZSxgATqGUPleQRttJUQxJqx0To5kD1/view?usp=drive_link"],
+ scap2:["Scap class 2","https://drive.google.com/file/d/1zo-NbzNp9az5JIDMLxnsZxXTKe2EJvjY/view?usp=sharing"],
+ ccsr:["Closed chain shoulder rotation","https://drive.google.com/file/d/1QS9QDmovLEV4GLxoqsd9jmUjlZzN94TS/view?usp=drive_link"],
+ shext:["Shoulder extension","https://drive.google.com/file/d/1NXYlq-smcl4mY1ZVoJoWN3ijOHcqSleD/view?usp=drive_link"],
+ overhead:["Overhead","https://drive.google.com/file/d/1OItrgGuq1OKhzxnRMPhkjCR3-yo2rngu/view?usp=drive_link"],
+ ubcars:["Upper body CARs","https://drive.google.com/file/d/1A1YzxHxkojMOSuLqWQTYK94uido-6Qb_/view?usp=drive_link"],
+ neckcars:["Neck CARs","https://drive.google.com/file/d/17X3J3q1LHyN0wVy376DHZTEpq2mFNagq/view?usp=drive_link"],
+ spmini:["Spine mini class","https://drive.google.com/file/d/1wRNFJD7qKfQRypoHQxhRLI68KH_fNd1y/view?usp=drive_link"],
+ ribintro:["Intro to ribcage","https://drive.google.com/file/d/1soPRASkV2SdHpeL4A8-WSUCp_VIF5sv-/view?usp=drive_link"],
+ blast:["Becoming Blastoise (ribcage)","https://drive.google.com/file/d/1ZB65SCAvAUiRIodXmv0UgjqoGuH_vbtF/view?usp=drive_link"],
+ bk4:["Bootleg Kinstretch #4 — Shoulders","https://drive.google.com/file/d/1QsYJ7G0364HpqS6J0DFYCGAZJkK_Jg6B/view?usp=drive_link"],
+ addmini:["Adductors mini","https://drive.google.com/file/d/1tOM10jzSfHlgXoMJJrc88ePAx6bfyXNm/view?usp=drive_link"]
 };
 
 /* ============ MARKOW — Beginner Hip Mobility, 12wk x 4d ============
@@ -700,9 +745,25 @@ const MARKOW_MED=[
  "Rolling / PM 1 only — pelvis back, then turn side to side. Extra reps rolling right-to-left. 6 min.",
  "10 slow breaths in 90/90 with internal rotation, then 10 hip CARs. 5 min.",
  "Hip rotation CARs, 5 reps each side. 3 min."];
-/* D1..D4 land on Tue, Wed, Fri, Sun. Mon and Thu are heavy lower-body lifting
-   days and stay clear of hip volume; Sat belongs to sprint + Luke Thomas. */
-const MARKOW_DOW={1:0,2:1,4:2,6:3};
+/* v11.32 — MARKOW LOWER MOVES ONTO THE LOWER-BODY DAYS. Robert, 2026-09-14/15: hip work
+   belongs on the days the hips are already loaded — Mon box squat, Tue ride, Thu trap bar,
+   Sat ride — and the upper-body days get the upper-body Markow work instead. Stacking
+   same-tissue stress on one day leaves the other days as real recovery (the Galpin /
+   Israetel "consolidate stressors" argument); the earlier rule that Mon/Thu "stay clear of
+   hip volume" is retired by his decision.
+
+   WHICH Markow day lands where is chosen by session length and content, not by his D1..D4
+   order, which carries no within-week dependency (checked across all 48 sessions: elements
+   enter at weeks 2, 4, 6 and 9; nothing depends on an earlier day of the same week):
+     Mon  = D4  Side Smoosh -> Quick Hamstring Strength -> Squat Class 2 (wk9+, 36 min of
+                squatting) AFTER the box squat, so the squatting stress lands on one day.
+     Tue  = D2  the shortest day (Rolling + Hip Rotation Mini; wk6+ Ankle & Foot + Gluteus
+                Soleus) on his hardest weekday.
+     Thu  = D1  the Hip IR Kinstretch anchor (wk6+) after the trap bar.
+     Sat  = D3  Cross Connect; wk6+ Breathing + Scissor Slide.
+   Always after the lift or ride, never before: Markow's own pre-lift instruction is the
+   hooklying primer, which stays in the warm-up. */
+const MARKOW_DOW={0:3,1:1,3:0,5:2};
 /* Verbatim left-hip-IR guidance from the source, keyed by video. */
 const MK_LEFT={
  pm0:"\"If your left hip is less mobile then double down on the sidelying walkovers with your left side down. Use a bigger towel.\"",
@@ -713,6 +774,131 @@ const MK_LEFT={
  hipir3:"Set up 10-15 degrees beyond your active range, never into a painful spot."};
 /* Flatten a week's video keys, for the Tonight's Pick dedupe. */
 function mkWeekKeys(w){const out=[];(MARKOW[w]||[]).forEach(d=>d.forEach(it=>{if(it.startsWith("v:"))out.push(it.slice(2));}));return out;}
+/* ============ v11.32: MARKOW UPPER — read from the Total Body Mobility Plan ============
+   Dropped 2026-07-28 as "redundant with GMB"; reinstated 2026-09-15 on Robert's instruction
+   ("we lost the upper body mobility work with Markow"). The 16-week Total Body plan ladders
+   its shoulder work Floss Your Shoulders (wk1-2) -> Shoulder Rotation (wk3-10) -> Shoulder
+   Rotation 2 (wk11-15), and its spine/ribcage work Brush Your Spine -> Spinanomics / Expand
+   and Conquer -> Ribcage Love / Spines That Bend. Compressed here to the block's 12 weeks
+   on the same phase boundaries as the hip plan (wk1-2, 3-8, 9-12) so both ladders step
+   together. Wed (after bench) carries the shoulder ladder; Sun (after BJJ) the spine ladder.
+
+   Items are "v:<videoKey>" (an owned file) or "t:<textKey>" (authored exercise, no video).
+   Substitutions are labelled where a video stands in for a differently-named class.
+   THREE AUTHORED ITEMS ARE DELIBERATELY OMITTED, and the card says so:
+     - Cable medial delt raise and spider curls from the Shoulder Rotation triset: side delts
+       and biceps are already at MAV in Biolayne #58 ("do NOT add arms/side-delt" — the Sunday
+       rule). The rear-delt fly is kept and LOGGED: rear delt is the tracked structural hole.
+     - Jefferson curl (Spines That Bend): loaded lumbar flexion against the standing lumbar
+       contraindication. Not programmed; his call if he wants it.
+   Every session has a full version and a floor (MED), like the hip sessions. */
+const MKUP_TXT={
+ invbr:["Inverted Breathing — 3×5–10","Butt back over the knees to unload the shoulders. Chest relaxed so the sternum and above it move on the inhale; no shrug, no crunching the sternum on the exhale."],
+ pails:["Shoulder IR + ER PAILs/RAILs — 1–2 rounds each","Ramp the contraction 20–30 s, hold max ~10 s, then 20–30 s of the opposite. Reduce range and chase quality if new; never into a pinch. Add lift-offs in the new range after."],
+ swim:["Swimmers — 2×5","Kneeling, lunge or seated if face-down is too much. Think double-shoulder CAR; pause where you struggle."],
+ cuban:["Cuban rotation — 2×5–12","Band or dumbbell (elbow on knee, or barbell racked). Challenge the weak angle, control the return."],
+ rdtri:["Rear-delt fly — 3×10–15 (log it)","DB or band. Counted in the Volume tab as rear delt when this session is ticked. Medial-delt raise and spider curls from the authored triset are omitted: side delts and biceps are already at MAV in the lifting block."],
+ sbend:["DB side bend with hip shift — 2×6–15/side","Reach the hip away as the trunk bends; long spine."],
+ sprot:["Side plank with rotational reach — 2×6–10/side","Reach under, then open; the ribcage rotates, the pelvis stays stacked."],
+ sstc:["Split-stance thoracic CAR — 3×5–8/side","Hips square, rotation from the ribcage only."],
+ crab:["Animal Flow crab series / high crab iso — 3 rounds","5–10 rocks, 30–60 s hold, 5–20 limb lifts. Regress to hands on a bench; breathe if stuck."],
+ pull:["Half-kneeling lat pull-around + split-stance landmine press — 3×8–12","Band for the pull-around; landmine or single DB for the press. Rotation under load from both ends."],
+ sarow:["Single-arm DB row — 3×6–12","Rotate the ribcage into the row, not the lumbar."],
+ kicko:["Supine kick-outs with wall reach — 3×8–20","Low back stays down; reach long through the heel and the opposite hand."],
+ screw:["Hook-lying screwdriver — 2×10–20","Slow tibial rotation with the foot planted; the knee does not drift."],
+ yogap:["Yoga push with chest expansion — 2×5–10","Push the floor away, then let the sternum lead the inhale."],
+ jeff:["Jefferson curl — OMITTED","Loaded lumbar flexion against the standing lumbar contraindication. Not programmed; your call."]
+};
+/* Wed = shoulder ladder, Sun = spine/ribcage ladder. Each phase: name, source, items, floor. */
+const MARKOW_UP={
+ 2:[
+  {wk:[1,2],name:"Floss Your Shoulders",src:"Total Body Mobility Plan wk1 D3",
+   items:["v:shstart","v:armbar","t:invbr"],
+   sub:{shstart:"Authored item is <b>standing shoulder CAR 1×4–10</b> — use the range you have; this is not about expanding it. Add 1 lb ankle weights once it is clean.",armbar:"Authored: <b>Armbar for shoulder &amp; hip rotation 2×5</b> — light enough not to tense everything, heavy enough to force the reach; straight leg toe-up (hip IR)."},
+   med:"Shoulder rotation CARs — 5 slow reps each side. 3 min.",medKey:"shcars"},
+  {wk:[3,8],name:"Shoulder Rotation",src:"Total Body Mobility Plan wk3–10 D4",
+   items:["v:shcars","v:shir","v:sher","t:pails","v:armbar","t:swim","t:cuban","t:rdtri","t:sprot","t:sbend"],
+   sub:{shcars:"Authored: <b>standing shoulder CAR 1×5–20</b>, high intent — envision the IR and ER tissues before the PAILs/RAILs.",shir:"Authored: <b>Standing Sleeper Stretch Series 1×1–2</b>. Library title is plain \"Shoulder IR\".",sher:"Authored: <b>Americana PAILs/RAILs 1×1–2</b>. Library title is plain \"Shoulder external rotation\".",armbar:"Authored: <b>The Arm Bar Sequence 2×5–10</b> — work in rolls and capsule CARs face-up and on your side."},
+   med:"Shoulder CARs 5/side + one round of IR PAILs/RAILs on the tighter side. 6 min.",medKey:"shcars"},
+  {wk:[9,12],name:"Shoulder Rotation 2",src:"Total Body Mobility Plan wk11–15 D4",
+   items:["v:shcars","v:shir","v:sher","t:pails","v:armbar","v:ccsr","v:scap2","t:pull","t:sarow","t:rdtri"],
+   sub:{ccsr:"Not in the authored session — <b>added</b> as the loaded closed-chain progression Markow's phase-2 notes point at. Labelled as an addition.",scap2:"Not in the authored session — <b>added</b> for scapular control under the pull-around / press pair. Labelled as an addition."},
+   med:"Shoulder CARs 5/side + closed-chain rotation 5/side. 6 min.",medKey:"shcars"}],
+ 6:[
+  {wk:[1,2],name:"Brush Your Spine",src:"Total Body Mobility Plan wk1 D1",
+   items:["v:spmini","v:tspine"],
+   sub:{spmini:"Authored: <b>Spine Class Mini (11:20)</b>.",tspine:"Authored: <b>Side-lying thoracic rotation 1×5–10</b>. Library title is \"Thoracic spine — upper back mobility\"; the rotation is inside it."},
+   med:"Spine CARs 10 + neck CARs 5. 4 min.",medKey:"spmini"},
+  {wk:[3,8],name:"Spinanomics · Expand and Conquer (alternating weeks)",src:"Total Body Mobility Plan wk3–9 D2 / D6",
+   items:["v:sp1","v:ribr","v:neckcars","t:sbend","t:sprot","t:sstc","t:crab"],
+   alt:["v:blast","v:ribintro","t:invbr","v:tspine","v:neckcars"],
+   sub:{sp1:"Authored: <b>Spine CAR + Thoracic CAR 1×10 each</b>.",ribr:"Authored thoracic CAR / ribcage work — closest owned class by content.",blast:"Expand and Conquer week: authored <b>Inverted Breathing + side-lying thoracic rotation 2 rounds, supine back-rib reaches, thoracic CAR, neck CARs</b> — Blastoise and Intro to Ribcage carry the rib-expansion content.",ribintro:"See Blastoise note."},
+   med:"Spine CARs 10 + thoracic CAR 10/side. 5 min.",medKey:"sp1"},
+  {wk:[9,12],name:"Ribcage Love · Spines That Bend (alternating weeks)",src:"Total Body Mobility Plan wk10–15 D5 / D2",
+   items:["v:armbar","t:yogap","t:screw","t:sstc","v:neckcars","t:kicko","t:sprot"],
+   alt:["v:sp2","v:blast","t:sbend","t:sstc","t:crab","t:jeff"],
+   sub:{sp2:"Spines That Bend week: authored <b>Spine / thoracic / neck CARs, supine neck CAR off bench, standing arch progression, cable rotations, side bend with bench, split-stance thoracic CAR, Campo chop, crab series</b>. Spine 2 carries the CARs; the rest are text items.",armbar:"Ribcage Love: authored <b>Armbar 2 rounds</b> paired with the yoga push."},
+   med:"Thoracic CARs 10/side + 10 supine kick-outs. 5 min.",medKey:"sp2"}]
+};
+const MARKOW_UP_DOW={2:0,6:1};   /* Wed, Sun */
+function mkUpPhase(dow,w){const arr=MARKOW_UP[dow];if(!arr)return null;const wn=w+1;return arr.find(b=>wn>=b.wk[0]&&wn<=b.wk[1])||arr[arr.length-1];}
+/* Items for the day: on the spine ladder even block-weeks run the alternate list. */
+function mkUpItems(dow,w){const ph=mkUpPhase(dow,w);if(!ph)return [];return (ph.alt&&(w%2===1))?ph.alt:ph.items;}
+function mkUpWeekKeys(w){const out=[];[2,6].forEach(d=>mkUpItems(d,w).forEach(it=>{if(it.startsWith("v:"))out.push(it.slice(2));}));return out;}
+
+/* ============ v11.32: ADDUCTORS — Markow Groin Day, added on Saturday ============
+   Robert, 2026-09-15: "we lost our adductor work". Two routes, both in this build: the
+   Copenhagen ladder lives in CORE (Thu + Fri, from week 1); this is the mobility route —
+   the Groin Day / Golden Groin content from the Total Body Mobility Plan, ONE owned class per
+   Saturday after the Markow D3 session, rotating so each is seen every four weeks. This is
+   an ADDITION outside the authored Beginner Hip plan and the card says so. T3: cut first. */
+const GROIN_ROT=["groin","slg","addc","addmini"];
+const GROIN_CUE={groin:"Fire-hydrant reps with holds. PAILs = knee toward the floor, RAILs = lifting the knee; frog sequence 2 min finding the greatest stretch; finish with 10–20 lift-offs.",
+ slg:"10 rock-backs, 10 capsule CARs, 10 lift-offs. Straight-leg bias.",
+ addc:"Side-lying straight-leg abduction series and adductor capsule CARs; own the bottom position before adding ankle weight.",
+ addmini:"Short adductor class. Pair with the Copenhagen you did on Friday if you want a strength check."};
+const GROIN_MED="Adductor rock-backs 10 + adductor capsule CARs 10/side. 4 min.";
+function groinKey(w){return GROIN_ROT[w%GROIN_ROT.length];}
+
+/* ============ v11.32: CONTRERAS — glute vectors, activators and pumpers ============
+   Robert, 2026-09-14: "we lost the Bret Contreras glute work with the three different
+   planes of movement and pumpers". Read against the app: the VERTICAL/hinge vector is fully
+   owned by Biolayne (box squat, trap bar, RDL, goblet, BSS, SA-RDL — 12-17 fractional
+   sets/wk, at the app's MRV line by week 9); the HORIZONTAL vector is one slot (Booty Sprout
+   on Thu); the LATERAL/ROTARY vector (glute med/min) was ZERO sets, and the glute-med
+   pre-lift activation that project memory records was never built.
+
+   Contreras' 36 sets/wk (12 per vector) is a glute-specialisation template; on top of this
+   block it is not defensible. His decision (2026-09-15): activators and pumpers only, no
+   duplication of the main-set work. So:
+     ACTIVATORS  — low load, pre-lift, Mon and Thu. Prime the glute med, not train it.
+     PUMPERS     — high-rep, short of failure, low fatigue. Frog pump after the box squat on
+                   Mon (his own "vertical day + horizontal pump finisher" template); banded
+                   seated abduction after the Booty Sprout on Thu (lateral pumper).
+   These are counted in their OWN bucket (glute med/min, lateral/rotary) and in the vector
+   panel on the Volume tab, NOT in the glute-max bucket — pumpers are well short of failure by
+   definition and adding them to a bucket already over its line would be both dishonest and
+   alarming. The 4/8/12 landmarks on the new bucket are INFERENCE (a scaled-down Israetel
+   heuristic), labelled as such. Sunday is the MMA gym: no abduction machine, so nothing there. */
+const GLUTE_ACT={0:{n:"Glute-med activation — band lateral walk 2×15 steps/side",cue:"Mini band above the knees, quarter squat, toes forward. Slow. You should feel the side of the hip, not the front."},
+                 3:{n:"Glute-med activation — side-lying hip abduction 2×15/side",cue:"Heel leads, toes slightly down, top hip stacked. Ankle weight optional."}};
+const GLUTE_PUMP={0:{n:"Frog pump — 2×25–30",vec:"H",cue:"Soles together, chin tucked, elbows down. Drive through the outside of the feet; one-second squeeze at the top. Stop 5+ reps short of failure — this is a pumper."},
+                  3:{n:"Banded seated hip abduction — 2×20–30",vec:"L",cue:"Band above the knees, lean forward for upper glute, upright for the middle. Chase strong end-range abduction, no trunk momentum."}};
+
+/* ============ v11.32: WARM-UP RAMP for the three main lifts ============
+   Robert, 2026-09-15: log the warm-up sets, or be given recommended ones, so a screenshot of
+   the card is a complete session record for Whoop's screenshot-based strength logging.
+   The ramp is a generic five-step climb to the top set (empty bar, 50 / 65 / 75 / 85 % of
+   the TOP-SET load — not of e1RM), rounded to 5 lb. BEST-PRACTICE GUIDANCE, not from a named
+   source: it is the shape a powerlifting warm-up takes and nothing in Biolayne prescribes one.
+   Each row is loggable; "Log as suggested" writes all five in one tap. Warm-up sets are NOT
+   counted anywhere — not in volume, not as exposures, not in e1RM. */
+const WARMUP=[["Bar",null,8],["50%",0.50,5],["65%",0.65,3],["75%",0.75,2],["85%",0.85,1]];
+const BAR_LB={bsq_top:45,bp_top:45,tb_top:60};   /* trap bar assumed 60 lb — edit if yours differs */
+function warmupRamp(exKey,topLb){return WARMUP.map(([lab,f,reps],i)=>({lab,reps,i,lb:f==null?BAR_LB[exKey]||45:(topLb?Math.round(topLb*f/5)*5:null)}));}
+function logWarmups(dISO,exKey,topLb){const r=warmupRamp(exKey,topLb);Z.lifts[dISO]=Z.lifts[dISO]||{};
+  r.forEach(x=>{if(x.lb!=null)Z.lifts[dISO][exKey+"_wu"+x.i]={w:x.lb,reps:x.reps};});save();render();}
+
 /* Luke Thomas Saturday rotation (6 retained kick-flex videos) */
 const LT_SAT=["lt1","lt2","lt3","lt5","lt23","lt1","lt12","lt2","lt3","lt23","lt12","lt5"];
 /* Friday pre-kick drills + standing-leg pivot progression (4 levels) */
@@ -879,7 +1065,7 @@ function tonightCard(w,dow,dISO){
 }
 
 
-/* Sunday gap-fill block (programmed; commercial gym) */
+/* Sunday gap-fill block (programmed; the MMA gym — corrected v11.32, it was labelled "commercial gym") */
 /* The programmed add-on he layers on top of whatever his training partner is doing.
    v11.22: each row carries a `mus` map and is individually loggable, because the
    Volume tab used to credit all of it unconditionally. The partner-led portion of the
@@ -899,7 +1085,10 @@ function sunLogged(w){
 }
 
 /* Volume landmarks (sets/wk) — masters-adjusted, practical MRV pulled down for kicks/BJJ/plyos at 41 */
-const MUS={quad:["Quads",6,12,16],ham:["Hamstrings",4,10,14],glute:["Glutes",4,10,16],calf:["Calves",6,12,16],
+const MUS={quad:["Quads",6,12,16],ham:["Hamstrings",4,10,14],glute:["Glutes",4,10,16],
+ /* v11.32 — lateral/rotary vector, its own bucket. Landmarks are INFERENCE: a scaled-down
+    Israetel heuristic for a small muscle trained light. Fed only by ticked activators/pumpers. */
+ gmed:["Glute med/min (lateral)",4,8,12],calf:["Calves",6,12,16],
  chest:["Chest",6,12,18],back:["Back (lats/mid)",8,14,20],sdelt:["Side/Front Delts",6,12,18],rdelt:["Rear Delts",4,10,16],
  bicep:["Biceps",5,12,18],tri:["Triceps",5,12,18],
  abs_ant:["Anterior core (RA/obliques)",12,16,20],abs_post:["Posterior core (ES/MF/QL)",8,12,16]};
@@ -912,19 +1101,21 @@ const MUS={quad:["Quads",6,12,16],ham:["Hamstrings",4,10,14],glute:["Glutes",4,1
    Four things do warrant action, and only four. Rules below. */
 
 /* What each weekday is supposed to produce. [blockId, tier, domain] */
+/* v11.32 — Markow hip moved to Mon/Tue/Thu/Sat (see MARKOW_DOW); Markow upper on Wed/Sun and
+   the Saturday groin class enter at T3 so chaosWeek() never fires off them. */
 const EXPECT={
- 0:[["str","T1","strength"],["plyo","T2","power"],["core","T2","core"],["hooklying","T2","hip"],["yin","T3","downreg"]],
+ 0:[["str","T1","strength"],["plyo","T2","power"],["core","T2","core"],["hooklying","T2","hip"],["markow","T2","hip"],["yin","T3","downreg"]],
  1:[["cond_tue","T2","z2"],["markow","T2","hip"],["yin","T3","downreg"]],
- 2:[["str","T1","strength"],["core","T2","core"],["markow","T2","hip"],["yin","T3","downreg"]],
- 3:[["str","T1","strength"],["plyo","T2","power"],["core","T2","core"],["hooklying","T2","hip"],["yin","T3","downreg"]],
- 4:[["kick","T1","skill"],["str","T1","strength"],["markow","T2","hip"],["yin","T3","downreg"]],
- 5:[["cond_sat","T2","z2"],["plyo","T2","power"],["lt","T2","skill"],["yin","T3","downreg"]],
- 6:[["bjj","T1","skill"],["sunlift","T2","strength"],["markow","T2","hip"],["yin","T3","downreg"]]
+ 2:[["str","T1","strength"],["core","T2","core"],["mkup","T3","upper"],["yin","T3","downreg"]],
+ 3:[["str","T1","strength"],["plyo","T2","power"],["core","T2","core"],["hooklying","T2","hip"],["markow","T2","hip"],["yin","T3","downreg"]],
+ 4:[["kick","T1","skill"],["str","T1","strength"],["yin","T3","downreg"]],
+ 5:[["cond_sat","T2","z2"],["plyo","T2","power"],["lt","T2","skill"],["markow","T2","hip"],["groin","T3","hip"],["yin","T3","downreg"]],
+ 6:[["bjj","T1","skill"],["sunlift","T2","strength"],["mkup","T3","upper"],["yin","T3","downreg"]]
 };
 const BLK={str:"Strength session",plyo:"Plyos / sprint",core:"Core",hooklying:"Hooklying primer",
- markow:"Markow hip",cond_tue:"Zone 2 (Tue)",cond_sat:"Zone 2 (Sat)",kick:"Kickboxing",
+ markow:"Markow hip",mkup:"Markow upper",groin:"Markow groin",cond_tue:"Zone 2 (Tue)",cond_sat:"Zone 2 (Sat)",kick:"Kickboxing",
  lt:"Luke Thomas kick-flex",bjj:"BJJ",sunlift:"Sunday lift",yin:"Evening yin (pliability)"};
-const DOMAIN={strength:"Strength",power:"Power",core:"Core",hip:"Hip mobility",z2:"Zone 2",skill:"Skill",downreg:"Down-regulation"};
+const DOMAIN={strength:"Strength",power:"Power",core:"Core",hip:"Hip mobility",upper:"Upper mobility",z2:"Zone 2",skill:"Skill",downreg:"Down-regulation"};
 
 /* ============ MEASURED DURATIONS — from Toggl, 2026-01-01 → 2026-08-02 ============
    339 training entries, 213 days, zero untagged, one 5h BJJ outlier excluded.
@@ -947,7 +1138,11 @@ const MEAS={
  core:     {med:15,p25:10,p75:20, n:0, src:"e",tag:"no Toggl tag exists"},
  /* v11.24: med/p25/p75 from the 55 short yin videos' actual runtimes (21–29 min) — measured
     from the files themselves, NOT from Toggl (no tag exists yet), hence src:"e". */
- yin:      {med:23,p25:22,p75:27, n:0, src:"e",tag:"yin video runtime — measured from files, no Toggl tag yet"}
+ yin:      {med:23,p25:22,p75:27, n:0, src:"e",tag:"yin video runtime — measured from files, no Toggl tag yet"},
+ /* v11.32: no Toggl tag exists for either. Upper uses the measured per-class hip figure as the
+    best available proxy; groin is one short class. */
+ mkup:     {med:21,p25:17,p75:25, n:0, src:"e",tag:"one Markow upper session — proxy from the hip-class median"},
+ groin:    {med:12,p25:8, p75:16, n:0, src:"e",tag:"one Markow groin class — estimate"}
 };
 /* Solo lifting is NOT one number. Measured medians by weekday.
    CAVEAT, and it matters: this data is from AD-HOC training, not from this program.
@@ -993,7 +1188,7 @@ function blockMin(blk,w,dow){
             tag:s.plyo?"Lifting — plyos bundled in":"Lifting"};}
   return m;
 }
-const MEDFLOOR={markow:5,str:12,cond_tue:24,cond_sat:24,plyo:0,core:6,hooklying:4,lt:6,kick:null,bjj:null,sunlift:12,yin:10};
+const MEDFLOOR={markow:5,mkup:4,groin:4,str:12,cond_tue:24,cond_sat:24,plyo:0,core:6,hooklying:4,lt:6,kick:null,bjj:null,sunlift:12,yin:10};
 /* Which strength day each weekday runs, for the wave-hold rule. */
 const DKEY={0:"d1",2:"d2",3:"d3",4:"d4"};
 
@@ -1057,7 +1252,7 @@ function chaosWeek(dISO){return scanMissed(dISO,7).filter(x=>x.tier!=="T3").leng
 const TIERS={
  T1:["Biolayne strength mains (top set + primary back-offs)","Friday kickboxing + pre-kick drills","Sunday BJJ","Daily protein target"],
  T2:["Strength accessories","≥1 Zone 2 ride","Markow hip mobility","Core (loaded flexion + anti-rotation)","Sunday primary KOTG"],
- T3:["GMB tissue prep","Baar micro-dose","2nd Zone 2","PZ Max (except FTP-test weeks)","Optional KOTG days","Evening yin (pliability)","Kinstretch pick","Non-essential accessories","Sunday gap-fill extras"]};
+ T3:["GMB tissue prep","Baar micro-dose","2nd Zone 2","PZ Max (except FTP-test weeks)","Optional KOTG days","Evening yin (pliability)","Kinstretch pick","Non-essential accessories","Sunday gap-fill extras","Markow upper (Wed/Sun)","Saturday groin class","Glute activators and pumpers"]};
 
 /* ================= STATE ================= */
 const KEY="hybrid_v6_state";
@@ -1219,6 +1414,10 @@ const DECAY_GRACE=14, DECAY_RATE=0.015, DECAY_FLOOR=0.15;
    never be decayed for training without logging. */
 function lastLiftDay(dkey,base,dISO){
   let last=(Z.base||{}).date||null;
+  /* v11.32 — the block-start anchor floors the clock. An anchor in the future of dISO is
+     ignored, so backdated days before the block still read the observation clock. */
+  const anc=decayAnchor();
+  if(anc&&anc<=dISO&&(!last||anc>last))last=anc;
   const tk=TOPKEY[base];
   Object.keys(Z.lifts||{}).forEach(k=>{                       /* a logged top set */
     if(k>dISO)return;
@@ -1363,9 +1562,9 @@ function liftOffCard(dISO,editable,w,dow){
       ${editable?`<input class="win" style="width:64px" inputmode="decimal" placeholder="lb" value="${c.wt??""}" onchange="loSet('${dISO}','${side}','wt',this.value)">
       <input class="win" style="width:56px" inputmode="decimal" placeholder="reps" value="${c.reps??""}" onchange="loSet('${dISO}','${side}','reps',this.value)">`:""}</div>`;};
   return `<div class="card spine t2"><h3>Hip IR Lift-Offs <span class="tiertag T2">LOG TODAY</span></h3>
-  <div class="banner teal"><b>Inside today's Hip IR Kinstretch class \u2014 no extra work.</b> Markow's sequence is Prone Capsule CARs \u2192 SideLying IR PAILs/RAILs \u2192 <b>Lift Offs, 5\u201310 reps</b>. Record what you get on the lift-offs; the class is the session.</div>
-  <div class="meta"><b>This is an exercise, not a test, and it is already in the class.</b> The load &times; reps you achieve <i>is</i> the measurement &mdash; the same way your bench number comes from benching. The Test tab only displays it; you never enter it there.</div>
-  <div class="mini" style="margin-bottom:6px">Markow on why they exist: <i>&ldquo;We must save the work. This is you expressing the new range of motion we earned through our P.A.I.L.&rsquo;s R.A.I.L.&rsquo;s.&rdquo;</i> They only mean anything after the PAILs/RAILs &mdash; done cold they measure something else. On progression: <i>&ldquo;You can progress with height and ankle weights also.&rdquo;</i></div>
+  <div class="banner teal why"><b>Inside today's Hip IR Kinstretch class \u2014 no extra work.</b> Markow's sequence is Prone Capsule CARs \u2192 SideLying IR PAILs/RAILs \u2192 <b>Lift Offs, 5\u201310 reps</b>. Record what you get on the lift-offs; the class is the session.</div>
+  <div class="meta why"><b>This is an exercise, not a test, and it is already in the class.</b> The load &times; reps you achieve <i>is</i> the measurement &mdash; the same way your bench number comes from benching. The Test tab only displays it; you never enter it there.</div>
+  <div class="mini why" style="margin-bottom:6px">Markow on why they exist: <i>&ldquo;We must save the work. This is you expressing the new range of motion we earned through our P.A.I.L.&rsquo;s R.A.I.L.&rsquo;s.&rdquo;</i> They only mean anything after the PAILs/RAILs &mdash; done cold they measure something else. On progression: <i>&ldquo;You can progress with height and ankle weights also.&rdquo;</i></div>
   <details style="margin-bottom:6px"><summary class="mini"><b>How to do it and what to record</b></summary>
   <div class="mini" style="margin-top:6px">
   <b>1.</b> Side-lying, bottom leg straight, top hip and knee bent to about 90&deg;, top knee supported on a foam roller or pillow so the femur stays level.<br>
@@ -1795,13 +1994,23 @@ delete Z.startPinned;                        /* v11.22 — retired; clears old s
    Adding a step: append it. Never edit an existing one, and never renumber. */
 const START_MIGRATIONS=[
   {v:"v11.22",from:"2026-08-17",to:"2026-08-24"},  /* the fifth start date -> the sixth */
-  {v:"v11.25",from:"2026-08-24",to:"2026-08-31"}   /* the sixth -> the seventh; on-ramp 2 needs Aug 25-30 */
+  {v:"v11.25",from:"2026-08-24",to:"2026-08-31"},  /* the sixth -> the seventh; on-ramp 2 needs Aug 25-30 */
+  {v:"v11.32",from:"2026-08-31",to:"2026-09-14"}   /* STATE.md 2026-09-09: block starts Mon Sep 14. A device still on Aug 31 was rendering week 3 on day 1. */
 ];
 {
   const done=START_MIGRATIONS.findIndex(m=>m.v===Z.startMig);   /* -1 when never migrated */
   START_MIGRATIONS.forEach((m,i)=>{ if(i>done&&Z.start===m.from)Z.start=m.to; });
   Z.startMig=START_MIGRATIONS[START_MIGRATIONS.length-1].v;
 }
+/* ============ v11.32: DECAY ANCHOR — "reset all decay for the new revision" ============
+   Robert's instruction, 2026-09-14, day 1 of the block. The layoff-decay clock for all three
+   lifts is anchored at the block start: nothing before that date can age a lift. This is
+   recorded as an INSTRUCTION with a date, not as a fabricated observation — `Z.base.date`
+   still says when the baselines were actually tested, and the strength card says which of
+   the two the clock is reading. One-shot: stamped so a later hand-edit of Z.start does not
+   silently re-anchor. Clearing `Z.decayAnchor` in the Log tab restores the observation clock. */
+if(Z.decayAnchorMig!=="v11.32"){Z.decayAnchor=progStart();Z.decayAnchorMig="v11.32";}
+function decayAnchor(){return (Z.decayAnchor&&ISO_RE.test(Z.decayAnchor))?Z.decayAnchor:null;}
 function save(){S.v9=Z;localStorage.setItem(KEY,JSON.stringify(S));}
 /* v11.22 — the only writer of Z.start. Validates rather than corrects: a bad date is
    refused and the old one kept, because silently snapping the input to a nearby Monday
@@ -1885,7 +2094,16 @@ function buildTabs(){
   vs.innerHTML=TABS.map(t=>`<div class="view ${t[0]===cur?"on":""}" id="v_${t[0]}"></div>`).join("");
 }
 function go(t){cur=t;buildTabs();render();window.scrollTo(0,0);}
+/* v11.32 — compact mode. Default ON: rationale prose (`.why`) hidden, a "why" button per card
+   reveals it. Robert, 2026-09-15: the Today tab was "wordy and cumbersome" — the honest cost of
+   a project rule that every deviation from a source must say why. The prose is kept, not
+   deleted; it is one tap away instead of in front of the work. Persisted in Z.compact. */
+function isCompact(){return Z.compact!==false;}
+function toggleCompact(){Z.compact=!isCompact();save();render();}
+function applyCompact(){try{document.body.classList.toggle("compact",isCompact());
+  const b=document.getElementById("compactBtn");if(b)b.textContent=isCompact()?"full text":"compact";}catch(e){}}
 function render(){
+  applyCompact();
   ({today:rToday,week:rWeek,cardio:rCardio,gmb:rGMB,vol:rVol,night:rNight,test:rTest,log:rLog})[cur]();
   const w=curWeek(),phz=["Base (Wk 1–4)","Load (Wk 5–8)","Peak (Wk 9–12)"][corePhase(w)];
   document.getElementById("hdrTitle").textContent=TABS.find(t=>t[0]===cur)[1];
@@ -1984,7 +2202,8 @@ function viewBar(){
 /* ================= BLOCK RENDER HELPERS ================= */
 function ckHTML(dISO,id){
   const on=Z.done[dISO]&&Z.done[dISO][id];
-  return `<div class="ck ${on?"on":""}" onclick="tog('${dISO}','${id}')">✓</div>`;
+  /* v11.32: data-ck lets decorateCards() find the card's done state without parsing state twice. */
+  return `<div class="ck ${on?"on":""}" data-ck="${id}" onclick="tog('${dISO}','${id}')">✓</div>`;
 }
 function tog(dISO,id){Z.done[dISO]=Z.done[dISO]||{};Z.done[dISO][id]=!Z.done[dISO][id];save();render();}
 function lastLoad(exKey,beforeISO){
@@ -2108,7 +2327,7 @@ function chaosCard(dISO){
     ${d.dom==="hip"?`<br><button class="btn sm" style="margin-top:6px" onclick="mkDefaultMed()">Make Markow default to the short version</button>`:""}</div>`;
   });
 
-  h+=`<div class="mini" style="margin-top:10px"><b>Why most of this says absorb.</b> This program has no scheduled deloads by design — readiness logging is the only brake. Makeup work removes that brake precisely when you are already under load.</div></div>`;
+  h+=`<div class="mini why" style="margin-top:10px"><b>Why most of this says absorb.</b> The app schedules no deloads of its own beyond Biolayne's written week 6 — readiness logging is the only brake. Makeup work removes that brake precisely when you are already under load.</div></div>`;
   return h;
 }
 function mkDefaultMed(){Z.mkMedDefault=true;save();render();}
@@ -2180,7 +2399,7 @@ function plannerCard(w,dow,dISO){
   const mins=Z.avail;
   const full=(EXPECT[dow]||[]).reduce((s,e)=>{const b=blockMin(e[0],w,dow);return s+(b?b.med:0);},0);
   let h=`<div class="card spine t2"><h3>How much time do you actually have?</h3>
-  <div class="meta">Today as written runs about <b>${Math.round(full)} min</b> end to end, using your measured durations — not my estimates. Your real median training day over the last 7 months was <b>151 min</b>, so this is normal for you.</div>
+  <div class="meta">Today as written runs about <b>${Math.round(full)} min</b> end to end. <span class="why">Measured durations where a Toggl tag exists, estimates where none does. Your real median training day over the last 7 months was <b>151 min</b>.</span></div>
   <div class="seg" style="margin:8px 0">${AVAIL_OPTS.map(v=>`<button class="${mins===v?"on":""}" onclick="setAvail(${v})">${v}m</button>`).join("")}</div>`;
   if(!mins){h+=`<div class="mini">Tap a number when the day has gone sideways and you need to know what still fits.</div></div>`;return h;}
   const p=planDay(w,dow,mins);
@@ -2521,8 +2740,8 @@ function whoopCard(dISO){
   </div>
   ${rec!=null?`<div class="banner ${cls}" style="margin-top:8px"><b>Recovery ${rec}%.</b> ${band}</div>`:
     `<div class="mini" style="margin-top:8px">No recovery entered. The gate falls back to your self-reported 1\u20135.</div>`}
-  <div class="mini" style="margin-top:6px">Gate thresholds are <b>your own</b> 12-month distribution \u2014 p10 = ${REC_GATE}, median = ${REC_GREEN} \u2014 not Whoop\u2019s generic colours, so the brake fires ~10% of days.</div>
-  <div class="mini" style="margin-top:6px;opacity:.8">Your RHR stepped from 69 to 77 between Mar and Apr 2026 and is still climbing (Jul median 79), with HRV down 5 ms and sleep unchanged. Whoop\u2019s recovery score rebaselined and hid it. Keep this field current \u2014 the bpm threshold above is computed from it.</div></div>`;
+  <div class="mini why" style="margin-top:6px">Gate thresholds are <b>your own</b> 12-month distribution \u2014 p10 = ${REC_GATE}, median = ${REC_GREEN} \u2014 not Whoop\u2019s generic colours, so the brake fires ~10% of days.</div>
+  <div class="mini why" style="margin-top:6px;opacity:.8">Your RHR stepped from 69 to 77 between Mar and Apr 2026 and is still climbing (Jul median 79), with HRV down 5 ms and sleep unchanged. Whoop\u2019s recovery score rebaselined and hid it. Keep this field current \u2014 the bpm threshold above is computed from it.</div></div>`;
 }
 
 /* ============ v11: WEEKLY MED SCORECARD ============
@@ -3081,7 +3300,7 @@ function realityCard(dow){
   <div class="mini">Slot: <b>${R[1]}</b>. ${R[2]}.</div>
   <div class="banner ${risk}" style="margin-top:8px"><b>${rel.train}% of ${R[0]}s produced any training. ${rel.lift}% produced a lift.</b>
   <span class="mini">${verdict} ${rel.lift===0?"You have <b>never</b> lifted on a "+R[0]+" in the logged range — the program puts no lift here either, so that is consistent.":""}</span></div>
-  <div class="mini" style="opacity:.75;margin-top:4px">From 339 logged sessions over ${rel.n} ${R[0]}s, Jan–Aug 2026. This is ad-hoc training, not a completed block — you have not finished a 12-week program in this range.</div></div>`;
+  <div class="mini why" style="opacity:.75;margin-top:4px">From 339 logged sessions over ${rel.n} ${R[0]}s, Jan–Aug 2026. This is ad-hoc training, not a completed block — you have not finished a 12-week program in this range.</div></div>`;
 }
 function vRate(k){
   const r=Z.vrate[k];
@@ -3188,9 +3407,15 @@ function strengthCard(w,dkey,dISO,editable){
   let rows="";
   exs.forEach((e,i)=>{
     const [s,r,rir]=rx[i];
-    if(e.sup){rows+=`<div class="row"><div class="nm" style="color:var(--dim)">${e.n} <span class="sup">— suppressed; replaced by the Core block</span></div></div>`;return;}
+    if(e.sup){rows+=`<div class="row"><div class="nm" style="color:var(--dim)">${e.n} <span class="sup why">— suppressed; replaced by the Core block</span></div></div>`;
+      if(i===exs.length-1&&GLUTE_PUMP[{d1:0,d3:3}[dkey]]){const gp=GLUTE_PUMP[{d1:0,d3:3}[dkey]];
+        rows+=`<div class="row"><div class="nm">${gp.n}<div class="sup">Pumper · <span class="why">${gp.cue}</span></div></div><div class="rx">${gp.vec==="H"?"horizontal":"lateral"}</div>${editable?ckHTML(dISO,"gpump"):""}</div>`;}
+      return;}
     const seTxt="";
-    if(e.k==="bht"){rows+=bootyRow(dISO,s,r,rir,editable);return;}
+    if(e.k==="bht"){rows+=bootyRow(dISO,s,r,rir,editable);
+      if(i===exs.length-1&&GLUTE_PUMP[{d1:0,d3:3}[dkey]]){const gp=GLUTE_PUMP[{d1:0,d3:3}[dkey]];
+        rows+=`<div class="row"><div class="nm">${gp.n}<div class="sup">Pumper · <span class="why">${gp.cue}</span></div></div><div class="rx">${gp.vec==="H"?"horizontal":"lateral"}</div>${editable?ckHTML(dISO,"gpump"):""}</div>`;}
+      return;}
     const sg=suggestLoad(e.k,r,rir,dISO);
     const inp=editable?`<input class="win" inputmode="decimal" placeholder="${sg?sg.lb:(lastLoad(e.k,dISO)||"lb")}" value="${(Z.lifts[dISO]&&Z.lifts[dISO][e.k]&&Z.lifts[dISO][e.k].w)||""}" onchange="setLoad('${dISO}','${e.k}',this.value)">`:"";
     /* v11.16: a suggested lift already tells him what to load. An accessory does not, so it
@@ -3199,7 +3424,7 @@ function strengthCard(w,dkey,dISO,editable){
        exactly the failure this project keeps finding; the card carries the percentage and
        the day count so the size of the adjustment is visible, not just its effect. */
     const _dcy=(sg&&MAINLIFT[e.k])?decayFactor({boxsq:"d1",bench:"d2",trap:"d3"}[MAINLIFT[e.k]],MAINLIFT[e.k],dISO):null;
-    const dcyNote=(_dcy&&_dcy.mult<1)?`<div class="mini" style="margin-top:4px;color:var(--t2)">Reference decayed <b>−${_dcy.pct.toFixed(1)}%</b> — ${_dcy.days} days since your last ${e.tag.toLowerCase()} session (${_dcy.since}). Grace is ${DECAY_GRACE} days, then −${(DECAY_RATE*100).toFixed(1)}%/week, floored at −${DECAY_FLOOR*100}%. <b>Inference, not a published figure.</b> The first top set you log overwrites this upward.</div>`:"";
+    const dcyNote=(_dcy&&_dcy.mult<1)?`<div class="mini" style="margin-top:4px;color:var(--t2)">Reference decayed <b>−${_dcy.pct.toFixed(1)}%</b> — ${_dcy.days} days since ${_dcy.since===decayAnchor()?"the block-start decay anchor":"your last "+e.tag.toLowerCase()+" session"} (${_dcy.since}). <span class="why">Grace is ${DECAY_GRACE} days, then −${(DECAY_RATE*100).toFixed(1)}%/week, floored at −${DECAY_FLOOR*100}%. <b>Inference, not a published figure.</b> The first top set you log overwrites this upward.</span></div>`:"";
     const sub2=sg?`${e.tag} · <b>start ~${sg.lb} lb</b> (${sg.pct}% of ${sg.e1}${sg.src&&sg.src!=="on-ramp test"?` — from your ${sg.src} on ${sg.when}`:""}) — then let RIR decide`
                  :(MAINLIFT[e.k]?`${e.tag} · <i>no e1RM yet — set a baseline in the Test tab and this fills in</i>`
                                 :`${e.tag}${lastLoadTag(e.k,dISO)}`);
@@ -3214,7 +3439,19 @@ function strengthCard(w,dkey,dISO,editable){
         <div class="rx">${DE.sets}×${DE.reps}</div>
         ${editable?`<input class="win" inputmode="decimal" placeholder="${lb||"lb"}" value="${dv}" onchange="setLoad('${dISO}','bp_de',this.value)">`:""}</div>`;
     }
-    rows+=`<div class="row"><div class="nm">${e.n}${seTxt}<div class="sup">${sub2}${(i===1&&HEAVY_BO_DAYS.includes(dkey))?` · <i>${hboTrade(R.i)} set${hboTrade(R.i)===1?"":"s"} fewer than written — traded for the heavy triples above${R.i>=3?", net-neutral on volume":""}</i>`:""}</div>${dcyNote}</div><div class="rx">${useSets}×${r}${rir!=null?" · RIR "+rir:""}</div>${inp}</div>`;
+    /* v11.32 — warm-up ramp above the top set, loggable, so the card is a complete record. */
+    if(i===0&&MAINLIFT[e.k]){
+      const ramp=warmupRamp(e.k,sg?sg.lb:null);
+      rows+=`<div class="klabel" style="margin-top:4px">Warm-up ramp <span class="why" style="font-weight:400;text-transform:none;letter-spacing:0">— to the top set, not to e1RM · best-practice shape, not from a named source · never counted</span></div>`;
+      ramp.forEach(x=>{const rec=(Z.lifts[dISO]&&Z.lifts[dISO][e.k+"_wu"+x.i])||{};
+        rows+=`<div class="row" style="padding:4px 0"><div class="nm" style="font-size:13px;color:var(--mut)">${x.lab}<span class="sup"> · ${x.lb!=null?x.lb+" lb":"—"}</span></div><div class="rx">1×${x.reps}</div>${editable?`<input class="win" inputmode="decimal" placeholder="${x.lb!=null?x.lb:"lb"}" value="${rec.w||""}" onchange="setLoad('${dISO}','${e.k}_wu${x.i}',this.value)">`:""}</div>`;});
+      if(editable)rows+=`<div style="margin:2px 0 6px"><button class="btn sm sec" onclick="logWarmups('${dISO}','${e.k}',${sg?sg.lb:"null"})">Log warm-ups as suggested</button></div>`;
+    }
+    rows+=`<div class="row"><div class="nm">${e.n}${seTxt}<div class="sup">${sub2}${(i===1&&HEAVY_BO_DAYS.includes(dkey))?` <i class="why">· ${hboTrade(R.i)} set${hboTrade(R.i)===1?"":"s"} fewer than written — traded for the heavy triples above${R.i>=3?", net-neutral on volume":""}</i>`:""}</div>${dcyNote}</div><div class="rx">${useSets}×${r}${rir!=null?" · RIR "+rir:""}</div>${inp}</div>`;
+    /* v11.32 — Contreras pumpers, after the last glute slot on the day: frog pump after the D1
+       accessories (Mon), banded seated abduction after the Booty Sprout (Thu). Own tick. */
+    if(i===exs.length-1&&GLUTE_PUMP[{d1:0,d3:3}[dkey]]){const gp=GLUTE_PUMP[{d1:0,d3:3}[dkey]];
+      rows+=`<div class="row"><div class="nm">${gp.n}<div class="sup">Pumper · <span class="why">${gp.cue}</span></div></div><div class="rx">${gp.vec==="H"?"horizontal":"lateral"}</div>${editable?ckHTML(dISO,"gpump"):""}</div>`;}
     /* the heavy back-offs sit between the top set and the hypertrophy back-offs */
     if(i===0&&HEAVY_BO_DAYS.includes(dkey)){
       const hk=e.k.replace("_top","_hbo");
@@ -3232,15 +3469,15 @@ function strengthCard(w,dkey,dISO,editable){
     }
   });
   return `<div class="card spine t1"><h3>${names[dkey]} <span class="tiertag T1">T1</span></h3>
-  <div class="meta">4D Hybrid — log top-set loads; blank = last used shown as placeholder.</div>
-  <div class="mini" style="margin-bottom:6px">Accessories carry no e1RM, so each one shows <b>what you used last time and the change since the session before that</b>. That is the only progression signal they have — nothing else in the app is watching them.</div>
-  ${dkey==="d2"&&Z.de?`<div class="mini" style="margin-bottom:6px">⚡ <b>Dynamic-effort bench is on.</b> 6×3 at 50%, 45 s rest, after the heavy work. Bar speed is the point — if it feels like conditioning the weight is too heavy. Not counted in the Volume tab: 18 reps at 50% is below any hypertrophy threshold and counting it would flatter the chest number. Honest caveat: evidence that speed work adds to a trained lifter's 1RM is equivocal, and at your age force rather than velocity limits power. It is here because it costs about five minutes and almost no fatigue.</div>`:""}
-  ${HEAVY_BO_DAYS.includes(dkey)?`<div class="mini" style="margin-bottom:6px;color:var(--t2)">⚠ <b>Modified from the source, 2026-08-04.</b> Two heavy triples added, one 3×8 set removed. As written this block gave you <b>one</b> set a week above 80%; the study this rests on found a heavy single alone carried only a 6.3% chance of meaningful gain, against 99.6% once heavy back-offs were added. Net cost: about one stimulating rep per week for hypertrophy.</div>`:""}
+  <div class="meta why">4D Hybrid — log top-set loads; blank = last used shown as placeholder.</div>
+  <div class="mini why" style="margin-bottom:6px">Accessories carry no e1RM, so each one shows <b>what you used last time and the change since the session before that</b>. That is the only progression signal they have — nothing else in the app is watching them.</div>
+  ${dkey==="d2"&&Z.de?`<div class="mini why" style="margin-bottom:6px">⚡ <b>Dynamic-effort bench is on.</b> 6×3 at 50%, 45 s rest, after the heavy work. Bar speed is the point — if it feels like conditioning the weight is too heavy. Not counted in the Volume tab: 18 reps at 50% is below any hypertrophy threshold and counting it would flatter the chest number. Honest caveat: evidence that speed work adds to a trained lifter's 1RM is equivocal, and at your age force rather than velocity limits power. It is here because it costs about five minutes and almost no fatigue.</div>`:""}
+  ${HEAVY_BO_DAYS.includes(dkey)?`<div class="mini why" style="margin-bottom:6px;color:var(--t2)">⚠ <b>Modified from the source, 2026-08-04.</b> Two heavy triples added, one 3×8 set removed. As written this block gave you <b>one</b> set a week above 80%; the study this rests on found a heavy single alone carried only a 6.3% chance of meaningful gain, against 99.6% once heavy back-offs were added. Net cost: about one stimulating rep per week for hypertrophy.</div>`:""}
   ${R.lag>0
     ? `<div class="banner amber"><b>Calendar week ${w+1}. Loading week ${R.i+1}.</b>
        This lift has had <b>${R.exp} heavy exposure${R.exp===1?"":"s"}</b>, so the prescription is <b>${R.lag} week${R.lag===1?"":"s"} behind the calendar</b> — deliberately.
        <span class="mini">The calendar never stalls and nothing is owed. The <i>load</i> waits for the work. Progressing the bar on weeks you did not train is how a block starts prescribing numbers you have no business hitting, and failing them reads as failure. One free week is built in, because 1&ndash;2 weeks off costs no measurable 1RM.</span></div>`
-    : `<div class="mini" style="margin-bottom:6px">Week ${R.i+1} loading, on schedule — ${R.exp} heavy exposure${R.exp===1?"":"s"} logged for this lift.</div>`}
+    : `<div class="mini" style="margin-bottom:6px">Week ${R.i+1} loading, on schedule — ${R.exp} heavy exposure${R.exp===1?"":"s"} logged for this lift.${decayAnchor()?` <span class="why">Decay clock anchored at block start ${decayAnchor()} (your instruction, 2026-09-14).</span>`:""}</div>`}
   ${rows}
   ${editable?`<div style="margin-top:8px">${ckHTML(dISO,"str")}<span class="mini" style="margin-left:8px">Session complete</span></div>`:""}</div>`;
 }
@@ -3251,7 +3488,7 @@ function coreCard(w,dow,dISO,editable){
   const items=down?["Anti-rotation only — Pallof march / bird dog, 2 easy sets"]:c.ph[p];
   const loadNote=(k==="wed"||k==="fri")?" · loaded work ADDS LOAD weekly (aesthetics #1)":"";
   return `<div class="card spine ${c.tier==="T2"?"t2":""}"><h3>Core — ${c.lbl} <span class="tiertag ${c.tier}">${c.tier}</span></h3>
-  <div class="meta">Circuited between strength sets · Phase ${p+1} · ${c.focus}${loadNote}</div>
+  <div class="meta">Circuited between strength sets · Phase ${p+1}<span class="why"> · ${c.focus}${loadNote}</span></div>
   ${items.map(t=>`<div class="row"><div class="nm">${t}</div></div>`).join("")}
   ${!down?`<details class="corelib"><summary class="mini">Swap library (evidence Tier-1 + Prehab Guys)</summary>${c.lib.map(x=>`<div class="mini" style="opacity:.8">· ${x}</div>`).join("")}</details>`:""}
   ${editable?`<div style="margin-top:8px">${ckHTML(dISO,"core")}<span class="mini" style="margin-left:8px">Done</span></div>`:""}</div>`;
@@ -3265,73 +3502,135 @@ function gmbCard(dow,dISO,editable){
   ${editable?`<div style="display:flex;gap:8px;flex-wrap:wrap">
     <button class="btn sm ${on?"":"sec"}" onclick="Z.gmb['on_${dISO}']=${on?"false":"true"};save();render()">${on?"On today ✓":"Off today"}</button>
     <button class="btn sm sec" onclick="go('gmb')">Open timer →</button></div>
-  <div class="mini" style="margin-top:6px">Every class includes the wrist hold — stacks with Baar; don't double-dose.</div>`:""}</div>`;
+  <div class="mini why" style="margin-top:6px">Every class includes the wrist hold — stacks with Baar; don't double-dose.</div>`:""}</div>`;
 }
-function skillCard(w,dow,dISO,editable){
+/* v11.32 — skillCard split into the pieces the Today order needs: warmupCard (hooklying +
+   glute activation), markowLowerCard, markowUpperCard, groinCard, and skillCard for the
+   anchors (kick, BJJ) and the mobility tail (LT, KOTG, Baar). Robert's order, 2026-09-15:
+   tissue prep -> warm-up -> anything high-intensity that goes first -> strength / cardio ->
+   end-of-workout mobility -> yin. */
+function warmupCard(w,dow,dISO,editable){
+  const lift=(dow===0||dow===3);
+  let h=`<div class="card spine ${lift?"t2":""}"><h3>Warm-up <span class="tiertag ${lift?"T2":"T3"}">${lift?"T2":"T3"}</span></h3>
+    <div class="meta">${lift?"Hooklying, then the glute-med activator, then straight into the plyos.":"Hooklying — morning, three minutes."}</div>
+    <div class="row"><div class="nm">Hooklying Low Reach · 3 × 10<div class="sup">On your back, knees bent 90, feet flat hip-width. Exhale fully, let the ribs drop, reach the arms forward and slightly low. Feel the abs switch on; breathe in without the ribs flaring.</div></div>${editable?ckHTML(dISO,"hooklying"):""}</div>
+    <div class="mini why">Source: "If you struggle with hip flexion / internal rotation try adding 3 sets of hooklying <b>every morning</b> and before any lower body workouts." ${lift?"Markow prescribes this specifically before lower-body work.":"Not scored on non-lifting days. Missing it never counts against you."}</div>`;
+  if(GLUTE_ACT[dow]){const g=GLUTE_ACT[dow];
+    h+=`<div class="row"><div class="nm">${g.n}<div class="sup">${g.cue}</div></div>${editable?ckHTML(dISO,"gact"):""}</div>
+    <div class="mini why">Contreras activator: low load, primes the glute med before the lift, does not train it. Counted in the lateral bucket on the Volume tab when ticked. Added v11.32.</div>`;}
+  return h+`</div>`;
+}
+function markowLowerCard(w,dow,dISO,editable){
   let h="";
   const mdi=MARKOW_DOW[dow];
-  if(mdi!==undefined){
-    const day=MARKOW[w][mdi];
-    const mm=Z.mkMode&&Z.mkMode[dISO];
-    const full=mm?mm==="full":!Z.mkMedDefault;
-    h+=`<div class="card spine t2"><h3>Markow Hip — Wk ${w+1} Day ${mdi+1} <span class="tiertag T2">T2</span></h3>
+  if(mdi===undefined)return "";
+  const day=MARKOW[w][mdi];
+  const mm=Z.mkMode&&Z.mkMode[dISO];
+  const full=mm?mm==="full":!Z.mkMedDefault;
+  h+=`<div class="card spine t2"><h3>Markow Hip — Wk ${w+1} Day ${mdi+1} <span class="tiertag T2">T2</span></h3>
+    <div class="meta">After the ${dow===1||dow===5?"ride":"lift"}, never before it.</div>
     ${(()=>{const ws=worseSide();
-      if(!ws)return `<div class="meta">No hip IR screen on file. Measure before biasing either side.</div>`;
-      if(ws.symmetric)return `<div class="meta">IR restricted <b>bilaterally</b> — ${ws.date} (${ws.method==="pt"?"PT":"self"}): L ${ws.l}° / R ${ws.r}°${ws.arcL!=null?`, total arc ${ws.arcL}° / ${ws.arcR}°`:""}. Gap of ${ws.gap}° is inside measurement noise, so <b>train both sides equally</b> and let in-session feel decide any extra work.</div>
-      <div class="mini" style="margin-bottom:6px">Markow's notes below assume one side is clearly worse. That is not what your data shows. Apply them to whichever side feels tighter that day rather than to a fixed side.</div>`;
-      return `<div class="meta">Bias reps and holds to the <b>${SIDEW(ws.side)}</b> — ${ws.date} (${ws.method==="pt"?"PT":"self"}): L ${ws.l}° / R ${ws.r}°, gap ${ws.gap}°.</div>
-      ${ws.side==="R"?`<div class="mini" style="color:var(--t2);margin-bottom:6px">⚠ Markow's notes below are written assuming left-worse — <b>mirror them to the right</b>.</div>`:""}`;})()}
-    <div class="banner teal"><b>End-feel is firm capsular, bilateral, no guarding (2026-07-30).</b> That changes how you run every item below, not which items they are.
+      if(!ws)return `<div class="meta why">No hip IR screen on file. Measure before biasing either side.</div>`;
+      if(ws.symmetric)return `<div class="meta why">IR restricted <b>bilaterally</b> — ${ws.date} (${ws.method==="pt"?"PT":"self"}): L ${ws.l}° / R ${ws.r}°${ws.arcL!=null?`, total arc ${ws.arcL}° / ${ws.arcR}°`:""}. Gap of ${ws.gap}° is inside measurement noise, so <b>train both sides equally</b> and let in-session feel decide any extra work.</div>
+      <div class="mini why" style="margin-bottom:6px">Markow's notes below assume one side is clearly worse. That is not what your data shows. Apply them to whichever side feels tighter that day rather than to a fixed side.</div>`;
+      return `<div class="meta">Bias reps and holds to the <b>${SIDEW(ws.side)}</b> — <span class="why">${ws.date} (${ws.method==="pt"?"PT":"self"}): L ${ws.l}° / R ${ws.r}°, gap ${ws.gap}°.</span></div>
+      ${ws.side==="R"?`<div class="mini why" style="color:var(--t2);margin-bottom:6px">⚠ Markow's notes below are written assuming left-worse — <b>mirror them to the right</b>.</div>`:""}`;})()}
+    <div class="banner teal why"><b>End-feel is firm capsular, bilateral, no guarding (2026-07-30).</b> That changes how you run every item below, not which items they are.
     <span class="mini">A capsular restriction responds to <b>tension at end range</b>, not to time in a stretch. Everywhere a class says hold, push instead: get to your end range, then contract <i>into</i> it at roughly 7 out of 10 for 10 seconds, then contract <i>out of</i> it — try to pull the shin further into rotation under your own power — for 10 seconds. Two rounds. Relax and you have wasted the rep. Passive hanging is the one thing a capsule ignores.</span></div>
     <div class="seg" style="margin-bottom:8px">
       <button class="${full?"on":""}" onclick="setMkMode('${dISO}','full')">Full</button>
       <button class="${!full?"on":""}" onclick="setMkMode('${dISO}','med')">Short on time</button></div>`;
-    if(!full){
-      h+=`<div class="banner teal"><b>Minimum effective dose.</b> ${MARKOW_MED[mdi]}<br><span class="mini">This counts. Nothing repeats and the block does not stall.</span></div>`;
-    } else {
-      day.forEach(it=>{
-        const isV=it.startsWith("v:"),k=it.slice(2);
-        if(isV){const v=V[k];
-          h+=`<div class="vlink"><span>${v[0]}</span><a href="${v[1]}" target="_blank">Play ▸</a></div>`;
-          if(MK_SUB[k])h+=`<div class="mini" style="color:var(--t2);margin:-2px 0 6px 0">⚠ ${MK_SUB[k]}</div>`;
-          if(MK_LEFT[k]){const ws=worseSide();
-            const lbl=!ws?"Restricted side":(ws.symmetric?"Both sides":"Restricted side ("+SIDEW(ws.side)+")");
-            const note=ws&&ws.symmetric?` <i>Your sides are within noise — apply to whichever is tighter today.</i>`:(ws&&ws.side==="R"?` <i>Source says left; apply it to the right.</i>`:"");
-            h+=`<div class="mini" style="margin:-2px 0 6px 0"><b>${lbl}:</b> ${MK_LEFT[k]}${note}</div>`;}
-          h+=vRate(k);
-        } else {const t=MK_TXT[k];
-          h+=`<div class="row"><div class="nm">${t[0]}<div class="sup">${t[1]}</div></div></div>`;
-          if(t[2])h+=`<div class="mini" style="color:var(--t2);margin:-2px 0 6px 0">⚠ ${t[2]}</div>`;}
-      });
-    }
-    h+=`${editable?ckHTML(dISO,"markow"):""}</div>`;
-    h+=liftOffCard(dISO,editable,w,dow);}
-  {const lift=(dow===0||dow===3);
-    h+=`<div class="card spine ${lift?"t2":""}"><h3>Hooklying — daily micro-dose${lift?" + pre-lift primer":""} <span class="tiertag ${lift?"T2":"T3"}">${lift?"T2":"T3"}</span></h3>
-    <div class="meta">${lift?"Morning, and again before you lift. Markow prescribes this specifically before lower-body work, not just before mobility.":"Morning. Three minutes. Highest-frequency capsular exposure available and it costs nothing."}</div>
-    <div class="row"><div class="nm">Hooklying Low Reach · 3 × 10<div class="sup">On your back, knees bent 90, feet flat hip-width. Exhale fully, let the ribs drop, then reach the arms forward and slightly low as if pushing the ceiling away. Feel the abs switch on. Breathe in without letting the ribs flare. That is one rep.</div></div></div>
-    <div class="mini">Source: "If you struggle with hip flexion / internal rotation try adding 3 sets of hooklying <b>every morning</b> and before any lower body workouts."</div>
-    <div class="mini" style="color:var(--t2)">Not scored on non-lifting days. Missing it never counts against you.</div>
-    ${editable?ckHTML(dISO,"hooklying"):""}</div>`;}
-  if(dow===4){
-    h+=`<div class="card spine t1"><h3>Kickboxing + Pre-Kick Drills <span class="tiertag T1">T1</span></h3>
-    <div class="meta">6:30 AM private + Muay Thai. Drills before class:</div>
-    ${FRIKICK(w).map(t=>`<div class="row"><div class="nm">${t}</div></div>`).join("")}
-    ${editable?ckHTML(dISO,"kick"):""}</div>`;}
-  if(dow===5){const v=V[LT_SAT[w]];
-    h+=`<div class="card spine t2"><h3>Luke Thomas Kick-Flex <span class="tiertag T2">T2</span></h3>
-    <div class="meta">Saturday rotation, week ${w+1} · plus sparring/MMA if scheduled</div>
-    <div class="vlink"><span>${v[0]}</span><a href="${v[1]}" target="_blank">Play ▸</a></div>
-    ${editable?ckHTML(dISO,"lt"):""}</div>`;}
-  if(dow===6){
-    h+=`<div class="card spine t1"><h3>BJJ Private — 11 AM <span class="tiertag T1">T1</span></h3><div class="meta">Anchor. Gap-fill lift beforehand.</div>${editable?ckHTML(dISO,"bjj"):""}</div>`;}
-  const kk={0:"mon",2:"wed",4:"fri",5:"sat",6:"sun"}[dow];
-  if(kk){const K=KOTG[kk];
-    h+=`<div class="card spine ${K.tier==="T2"?"t2":""}"><h3>${kk==="sun"?"KOTG — Primary Session":"KOTG"} <span class="tiertag ${K.tier}">${K.tier}</span></h3>
-    <div class="row"><div class="nm">${K.t}</div></div>${editable?ckHTML(dISO,"kotg"):""}</div>`;}
-  if(dow===2||dow===4){
-    h+=`<div class="card spine"><h3>Baar Wrist/Elbow (optional) <span class="tiertag T3">T3</span></h3>
-    <div class="row"><div class="nm">${BAAR.t}</div></div><div class="mini">${BAAR.note}</div>${editable?ckHTML(dISO,"baar"):""}</div>`;}
+  if(!full){
+    h+=`<div class="banner teal"><b>Minimum effective dose.</b> ${MARKOW_MED[mdi]}<br><span class="mini">This counts. Nothing repeats and the block does not stall.</span></div>`;
+  } else {
+    day.forEach(it=>{
+      const isV=it.startsWith("v:"),k=it.slice(2);
+      if(isV){const v=V[k];
+        h+=`<div class="vlink"><span>${v[0]}</span><a href="${v[1]}" target="_blank">Play ▸</a></div>`;
+        if(MK_SUB[k])h+=`<div class="mini why" style="color:var(--t2);margin:-2px 0 6px 0">⚠ ${MK_SUB[k]}</div>`;
+        if(MK_LEFT[k]){const ws=worseSide();
+          const lbl=!ws?"Restricted side":(ws.symmetric?"Both sides":"Restricted side ("+SIDEW(ws.side)+")");
+          const note=ws&&ws.symmetric?` <i>Your sides are within noise — apply to whichever is tighter today.</i>`:(ws&&ws.side==="R"?` <i>Source says left; apply it to the right.</i>`:"");
+          h+=`<div class="mini why" style="margin:-2px 0 6px 0"><b>${lbl}:</b> ${MK_LEFT[k]}${note}</div>`;}
+        h+=vRate(k);
+      } else {const t=MK_TXT[k];
+        h+=`<div class="row"><div class="nm">${t[0]}<div class="sup why">${t[1]}</div></div></div>`;
+        if(t[2])h+=`<div class="mini why" style="color:var(--t2);margin:-2px 0 6px 0">⚠ ${t[2]}</div>`;}
+    });
+  }
+  h+=`${editable?ckHTML(dISO,"markow"):""}</div>`;
+  h+=liftOffCard(dISO,editable,w,dow);
+  return h;
+}
+function markowUpperCard(w,dow,dISO,editable){
+  const ph=mkUpPhase(dow,w); if(!ph)return "";
+  const items=mkUpItems(dow,w);
+  const mm=Z.mkMode&&Z.mkMode[dISO+"u"];
+  const full=mm?mm==="full":!Z.mkMedDefault;
+  let h=`<div class="card spine"><h3>Markow ${dow===2?"Shoulders":"Spine &amp; Ribcage"} — ${ph.name} <span class="tiertag T3">T3</span></h3>
+    <div class="meta">After the ${dow===2?"bench work":"BJJ"} · Wk ${w+1} · <span class="why">${ph.src}, compressed to the block's 12 weeks on the hip plan's phase boundaries (1–2 / 3–8 / 9–12).</span></div>
+    <div class="seg" style="margin-bottom:8px">
+      <button class="${full?"on":""}" onclick="setMkMode('${dISO}u','full')">Full</button>
+      <button class="${!full?"on":""}" onclick="setMkMode('${dISO}u','med')">Short on time</button></div>`;
+  if(!full){
+    const mv=V[ph.medKey];
+    h+=`<div class="banner teal"><b>Minimum effective dose.</b> ${ph.med}<br><span class="mini">This counts.</span></div>
+    <div class="vlink"><span>${mv[0]}</span><a href="${mv[1]}" target="_blank">Play ▸</a></div>`;
+  } else {
+    items.forEach(it=>{
+      const isV=it.startsWith("v:"),k=it.slice(2);
+      if(isV){const v=V[k];
+        h+=`<div class="vlink"><span>${v[0]}</span><a href="${v[1]}" target="_blank">Play ▸</a></div>`;
+        if(ph.sub&&ph.sub[k])h+=`<div class="mini why" style="color:var(--t2);margin:-2px 0 6px 0">⚠ ${ph.sub[k]}</div>`;
+        h+=vRate(k);
+      } else {const t=MKUP_TXT[k]||[k,""];
+        h+=`<div class="row"><div class="nm"${k==="jeff"?' style="color:var(--dim)"':''}>${t[0]}<div class="sup why">${t[1]}</div></div></div>`;}
+    });
+  }
+  h+=`<div class="mini why" style="margin-top:6px">Reinstated v11.32 on your instruction; dropped 2026-07-28 as redundant with GMB. GMB's ${dow===2?"Shoulders":"Rotation & Sidebending"} class is tissue prep for the lift; this is the end-range, loaded dose. ${dow===2?"The rear-delt fly is logged as rear delt in the Volume tab from week 3.":""}</div>
+  ${editable?ckHTML(dISO,"mkup"):""}</div>`;
+  return h;
+}
+function groinCard(w,dow,dISO,editable){
+  if(dow!==5)return "";
+  const k=groinKey(w),v=V[k];
+  const mm=Z.mkMode&&Z.mkMode[dISO+"g"];
+  const full=mm?mm==="full":!Z.mkMedDefault;
+  return `<div class="card spine"><h3>Adductors — Markow Groin <span class="tiertag T3">T3</span></h3>
+    <div class="meta">After the Markow hip session. <span class="why">Added v11.32 outside the authored Beginner Hip plan, on your instruction. One owned class per Saturday, rotating over four weeks; the Copenhagen ladder in Thu/Fri core is the strength side.</span></div>
+    <div class="seg" style="margin-bottom:8px">
+      <button class="${full?"on":""}" onclick="setMkMode('${dISO}g','full')">Full</button>
+      <button class="${!full?"on":""}" onclick="setMkMode('${dISO}g','med')">Short on time</button></div>
+    ${full?`<div class="vlink"><span>${v[0]}</span><a href="${v[1]}" target="_blank">Play ▸</a></div><div class="mini why" style="margin:-2px 0 6px 0">${GROIN_CUE[k]}</div>${vRate(k)}`
+          :`<div class="banner teal"><b>Minimum effective dose.</b> ${GROIN_MED}</div>`}
+    ${editable?ckHTML(dISO,"groin"):""}</div>`;
+}
+/* Anchors and the mobility tail. `part` selects: "anchor" (kick / BJJ) or "tail" (LT, KOTG, Baar). */
+function skillCard(w,dow,dISO,editable,part){
+  let h="";
+  if(part!=="tail"){
+    if(dow===4){
+      h+=`<div class="card spine t1"><h3>Kickboxing + Pre-Kick Drills <span class="tiertag T1">T1</span></h3>
+      <div class="meta">6:30 AM private + Muay Thai. Drills before class:</div>
+      ${FRIKICK(w).map(t=>`<div class="row"><div class="nm">${t}</div></div>`).join("")}
+      ${editable?ckHTML(dISO,"kick"):""}</div>`;}
+    if(dow===6){
+      h+=`<div class="card spine t1"><h3>BJJ Private — 11 AM <span class="tiertag T1">T1</span></h3><div class="meta">Anchor. Gap-fill lift beforehand.</div>${editable?ckHTML(dISO,"bjj"):""}</div>`;}
+  }
+  if(part!=="anchor"){
+    if(dow===5){const v=V[LT_SAT[w]];
+      h+=`<div class="card spine t2"><h3>Luke Thomas Kick-Flex <span class="tiertag T2">T2</span></h3>
+      <div class="meta">Saturday rotation, week ${w+1} · plus sparring/MMA if scheduled</div>
+      <div class="vlink"><span>${v[0]}</span><a href="${v[1]}" target="_blank">Play ▸</a></div>
+      ${editable?ckHTML(dISO,"lt"):""}</div>`;}
+    const kk={0:"mon",2:"wed",4:"fri",5:"sat",6:"sun"}[dow];
+    if(kk){const K=KOTG[kk];
+      h+=`<div class="card spine ${K.tier==="T2"?"t2":""}"><h3>${kk==="sun"?"KOTG — Primary Session":"KOTG"} <span class="tiertag ${K.tier}">${K.tier}</span></h3>
+      <div class="row"><div class="nm">${K.t}</div></div>${kk==="wed"?`<div class="mini why">Nordic curl added v11.32 on your instruction — never in an earlier version. Low volume is enough (1×10/wk matched 4×40 for fascicle length in the evidence report). Counted as 2 hamstring sets when this card is ticked.</div>`:""}${editable?ckHTML(dISO,"kotg"):""}</div>`;}
+    if(dow===2||dow===4){
+      h+=`<div class="card spine"><h3>Baar Wrist/Elbow (optional) <span class="tiertag T3">T3</span></h3>
+      <div class="row"><div class="nm">${BAAR.t}</div></div><div class="mini why">${BAAR.note}</div>${editable?ckHTML(dISO,"baar"):""}</div>`;}
+  }
   return h;
 }
 function plyoCard(w,dow,dISO,editable){
@@ -3350,8 +3649,8 @@ function plyoCard(w,dow,dISO,editable){
   const seqNote=isSprint?"Do these first, then Z2 — sprint work on fresh legs, not after aerobic work.":"Run these BEFORE the heavy lower work — priming, not a second workout.";
   const body=B.t.replace(/\n/g,"<br>");
   return `<div class="card spine"><h3>${title} · ${B.ph} <span class="tiertag T3">T3</span></h3>
-  <div class="meta">${seqNote} ${blocked?"⛔ Skipped today — readiness/down-week gate.":(optional?"Optional at readiness 3 — quality reps only, cut volume.":"Unlocked (readiness ≥4). Full intent, full rest.")}</div>
-  ${blocked?"":`<div class="row"><div class="nm">${body}</div></div><div class="mini" style="margin-top:4px">Cue: ${B.cue}</div>${editable?ckHTML(dISO,"plyo"):""}`}</div>`;
+  <div class="meta"><span class="why">${seqNote} </span>${blocked?"⛔ Skipped today — readiness/down-week gate.":(optional?"Optional at readiness 3 — quality reps only, cut volume.":"Unlocked (readiness ≥4). Full intent, full rest.")}</div>
+  ${blocked?"":`<div class="row"><div class="nm">${body}</div></div><div class="mini why" style="margin-top:4px">Cue: ${B.cue}</div>${editable?ckHTML(dISO,"plyo"):""}`}</div>`;
 }
 /* v11.1: FTP estimation removed. Peloton and the Power Zone pack do it better and
    Robert already trusts that number. This stub keeps the ride cards rendering. */
@@ -3361,7 +3660,7 @@ function condCard(w,dow,dISO,editable){
   const r=readiness(dISO);
   /* Tue + Sat — locked Zone 2 base */
   if(k==="tue"||k==="sat"){const C=COND[k];
-    return `<div class="card spine t2" style="border-left-color:var(--z2)"><h3>Zone 2 — PZ Endurance 90 min <span class="chip teal">Cond · base</span></h3><div class="meta">${C.d}</div>${editable?ckHTML(dISO,"cond_"+k):""}</div>`;}
+    return `<div class="card spine t2" style="border-left-color:var(--z2)"><h3>Zone 2 — PZ Endurance 90 min <span class="chip teal">Cond · base</span></h3><div class="meta why">${C.d}</div>${editable?ckHTML(dISO,"cond_"+k):""}</div>`;}
   /* Wednesday — optional legs-fresh hard ride; generates FTP data without touching the Z2 base */
   if(isDown()||(r!==null&&r<4))
     return `<div class="card spine"><h3>Optional Ride <span class="tiertag T3">T3</span></h3><div class="meta">⛔ Skip today (readiness &lt;4 or down-week). This is a bonus FTP-data ride, not part of the base — the Z2 anchors carry it. Protect Thursday's trap bar.</div></div>`;
@@ -3376,18 +3675,18 @@ function condCard(w,dow,dISO,editable){
   else if(sel==="bulgarian"||sel==="inertia"){const a=ALT[sel];
     detail=`<div class="row" style="margin-top:8px"><div class="nm">${a.name} <span class="mini">(${a.kind})</span></div></div>${a.body.map(x=>`<div class="mini" style="opacity:.85">${x}</div>`).join("")}<div class="mini" style="margin-top:4px;opacity:.7">${a.note} Fills the 1–5 min FTP bucket.</div>`;}
   return `<div class="card spine t2" style="border-left-color:var(--z2)"><h3>Optional Ride — legs-fresh upper day <span class="chip teal">Cond</span></h3>
-  <div class="meta">Optional + readiness-gated. Legs stay fresh (Tue was easy); keep it controlled so Thursday's trap bar isn't compromised. Doesn't touch your Z2 base.</div>
-  <div class="mini" style="margin-top:6px">Pick the class off the Power Zone pack. If this ride is going to be your hard aerobic exposure, take a <b>PZ Max</b> and log the minutes above ${hrThreshold().t4} bpm on Today.</div>
+  <div class="meta">Optional + readiness-gated. <span class="why">Legs stay fresh (Tue was easy); keep it controlled so Thursday's trap bar isn't compromised. Doesn't touch your Z2 base.</span></div>
+  <div class="mini why" style="margin-top:6px">Pick the class off the Power Zone pack. If this ride is going to be your hard aerobic exposure, take a <b>PZ Max</b> and log the minutes above ${hrThreshold().t4} bpm on Today.</div>
   ${picker}${detail}${editable?ckHTML(dISO,"cond_wed"):""}</div>`;
 }
 function sunLiftCard(w,dISO,editable){
   return `<div class="card spine t2"><h3>Sunday Gap-Fill Lift <span class="tiertag T2">T2</span></h3>
-  <div class="meta">Commercial gym, circuit-style between your partner's sets. Minimal + surgical — rear delt is the point. Do NOT add arms/side-delt (already high).</div>
+  <div class="meta">MMA gym, circuit-style between your partner's sets. Minimal + surgical — rear delt is the point. <span class="why">Do NOT add arms/side-delt (already high). No abduction machine or GHD here, so the Contreras lateral work and the Nordics live at home.</span></div>
   ${SUNBLOCK(w).map((x,i)=>{
     const on=editable&&((Z.sunDone||{})[dISO]||{})[i];
     return `<div class="row"><div class="nm">${x.n}<div class="sup">${x.why}</div></div><div class="rx">${x.rx}</div>${
       editable?`<div class="ck ${on?"on":""}" onclick="sunToggle('${dISO}',${i})">✓</div>`:""}</div>`;}).join("")}
-  <div class="mini" style="margin-top:6px">Tick what you actually got to. <b>Only ticked rows count toward the Volume tab</b> — rear delt is the hole this block exists to fill, so it is not credited by default. The rest of the session, whatever your partner is running, is not tracked.</div>
+  <div class="mini why" style="margin-top:6px">Tick what you actually got to. <b>Only ticked rows count toward the Volume tab</b> — rear delt is the hole this block exists to fill, so it is not credited by default. The rest of the session, whatever your partner is running, is not tracked.</div>
   ${editable?ckHTML(dISO,"sunlift"):""}</div>`;
 }
 function heavyBagCard(dow,dISO,editable){
@@ -3400,19 +3699,56 @@ function heavyBagCard(dow,dISO,editable){
   ${editable?`<div style="margin-top:6px">${ckHTML(dISO,"heavybag")}<span class="mini" style="margin-left:8px">Done</span></div>`:""}</details></div>`;
 }
 function dayStack(w,dow,dISO,editable){
+  /* v11.32 — Robert's order: 1 tissue prep · 2 warm-up · 3 high-intensity first (plyos,
+     sprint drills; Friday's kick class is the anchor and goes here) · 4 strength / cardio with
+     core circuited in · 5 end-of-workout mobility (Markow lower / upper, groin, Luke Thomas,
+     KOTG, Baar, bag) · 6 tonight's yin. Done cards collapse to a line (decorateCards). */
   let h="";
-  h+=gmbCard(dow,dISO,editable);
+  h+=gmbCard(dow,dISO,editable);                                   /* 1 */
+  h+=warmupCard(w,dow,dISO,editable);                              /* 2 */
+  h+=plyoCard(w,dow,dISO,editable);                                /* 3 */
+  h+=skillCard(w,dow,dISO,editable,"anchor");                      /* 3 — kick (Fri) / BJJ (Sun) */
   const strD={0:"d1",2:"d2",3:"d3",4:"d4"}[dow];
-  if(dow===4)h+=skillCard(w,dow,dISO,editable); /* kicks first on Friday */
+  if(dow===6)h+=sunLiftCard(w,dISO,editable);                      /* 4 */
   if(strD)h+=strengthCard(w,strD,dISO,editable);
-  if(dow===6)h+=sunLiftCard(w,dISO,editable);
   h+=coreCard(w,dow,dISO,editable);
-  h+=plyoCard(w,dow,dISO,editable);
   h+=condCard(w,dow,dISO,editable);
-  if(dow!==4)h+=skillCard(w,dow,dISO,editable);
+  h+=markowLowerCard(w,dow,dISO,editable);                         /* 5 */
+  h+=markowUpperCard(w,dow,dISO,editable);
+  h+=groinCard(w,dow,dISO,editable);
+  h+=skillCard(w,dow,dISO,editable,"tail");
   h+=heavyBagCard(dow,dISO,editable);
-  h+=tonightCard(w,dow,dISO); /* v11.24 — yin primary + kin complement */
-  return h;
+  h+=tonightCard(w,dow,dISO);                                      /* 6 */
+  return editable?decorateCards(h,dISO):h;
+}
+/* v11.32 — card chrome, applied once to the whole stack rather than inside every template:
+   a card whose done-tick is on collapses to its header (tap to reopen, in-memory only); a
+   card carrying `.why` prose gets a "why" button that reveals it in compact mode. String-level
+   on purpose: the cards are template strings and this is the one place that knows the shape
+   `<div class="card…">…<h3>…</h3>…`. Nothing inside dayStack nests a card. */
+const UI={open:{},why:{}};
+function toggleCard(dISO,id){const k=dISO+":"+id;UI.open[k]=!UI.open[k];render();}
+function toggleWhy(dISO,n){const k=dISO+":"+n;UI.why[k]=!UI.why[k];render();}
+function decorateCards(h,dISO){
+  const parts=h.split('<div class="card');
+  return parts.map((seg,i)=>{
+    if(i===0)return seg;
+    const doneM=seg.match(/class="ck on" data-ck="([^"]+)"/);
+    const id=doneM?doneM[1]:null;
+    const hasWhy=/class="[^"]*\bwhy\b/.test(seg);
+    const open=id&&UI.open[dISO+":"+id];
+    const why=UI.why[dISO+":"+i];
+    let cls="";
+    if(id&&!open)cls+=" collapsed";
+    if(why)cls+=" showwhy";
+    const hi=seg.indexOf("</h3>");
+    if(hi>=0){
+      const btns=(hasWhy?`<button class="cardbtn whybtn" onclick="event.stopPropagation();toggleWhy('${dISO}',${i})">${why?"hide why":"why"}</button>`:"")
+                +(id?`<button class="cardbtn" onclick="event.stopPropagation();toggleCard('${dISO}','${id}')">${open?"collapse":"✓ done · open"}</button>`:"");
+      seg=seg.slice(0,hi)+btns+seg.slice(hi);
+    }
+    return '<div class="card'+cls+seg;
+  }).join("");
 }
 
 /* ================= VIEWS ================= */
@@ -3508,7 +3844,7 @@ function rToday(){
   <div class="seg">${[1,2,3,4,5].map(v=>`<button class="${r===v?"on":""}" onclick="setReady(${v})">${v}</button>`).join("")}</div></div>`;
   h+=regBanner(dISO);
   h+=chaosCard(dISO);
-  h+=`<div class="card" style="padding:10px 14px"><b>${DAYS[dow]}</b> · <span class="mini">${dISO} · Week ${w+1}${isDeloadWeek(w)?" · Deload as written":""}</span></div>`;
+  h+=`<div class="card" style="padding:10px 14px"><b>${DAYS[dow]}</b> · <span class="mini">${dISO} · Week ${w+1}${isDeloadWeek(w)?" · Biolayne's written week-6 deload (the app adds no others)":""}</span></div>`;
   h+=proteinLine();
   h+=whoopCard(dISO);
   h+=plannerCard(w,dow,dISO);
@@ -3580,7 +3916,7 @@ function rWeek(){
   <div class="wksel"><button class="${w===-1?"on":""}" onclick="wkView=-1;render()">On-ramp</button>${Array.from({length:12},(_,i)=>`<button class="${i===w?"on":""}" onclick="wkView=${i};render()">${i+1}</button>`).join("")}</div>
   <div class="daysel">${DAYS.map((d,i)=>`<button class="${i===dow?"on":""}" onclick="wkDay=${i};render()">${d}</button>`).join("")}</div>
   <div class="mini">Preview only — logging happens on Today.</div></div>`;
-  h+=`<div class="card"><h3>Week map</h3><div class="mini" style="margin-bottom:6px">Mon D1 Lower + vert/lateral plyos · Tue Z2 90 (base) · Wed D2 Upper + optional FTP-data ride · Thu D3 Lower + horizontal/rot plyos · Fri kicks → D4 · Sat Z2 90 (base) + sprint drills (wk1–4) → sprints (wk5+) + Luke Thomas · Sun gap-fill + BJJ + primary KOTG. Z2 base locked on Tue + Sat; hard rides only on the fresh-legged upper day; sprints before BJJ not before kicks; lower days never back-to-back.</div></div>`;
+  h+=`<div class="card"><h3>Week map</h3><div class="mini" style="margin-bottom:6px">Mon D1 Lower + vert/lateral plyos + Markow hip D4 · Tue Z2 90 (base) + Markow hip D2 · Wed D2 Upper + optional FTP-data ride + Nordics + Markow shoulders · Thu D3 Lower + horizontal/rot plyos + Markow hip D1 · Fri kicks → D4 · Sat Z2 90 (base) + sprint drills (wk1–4) → sprints (wk5+) + Luke Thomas + Markow hip D3 + groin · Sun gap-fill + BJJ + Markow spine/ribcage + primary KOTG. Z2 base locked on Tue + Sat; hard rides only on the fresh-legged upper day; sprints before BJJ not before kicks; lower days never back-to-back; hip mobility on the days the hips are already loaded (v11.32).</div></div>`;
   if(w===-1){
     h=`<div class="card"><div class="klabel">Look ahead — the on-ramp, or any week of the block</div>
     <div class="wksel"><button class="on" onclick="wkView=-1;render()">On-ramp</button>${Array.from({length:12},(_,i)=>`<button onclick="wkView=${i};render()">${i+1}</button>`).join("")}</div>
@@ -3668,38 +4004,41 @@ let AC=null;
 /* Pitch is a parameter. Start-of-round and end-of-round have to be
    distinguishable without looking at the phone — that is the entire point of an audible
    cue. One high note means GO, two low notes mean STOP AND SWITCH. */
-/* ===== v11.18: beating the iOS ringer switch =====
-   Confirmed against WebKit bug 237322 and Apple's own guidance: on iOS the Web Audio API is
-   assigned the AMBIENT audio session category, which the hardware ringer/mute switch silences
-   — with no error, no event, and no way to detect it. HTML5 <audio> elements are NOT silenced,
-   because they land on the PLAYBACK category. That asymmetry is the whole exploit.
+/* ===== v11.18 → v11.32: the ringer switch versus the music =====
+   v11.18 beat the iOS ringer switch by forcing the page onto the PLAYBACK audio category —
+   `navigator.audioSession.type="playback"` plus a looping near-silent <audio> element. It
+   worked, and it had a cost that only showed up once music was involved (2026-09-14, first
+   session of the block): PLAYBACK is a NON-MIXABLE category. Claiming it pauses whatever
+   else is playing on the phone, and because a home-screen web app never fully unloads, iOS
+   re-asserted the claim every time the app came back to the foreground — which is why
+   OPENING the app killed the music, not only starting a timer.
 
-   Two fixes, applied in order of preference:
-   1. navigator.audioSession.type = "playback". This is the W3C AudioSession spec, and Safari
-      is the only engine that has shipped it — which is exactly the engine he is on. Clean,
-      no hack, no wasted audio channel.
-   2. Fall back to looping a near-silent HTML5 <audio> element for the duration of the timer.
-      Holding a media element in play forces the whole session onto the PLAYBACK category, and
-      Web Audio rides along with it. The track is deliberately NOT pure digital silence —
-      alternating 128/129 samples — because some pipelines optimise a genuinely silent buffer
-      away and the trick then does nothing.
-
-   Both are started from a user gesture and torn down when the timer stops, so nothing holds
-   the audio session open in the background. */
-const SILENT_WAV="data:audio/wav;base64,UklGRvQHAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YdAHAACBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgIGAgYCBgA==";
-let silentEl=null;
+   v11.32: the default is AMBIENT — mixes with other audio, never interrupts it, and is set
+   on load and again on every pageshow/visibilitychange so a stale claim cannot survive a
+   backgrounding. The silent-loop element is DELETED, not disabled: it was the mechanism
+   that forced PLAYBACK, and a paused media element still counts toward the category.
+   The trade is the one v11.18 was built to avoid — ambient obeys the ringer switch — so a
+   per-session toggle keeps the old behaviour available:
+     Z.sndMode = "mix"      (default) mixes with music; silent if the ringer switch is on silent.
+     Z.sndMode = "override" claims PLAYBACK for the duration of the timer only, then releases
+                            it. Beeps through the mute switch; pauses the music.
+   Either way the card flash fires. Robert's ringer is usually on silent (2026-09-15), so the
+   card says which mode is active before Start rather than letting him find out mid-class. */
+function sndMode(){return (Z&&Z.sndMode==="override")?"override":"mix";}
+function setSndMode(m){Z.sndMode=(m==="override")?"override":"mix";save();render();}
+/* The only writer of navigator.audioSession.type. `on` is true while a timer runs. */
 function holdAudioSession(on){
   try{
-    if(navigator.audioSession){navigator.audioSession.type=on?"playback":"auto";}
-  }catch(e){}
-  try{
-    if(on){
-      if(!silentEl){silentEl=new Audio(SILENT_WAV);silentEl.loop=true;silentEl.volume=0.02;
-        silentEl.setAttribute("playsinline","");}
-      const pr=silentEl.play(); if(pr&&pr.catch)pr.catch(()=>{});
-    } else if(silentEl){silentEl.pause();}
+    if(navigator.audioSession){navigator.audioSession.type=(on&&sndMode()==="override")?"playback":"ambient";}
   }catch(e){}
 }
+/* Set ambient at load and whenever the page comes back, before any tap. A page that has never
+   claimed playback cannot interrupt anything. */
+holdAudioSession(false);
+try{
+  window.addEventListener("pageshow",()=>{if(!T.run)holdAudioSession(false);});
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&!T.run)holdAudioSession(false);});
+}catch(e){}
 function audioUnlock(){
   try{
     AC=AC||new (window.AudioContext||window.webkitAudioContext)();
@@ -3748,10 +4087,13 @@ const BEEP={go:[1,1175], stop:[2,660], section:[3,880], done:[4,880], skip:[1,88
 function cue(k){const b=BEEP[k]||BEEP.skip;beep(b[0],b[1]);}
 function testSound(){
   const st=audioUnlock();cue('go');setTimeout(()=>cue('stop'),700);
-  const sess=navigator.audioSession?("audioSession \u2192 "+navigator.audioSession.type):"audioSession not supported, using the silent-track fallback";
+  const sess=navigator.audioSession?("audioSession \u2192 "+navigator.audioSession.type):"audioSession not supported on this browser";
   const el=document.getElementById("sndMsg");
+  const modeTxt=sndMode()==="override"
+    ? "<b>Override mute</b> is on: the timer claims the media channel while it runs, so the beeps play through the mute switch <b>and your music pauses</b> until you stop the timer."
+    : "<b>Mix with music</b> is on: the beeps mix over whatever is playing and never pause it. If your ringer switch is on silent you will hear nothing \u2014 flip it, or switch to Override.";
   if(el)el.innerHTML=st==="running"
-    ? `Audio context <b>running</b> \u00b7 ${sess}. You should have heard <b>one high note, then two low ones</b>. If you did, the mute switch no longer matters \u2014 leave it however you like.<br>If you heard nothing: turn the volume up with the physical buttons while this page is open, then tap again.`
+    ? `Audio context <b>running</b> \u00b7 ${sess}. You should have heard <b>one high note, then two low ones</b>. ${modeTxt}`
     : `Audio context reports <b>${st}</b> \u00b7 ${sess}. Tap once more \u2014 iOS only unlocks audio from a direct tap.`;
 }
 let wl=null;
@@ -3780,7 +4122,10 @@ function tick(){
   }
   if(cur==="gmb")updTimer();
 }
-function gmbStop(){T.run=false;clearInterval(T.int);T.int=null;wake(false);holdAudioSession(false);}
+function gmbStop(){T.run=false;clearInterval(T.int);T.int=null;wake(false);holdAudioSession(false);
+  /* v11.32 — release the context too. A live AudioContext is not what pauses music (ambient
+     mixes), but a closed one cannot be mistaken for an active session by iOS on resume. */
+  try{if(AC&&AC.state!=="closed"){AC.close();}}catch(e){} AC=null;}
 function gmbPause(){T.run=!T.run;render();}
 /* Skip moves a whole ROUND, not a step. Stepping into a 5-second transition when he
    deliberately pressed Skip would be an odd place to land. */
@@ -3819,9 +4164,16 @@ function rGMB(){
   }
   h+=`<div class="card"><h3>Tissue prep — timed sequence</h3>
   <div class="meta">Runs the class as Prepare → Practice → Play with audible alarms, a visual flash and auto-advance. Replaces the follow-along app.</div>
+  <label class="f">Alarm channel</label>
+  <div class="seg" style="margin-bottom:6px">
+    <button class="${sndMode()==="mix"?"on":""}" onclick="setSndMode('mix')">Mix with music</button>
+    <button class="${sndMode()==="override"?"on":""}" onclick="setSndMode('override')">Override mute</button></div>
+  <div class="mini why" style="margin-bottom:6px">${sndMode()==="mix"
+    ?"Beeps mix over your music and never pause it. They obey the ringer / mute switch \u2014 <b>ringer must be ON</b> to hear them; with no error and no indication if it is not. The card flash fires regardless."
+    :"Beeps play through the mute switch but <b>pause your music</b> for as long as the timer runs. Released when you stop."}</div>
   <div class="banner" style="margin-bottom:6px"><b>Check the sound before you start.</b>
   <button class="btn sm sec" style="margin-left:8px" onclick="testSound()">Test sound</button>
-  <div class="mini" id="sndMsg" style="margin-top:6px">iOS puts web audio on the channel the <b>mute switch silences</b> — with no error and no indication — and <b>iPads have no vibration at all</b>, so a silent timer looks identical to a working one. This build forces the audio onto the media channel so mute should no longer matter. Tap to confirm, and turn the volume up with the physical buttons while this page is open.</div></div>
+  <div class="mini" id="sndMsg" style="margin-top:6px">Tap to confirm you can hear the cues on this channel, and turn the volume up with the physical buttons while this page is open.</div></div>
   <div class="mini" style="margin-bottom:6px"><b>${GMB_GAP} seconds between rounds</b> to switch sides or reposition. <b>One high note</b> means the gap is over and the round starts; <b>two low notes</b> mean the round is over and it is time to change. The authored hold times are untouched, so the class runs a little past its nominal ${Z.gmb.dur} minutes — the real total is shown once it is running.</div>
   <label class="f">Duration</label><div class="seg">${[15,30,45].map(d=>`<button class="${Z.gmb.dur===d?"on":""}" onclick="Z.gmb.dur=${d};save();render()">${d} min</button>`).join("")}</div>
   <label class="f">Class · auto-pick today: <b>${auto}</b></label>
@@ -3862,6 +4214,15 @@ function weeklyVolume(w){
     const sets=Number(String(ex.rx).match(/^(\d+)\s*×/)?.[1]||0);
     Object.keys(ex.mus||{}).forEach(m=>{if(tot[m]!=null)tot[m]+=sets*ex.mus[m];});
   });
+  /* v11.32 — additions outside Biolayne, counted ONLY when ticked on the day, same rule as the
+     Sunday block: a number built to reveal a gap must not fill it in by default. */
+  const wkDays=[];{const s=new Date(progStart()+"T00:00:00");s.setDate(s.getDate()+w*7);for(let i=0;i<7;i++){const d=new Date(s);d.setDate(s.getDate()+i);wkDays.push(iso(d));}}
+  wkDays.forEach((k,dow)=>{const dn=Z.done[k]||{};
+    if(dn.gact&&GLUTE_ACT[dow])tot.gmed+=2;                                    /* activators, Mon + Thu */
+    if(dn.gpump&&GLUTE_PUMP[dow]&&GLUTE_PUMP[dow].vec==="L")tot.gmed+=2;      /* lateral pumper, Thu */
+    if(dn.kotg&&dow===2)tot.ham+=2;                                           /* Nordic curl, Wed KOTG */
+    if(dn.mkup&&dow===2&&w>=2)tot.rdelt+=3;                                   /* Markow rear-delt fly, wk3+ */
+  });
   /* Core, split by wall (evidence report). Anterior = dedicated RA/oblique work, phase-progressed.
      Posterior = light dedicated lateral/extension + fractional credit from box squat + trap bar. */
   tot.abs_ant+={0:12,1:14,2:15}[p];
@@ -3871,6 +4232,22 @@ function weeklyVolume(w){
   return tot;
 }
 
+/* v11.32 — Contreras vector tally. Vertical = glute credit from squat/hinge slots as Biolayne
+   wrote them; Horizontal = the Booty Sprout slot + the Monday frog pump when ticked; Lateral =
+   the gmed bucket. Sets, fractional where the exercise is fractional. */
+function gluteVectors(w){
+  const v={V:0,H:0,L:0};
+  ["d1","d3"].forEach(dk=>EX[dk].forEach((e,i)=>{if(e.sup||!e.mus.glute)return;
+    let sets=RX[w][dk][i][0];
+    if(i===1&&HEAVY_BO_DAYS.includes(dk))sets=Math.max(1,sets-hboTrade(w));
+    if(i===0&&HEAVY_BO_DAYS.includes(dk))sets+=heavyBO(w,dk).sets;
+    if(e.k==="bht")v.H+=sets;else v.V+=sets*e.mus.glute;}));
+  const s=new Date(progStart()+"T00:00:00");s.setDate(s.getDate()+w*7);
+  for(let i=0;i<7;i++){const d=new Date(s);d.setDate(s.getDate()+i);const dn=Z.done[iso(d)]||{};
+    if(dn.gpump&&GLUTE_PUMP[i]){if(GLUTE_PUMP[i].vec==="H")v.H+=2;else v.L+=2;}
+    if(dn.gact&&GLUTE_ACT[i])v.L+=2;}
+  return v;
+}
 let volWk=null;   /* v11.1: restored — this was declared inside the removed Fuel block */
 /* v11.1: Fuel tab removed — Robert does not log food, so a tab that asks him to is
    dead weight. The protein target is NOT dropped: it is the one nutrition variable
@@ -3902,7 +4279,12 @@ function rVol(){
   <div class="meta">Mains + accessories + Sunday block + core, fractional counting. Ticks = MEV / MAV / MRV (masters-adjusted — practical MRV runs lower with kicks, BJJ, and plyos on top). Kicks/BJJ/KOTG are background load not counted here: read quads/glutes conservatively.</div>
   <div class="wksel" style="margin-bottom:12px">${Array.from({length:12},(_,i)=>`<button class="${i===w?"on":""}" onclick="volWk=${i};render()">${i+1}</button>`).join("")}</div>
   ${rows}
-  <div class="mini">Overshoot watch: quads / glutes / arms. Undershoot flag: rear delt — owned by the Sunday block. Core is split by wall: anterior (RA/obliques) is trained directly for aesthetics; posterior (ES/MF/QL) is largely paid by box squat + trap bar, so dedicated low-back work stays minimal.</div></div>`;
+  <div class="mini why">Overshoot watch: quads / glutes / arms. Undershoot flag: rear delt — owned by the Sunday block and, from week 3, the Wednesday Markow rear-delt fly. Core is split by wall: anterior (RA/obliques) is trained directly for aesthetics; posterior (ES/MF/QL) is largely paid by box squat + trap bar, so dedicated low-back work stays minimal.</div></div>`+
+  (()=>{const gv=gluteVectors(w);const tot3=gv.V+gv.H+gv.L||1;
+   return `<div class="card"><h3>Glute vectors — Week ${w+1} <span class="chip ghost">Contreras</span></h3>
+   <div class="meta">Vertical/hinge is Biolayne's. Horizontal and lateral are the Booty Sprout plus ticked activators and pumpers. Contreras' 12/12/12 split is a specialisation template, not the target here; the point of this panel is that lateral was zero before v11.32.</div>
+   ${[["Vertical / hinge",gv.V],["Horizontal / thrust",gv.H],["Lateral / rotary",gv.L]].map(([n,x])=>`<div class="volrow"><div class="t"><span class="n">${n}</span><span class="s">${x.toFixed(1)} sets</span></div><div class="bar"><div class="fill" style="width:${Math.min(100,100*x/tot3)}%;background:var(--z2)"></div></div></div>`).join("")}
+   <div class="mini why">Activators (Mon/Thu warm-up) and pumpers (Mon frog pump, Thu banded abduction) count 2 sets each when ticked. Pumpers are well short of failure by definition and are kept out of the glute-max bucket above.</div></div>`;})();
 }
 
 /* ---- Night tab: v11.24 — yin primary, kinstretch complement ---- */
@@ -3931,7 +4313,7 @@ function rNight(){
     ${lp.map((k,i)=>row(k,i===0)).join("")}</div>`;
   }
   const cat=kinComplement(dow,w,r);
-  const usedThisWeek=new Set(mkWeekKeys(w));
+  const usedThisWeek=new Set([...mkWeekKeys(w),...mkUpWeekKeys(w)]);   /* v11.32: upper keys too */
   const poolK=TP[cat].vids.filter(k=>!usedThisWeek.has(k));
   const all=TP[cat].vids;
   const seed=parseInt(dISO.replace(/-/g,""))%(poolK.length||1);
@@ -4136,7 +4518,7 @@ function rLog(){
     if([0,2,3,4].includes(i)){t1max++;if(dn.str)t1++;}
     if(i===4){t1max++;if(dn.kick)t1++;}
     if(i===6){t1max++;if(dn.bjj)t1++;}
-    if([0,1,2,3].includes(i)){t2max++;if(dn.markow)t2++;}
+    if([0,1,3,5].includes(i)){t2max++;if(dn.markow)t2++;}   /* v11.32: Mon/Tue/Thu/Sat */
     if(i===1||i===5){t2max++;if(dn.cond_tue||dn.cond_sat)t2++;}
     if([0,2,3,4].includes(i)){t2max++;if(dn.core)t2++;}
     if(i===6){t2max++;if(dn.kotg)t2++;}
@@ -4151,7 +4533,12 @@ function rLog(){
       : `Currently <b>Week ${curWeek()+1} of 12</b>.`
   } This date drives the whole app: the Today card, the week grid, the exposure ledger, the benchmark-ride weeks and the week-4/8/12 screens. Nothing else holds a start date.</div>
   <div class="mini" style="margin-top:6px">Moving it <b>preserves everything you have logged</b> — readiness, lifts, HR, benchmarks are all keyed by calendar date. What resets is the periodization: which week the wave thinks you are in. Sessions logged before the new start date fall outside the block and stop counting toward the ledger, which is what you want after a layoff.</div>
-  <div class="mini" style="margin-top:6px;opacity:.7">Set to a <b>Monday</b>. Any other weekday shifts the whole D1–D4 pattern off the week and the day-of-week prescriptions will not line up.</div></div>
+  <div class="mini" style="margin-top:6px;opacity:.7">Set to a <b>Monday</b>. Any other weekday shifts the whole D1–D4 pattern off the week and the day-of-week prescriptions will not line up.</div>
+  <label class="f">Decay anchor</label>
+  <div class="mini">${decayAnchor()?`The e1RM layoff-decay clock for all three lifts cannot start before <b>${decayAnchor()}</b> (your instruction, 2026-09-14: reset all decay for the block). Banked test dates are unchanged. <button class="btn sm sec" style="margin-left:6px" onclick="Z.decayAnchor=null;save();render()">Clear anchor</button>`
+    :`No anchor — the decay clock reads the last tested or logged date. <button class="btn sm sec" style="margin-left:6px" onclick="Z.decayAnchor=progStart();save();render()">Anchor at block start</button>`}</div>
+  <label class="f">Today tab</label>
+  <div class="mini">${isCompact()?"<b>Compact</b> — rationale prose hidden; each card has a <i>why</i> button.":"<b>Full text</b> — every card shows its rationale."} <button class="btn sm sec" style="margin-left:6px" onclick="toggleCompact()">Switch</button></div></div>
   <div class="card"><h3>Readiness — last 14 logged days</h3>${spark||'<div class="mini">Log readiness on the Today tab.</div>'}
   ${ks.slice().reverse().map(k=>`<div class="row"><div class="nm">${k}</div><div class="rx">${Z.readiness[k]} / 5</div></div>`).join("")}</div>
   <div class="card"><h3>This week's compliance</h3>
