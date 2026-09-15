@@ -178,7 +178,7 @@ body.compact .whybtn{display:inline-block}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.32 · 2026-09-15";
+const BUILD="v11.33 · 2026-09-15";
 /* v11.22 — THE START DATE IS NOW STATE, NOT A CONSTANT.
    Sixth start date (Jul 28 · Aug 3 · Aug 10 · Aug 17 · Aug 24), moved for an episodic
    lumbar recurrence. The point of this change is that there must never be a seventh
@@ -2507,15 +2507,27 @@ function setAeroZ5(dISO,v){Z.aeroZ5=Z.aeroZ5||{};
    and offers to reconcile. It does not silently fix it: two places holding one fact is how
    this project has been bitten before, and the honest resolution is to show the drift.
    ================================================================================= */
-function aeroAdd(date,mins,z5,mode){
+/* v11.33 — Zone 2 joins the session form. Until now `mins>0` was required, so the one
+   session type Zone 2 exists to record — a 90-min PZ Endurance ride, zero minutes above the
+   gate — could not be logged here at all. Z2 had exactly one way in: a day-total box on a
+   card you have to scroll to. That is why `Z.z2` was empty for the whole on-ramp while hard
+   minutes were logged every week. The asymmetry was the cause, not forgetfulness.
+
+   A Z2-only session stores mins:0 and does NOT touch Z.aero, so the grid still reads "—" for
+   the gate and `aeroQualify` is untouched. Zone 2 remains logged and ungated. */
+function aeroAdd(date,mins,z5,mode,z2){
   if(!ISO_RE.test(date||""))return false;
-  const m=Number(mins);
-  if(!isFinite(m)||m<=0)return false;
+  const m=(mins===""||mins==null)?0:Number(mins);
+  if(!isFinite(m)||m<0)return false;
   const z=(z5===""||z5==null)?null:Number(z5);
-  Z.aero=Z.aero||{}; Z.aeroZ5=Z.aeroZ5||{}; if(!Array.isArray(Z.aeroLog))Z.aeroLog=[];
-  Z.aero[date]=Number(((Z.aero[date]||0)+m).toFixed(2));
+  const q=(z2===""||z2==null)?null:Number(z2);
+  const hasQ=(q!=null&&isFinite(q)&&q>0);
+  if(m<=0&&!hasQ)return false;
+  Z.aero=Z.aero||{}; Z.aeroZ5=Z.aeroZ5||{}; Z.z2=Z.z2||{}; if(!Array.isArray(Z.aeroLog))Z.aeroLog=[];
+  if(m>0)Z.aero[date]=Number(((Z.aero[date]||0)+m).toFixed(2));
   if(z!=null&&isFinite(z)&&z>0)Z.aeroZ5[date]=Number(((Z.aeroZ5[date]||0)+z).toFixed(2));
-  Z.aeroLog.push({date,mins:m,z5:(z!=null&&isFinite(z)&&z>0)?z:null,mode:mode||null,ts:todayISO()});
+  if(hasQ)Z.z2[date]=Number(((Z.z2[date]||0)+q).toFixed(2));
+  Z.aeroLog.push({date,mins:m,z5:(z!=null&&isFinite(z)&&z>0)?z:null,z2:hasQ?q:null,mode:mode||null,ts:todayISO()});
   /* The DAY tag now only describes a day whose sessions agree. With bag rounds in the morning
      and a lift in the evening, no single tag is true, so the day carries none rather than
      claiming the last one entered — which is what it used to do, and what made the rollup wrong.
@@ -2528,10 +2540,10 @@ function aeroAdd(date,mins,z5,mode){
 function aeroAddFromForm(){
   const g=id=>{const e=document.getElementById(id);return e?e.value:"";};
   const date=g("aeSessDate")||viewISO();
-  if(!aeroAdd(date,g("aeSessMin"),g("aeSessZ5"),g("aeSessMode"))){
-    alert("Enter a date and a positive number of minutes above the threshold.");return;
+  if(!aeroAdd(date,g("aeSessMin"),g("aeSessZ5"),g("aeSessMode"),g("aeSessZ2"))){
+    alert("Enter a date and either minutes above the threshold or minutes in Zone 2.");return;
   }
-  ["aeSessMin","aeSessZ5"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});
+  ["aeSessMin","aeSessZ5","aeSessZ2"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});
 }
 /* Removing a session subtracts what it added, so the day total and the record stay in step.
    Clamped at zero — a hand-edit between the add and the remove could otherwise drive it
@@ -2547,6 +2559,11 @@ function aeroUnlog(i){
     const v=Number((Z.aeroZ5[r.date]-r.z5).toFixed(2));
     if(v>0)Z.aeroZ5[r.date]=v; else delete Z.aeroZ5[r.date];
   }
+  /* v11.33 — same contract as mins and z5: remove subtracts exactly what add contributed. */
+  if(r.z2&&Z.z2&&Z.z2[r.date]!=null){
+    const v=Number((Z.z2[r.date]-r.z2).toFixed(2));
+    if(v>0)Z.z2[r.date]=v; else delete Z.z2[r.date];
+  }
   L.splice(i,1);save();render();
 }
 /* Sum of logged sessions per date. Used ONLY to detect drift against the day total — it is
@@ -2554,9 +2571,25 @@ function aeroUnlog(i){
 /* Every reader goes through this. qa26 §8 seeds Z.aeroLog as a string and as an array of
    malformed records — both of which reached the Cardio tab and threw before this existed.
    A stored value is not a value your code wrote: validate on read. */
-function aeroLogArr(){
+function aeroRecOK(r){
+  if(!r||typeof r!=="object"||!ISO_RE.test(r.date||""))return false;
+  const m=Number(r.mins), q=Number(r.z2);
+  if(!isFinite(m)||m<0)return false;
+  return m>0||(isFinite(q)&&q>0);
+}
+/* v11.33 — every valid record, each paired with its index in the RAW Z.aeroLog array.
+   The Remove button used to be handed an index into the FILTERED array and passed it to
+   aeroUnlog, which indexes the raw one. Identical while nothing was ever filtered out;
+   Zone 2 sessions make the divergence reachable, so the render now carries the raw index. */
+function aeroLogAll(){
   if(!Array.isArray(Z.aeroLog))return [];
-  return Z.aeroLog.filter(r=>r&&typeof r==="object"&&ISO_RE.test(r.date||"")&&isFinite(Number(r.mins))&&Number(r.mins)>0);
+  return Z.aeroLog.map((r,i)=>({r,i})).filter(o=>aeroRecOK(o.r));
+}
+/* Unchanged contract: records that carry minutes above the gate. Every existing reader —
+   aeroLogSum, aeroDrift, aeroSessFor, aeroSessModes, aeroByMode — means this one. A Zone 2
+   session contributes nothing to the gate and must not appear here. */
+function aeroLogArr(){
+  return aeroLogAll().map(o=>o.r).filter(r=>Number(r.mins)>0);
 }
 function aeroLogSum(date){return aeroLogArr().filter(r=>r.date===date).reduce((a,r)=>a+Number(r.mins),0);}
 function aeroDrift(date){
@@ -2735,7 +2768,23 @@ function whoopCard(dISO){
   <div class="grid2">
     <div><label class="f">Recovery %</label><input type="number" inputmode="decimal" value="${rec??""}" onchange="setWhoop('${dISO}','rec',this.value)"></div>
     <div><label class="f">HRV (ms)</label><input type="number" inputmode="decimal" value="${r.hrv??""}" onchange="setWhoop('${dISO}','hrv',this.value)"></div>
-    <div><label class="f">Min above ${H.t4} bpm (after training)</label><input type="number" inputmode="decimal" value="${(Z.aero||{})[dISO]??""}" onchange="setAero('${dISO}',this.value)"></div>
+    ${(()=>{
+      /* v11.33 — this box calls setAero, which REPLACES the day total. The Cardio tab session
+         form ADDS to the same key. Same number, opposite verbs, and this copy carried no
+         warning while sitting in the card he fills in every morning. Typing 20 here on a day
+         whose sessions summed to 36.5 silently destroyed the 36.5, and the drift banner only
+         catches it afterwards. Once sessions own the day, this reads them instead. */
+      /* Read-only ONLY when the sessions and the day total already agree. If they drift, the
+         Cardio tab owns that argument and this box stays editable — taking the escape hatch
+         away mid-disagreement would strand a wrong number. It also keeps the v11.27 property
+         qa26 asserts: a session record that computes nothing changes nothing here. */
+      const v=(Z.aero||{})[dISO], sess=aeroSessFor(dISO), owned=sess.length&&aeroLogSum(dISO)>0&&aeroDrift(dISO)===null;
+      if(owned) return `<div><label class="f">Min above ${H.t4} bpm (after training)</label>
+        <div class="rx" style="padding:8px 0"><b>${v??0}</b> min · ${sess.length} logged session${sess.length===1?"":"s"}</div>
+        <div class="mini" style="opacity:.75">Logged on the <b>Cardio</b> tab. Change it there so the sessions and the day total stay in step.</div></div>`;
+      return `<div><label class="f">Min above ${H.t4} bpm (after training)</label>
+        <input type="number" inputmode="decimal" value="${v??""}" onchange="setAero('${dISO}',this.value)">
+        <div class="mini" style="opacity:.75"><b>Replaces</b> the day total. To log a session, use the <b>Cardio</b> tab — it adds, and it keeps the source.</div></div>`;})()}
     <div><label class="f">30-day resting HR</label><input type="number" inputmode="decimal" value="${Z.rhr}" onchange="setRHR(this.value)"></div>
   </div>
   ${rec!=null?`<div class="banner ${cls}" style="margin-top:8px"><b>Recovery ${rec}%.</b> ${band}</div>`:
@@ -2967,18 +3016,20 @@ function aeroCard(dISO){
    <div class="klabel">Zone 2 — ${B.lo}–${B.hi} bpm</div>
    <div class="mini" style="margin:4px 0 6px">Minutes in the band today. <b>Not gated</b> — this is aerobic base and recovery support, and no weekly dose is prescribed until there is enough logged to set one honestly. 60–70% of your ${HRMAX} max, a %max band on purpose: Karvonen would put Z2 at 149–160 and collide with the hard threshold. Morpheus will show a different Zone 2 (133–151 on Fri Aug 7) because its bands float with recovery.</div>
    <input type="number" inputmode="decimal" placeholder="min in Zone 2" value="${(Z.z2||{})[dISO]??""}" onchange="setZ2('${dISO}',this.value)">
-   <div class="mini" style="margin-top:6px">This week: <b>${z2w}</b> min.</div></div>`;}
+   <div class="mini" style="margin-top:6px">This week: <b>${z2w}</b> min. This box <b>replaces</b> the day; the session form below <b>adds</b> and keeps the source.</div></div>`;}
   /* ---- v11.27 — ANY-DATE SESSION ENTRY. The grid below covers the current week only; this
      covers everything else, which is where a forgotten session actually lives. ---- */
-  {const L=aeroLogArr(), recent=L.map((r,i)=>({r,i})).sort((a,b)=>a.r.date<b.r.date?1:-1).slice(0,8);
+  {const L=aeroLogAll(), recent=L.slice().sort((a,b)=>a.r.date<b.r.date?1:-1).slice(0,8);
    const wk=weekBounds(dISO), wkSess=L.filter(r=>wk.indexOf(r.date)>=0).length;
    h+=`<div class="card" style="margin:8px 0 0;padding:10px 12px;background:transparent;border:1px dashed var(--t2,#888)">
    <div class="klabel">Log a session — any date</div>
-   <div class="mini" style="margin:4px 0 8px"><b>This is the way in.</b> Every hard session goes here, on the day it happened. <b>Minutes add into that date&rsquo;s total</b>, they do not replace it — two blocks on one day are one qualifying day, not two short ones, and each keeps its own source. ${wkSess?`<b>${wkSess}</b> session${wkSess===1?"":"s"} logged this week.`:""}</div>
+   <div class="mini" style="margin:4px 0 8px"><b>This is the way in.</b> Every session goes here, on the day it happened. <b>Minutes add into that date&rsquo;s total</b>, they do not replace it — two blocks on one day are one qualifying day, not two short ones, and each keeps its own source. <b>A Zone 2 ride belongs here too:</b> leave the gate box empty and fill Zone 2 alone. ${wkSess?`<b>${wkSess}</b> session${wkSess===1?"":"s"} logged this week.`:""}</div>
    <div class="grid2">
     <div><label class="f">Date</label><input type="date" id="aeSessDate" value="${viewISO()}"></div>
     <div><label class="f">Min above ${H.t4} (the gate)</label><input type="number" inputmode="decimal" id="aeSessMin" placeholder="min ≥ ${H.t4}"></div>
     <div><label class="f">Min above ${z5Threshold()} (optional)</label><input type="number" inputmode="decimal" id="aeSessZ5" placeholder="near-max"></div>
+    <div><label class="f">Min in Zone 2 (optional)</label><input type="number" inputmode="decimal" id="aeSessZ2" placeholder="${z2Band().lo}–${z2Band().hi} bpm"></div>
+    <div style="grid-column:1/-1"><div class="mini" style="opacity:.8"><b>Zone 2 is a separate band, not part of the two below.</b> It is easy work by definition and never overlaps the gate, so it is added on its own and is still ungated.</div></div>
     <div style="grid-column:1/-1"><div class="mini" style="opacity:.8"><b>These two nest; they do not add.</b> On your zones \u2014 ${H.t4}\u2013${z5Threshold()} is Z4 and ${z5Threshold()}+ is Z5 \u2014 the gate box takes <b>Z4 + Z5 together</b> and the near-max box takes <b>Z5 alone</b>. 6 min in Z4 and 4 in Z5 is <b>10</b> and <b>4</b>, not 6 and 4. Every beat above ${z5Threshold()} is also above ${H.t4}.</div></div>
     <div><label class="f">Source</label><select id="aeSessMode">
       <option value="">—</option>
@@ -2989,13 +3040,17 @@ function aeroCard(dISO){
    if(recent.length){
      h+=`<div class="mini" style="margin:10px 0 4px"><b>Logged sessions</b> — most recent first</div>`;
      recent.forEach(({r,i})=>{
+       const bits=[];
+       if(Number(r.mins)>0)bits.push(`${r.mins} min ≥${H.t4}`);
+       if(r.z5)bits.push(`${r.z5} min ≥${z5Threshold()}`);
+       if(r.z2)bits.push(`${r.z2} min Zone 2`);
        h+=`<div class="row"><div class="nm">${fmtD(r.date)}${r.mode?` · ${AERO_MODE[r.mode]||r.mode}`:""}
-       <div class="sup">${r.mins} min ≥${H.t4}${r.z5?` · ${r.z5} min ≥${z5Threshold()}`:""}${r.ts&&r.ts!==r.date?` · entered ${fmtD(r.ts)}`:""}</div></div>
+       <div class="sup">${bits.join(" · ")}${r.ts&&r.ts!==r.date?` · entered ${fmtD(r.ts)}`:""}</div></div>
        <button class="btn sm sec" onclick="aeroUnlog(${i})">Remove</button></div>`;
      });
      if(L.length>recent.length)h+=`<div class="mini" style="margin-top:4px;opacity:.7">${L.length-recent.length} older session${L.length-recent.length===1?"":"s"} not shown.</div>`;
      /* Drift. Shown, never silently fixed. */
-     const drifted=[...new Set(L.map(r=>r.date))].map(d=>({d,x:aeroDrift(d)})).filter(o=>o.x);
+     const drifted=[...new Set(L.map(o=>o.r.date))].map(d=>({d,x:aeroDrift(d)})).filter(o=>o.x);
      if(drifted.length){
        h+=`<div class="banner amber" style="margin-top:8px"><b>${drifted.length} day${drifted.length===1?"":"s"} where the day total and the logged sessions disagree.</b>
        <span class="mini">Both are legitimate ways in — the grid below edits the day total directly — so this is not an error, but only one of them can be right. The day total is what the floor reads.</span>`;
