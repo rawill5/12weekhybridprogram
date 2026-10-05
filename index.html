@@ -219,7 +219,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.36 · 2026-10-04";
+const BUILD="v11.37 · 2026-10-05";
 /* v11.22 — THE START DATE IS NOW STATE, NOT A CONSTANT.
    Sixth start date (Jul 28 · Aug 3 · Aug 10 · Aug 17 · Aug 24), moved for an episodic
    lumbar recurrence. The point of this change is that there must never be a seventh
@@ -606,12 +606,17 @@ const BAAR={t:"Baar wrist/elbow isometrics — reverse wrist-curl hold, wrist-fl
    Mon vertical+lateral → box squat · Thu horizontal+rotational → trap bar · Sat sprint → conditioning day. */
 const PLYO={
  mon:[
-  {wk:[1,4],ph:"Foundation",t:"Pogo hops 3×10 · Box jump 3×3 (step down) · Lateral bound 3×3/side (stick)",cue:"Quiet fast contacts; own every landing. Amplitude low — building tissue."},
+  /* v11.37: weeks 3 and 4 add SETS and pogo reps, never reps per set on the jumps (his question 2026-10-05). Inference, not a sourced prescription. */
+  {wk:[1,2],ph:"Foundation",t:"Pogo hops 3×10 · Box jump 3×3 (step down) · Lateral bound 3×3/side (stick)",cue:"Quiet fast contacts; own every landing. Amplitude low — building tissue."},
+  {wk:[3,3],ph:"Foundation",t:"Pogo hops 3×15 · Box jump 4×3 (step down, higher box) · Lateral bound 3×3/side (stick)",cue:"Quiet fast contacts; own every landing. More sets, same 3 reps a set on the jumps: every rep is a full effort."},
+  {wk:[4,4],ph:"Foundation",t:"Pogo hops 3×15 · Box jump 4×3 (step down, higher box) · Lateral bound 4×3/side (stick)",cue:"Quiet fast contacts; own every landing. More sets, same 3 reps a set on the jumps: every rep is a full effort."},
   {wk:[5,8],ph:"Build",t:"Pogo 2×10 (prime) · Depth jump 3×3 from 12–18\" · Lateral bound 3×3/side",cue:"Minimize ground time off the depth jump. Reset a rep if height drops."},
   {wk:[9,12],ph:"Peak",t:"Depth jump 3×3 max intent · Lateral bound + stick 3×3/side",cue:"Every rep max height. Low volume, full rest."}
  ],
  thu:[
-  {wk:[1,4],ph:"Foundation",t:"Broad jump 3×3 (stick landing) · Medball rotational scoop throw 3×5/side",cue:"Distance is a byproduct of clean hip drive — own the landing before chasing range."},
+  {wk:[1,2],ph:"Foundation",t:"Broad jump 3×3 (stick landing) · Medball rotational scoop throw 3×5/side",cue:"Distance is a byproduct of clean hip drive — own the landing before chasing range."},
+  {wk:[3,3],ph:"Foundation",t:"Pogo hops 2×10 (prime) · Broad jump 4×3 (stick landing, measure it) · Medball rotational scoop throw 3×5/side",cue:"Distance is a byproduct of clean hip drive — own the landing before chasing range."},
+  {wk:[4,4],ph:"Foundation",t:"Pogo hops 3×10 (prime) · Broad jump 4×3 (stick landing, measure it) · Medball rotational scoop throw 3×5/side",cue:"Distance is a byproduct of clean hip drive — own the landing before chasing range."},
   {wk:[5,8],ph:"Build",t:"Broad jump 4×3 · Single bound 3×3/side (stick) · Rotational throw 3×5/side",cue:"Full hip extension, absorb the landing. Bounds train single-leg horizontal force."},
   {wk:[9,12],ph:"Peak",t:"Continuous bound 3×3–4/side · Rotational throw 4×4/side max intent",cue:"Reactive, minimal ground contact. Stop when distance or control drops."}
  ],
@@ -1463,8 +1468,8 @@ const MED={
    progress:{v:4,u:"sessions",note:"Loaded full-ROM work raises ROM at ES 0.73, equal to stretching. Bodyweight-only does NOT \u2014 external load is required (Alizadeh 2023). Use the ankle weights."},
    decay:"After 2-6 weeks off, ROM still sits ES +0.55 above baseline. Very durable."},
  power:{k:"power",n:"Power / plyo",
-   maintain:{v:60,u:"foot contacts",note:"60 contacts/wk maintained every jump and sprint gain for \u22657 further weeks (Moran 2024)."},
-   progress:{v:120,u:"foot contacts",note:"120 contacts in ONE session per week builds. Two sessions was not better than one, volume-matched."},
+   maintain:{v:60,u:"foot contacts",note:"60 jumps/wk maintained every jump and sprint gain for 7 further weeks (Moran 2024: one RCT, 24 male soccer players aged about 19)."},
+   progress:{v:120,u:"foot contacts",note:"120 jumps/wk built jump and sprint over 7 weeks, in one session or split over two (Moran 2024, same trial). It is the dose that trial tested, not a proven threshold; no lower building dose was tested. Counted here from the prescription you ticked, not a flat number."},
    decay:"Power is NOT lost faster than strength \u2014 over 7 weeks detraining, strength fell 14.5% and power 0.4% (McMaster 2013). The opposite claim is about decades of ageing, not weeks."},
  skill:{k:"skill",n:"Skill",
    maintain:{v:2,u:"sessions",note:"The 'what' survives weeks. TIMING degrades at every interval tested including 3 days (Savion-Lemieux 2004). 2\u00d7/wk is the floor for sharp."},
@@ -2284,7 +2289,7 @@ function weeklyThrows(dISO){
   days.forEach(k=>{const c=Z.done[k]||{},w=calWeekOf(k);if(w==null)return;const dow=dayIdx(new Date(k+"T00:00:00"));
     const trim=isDeloadWeek(w)?(x=>Math.round(x*2/3)):(x=>x);
     if(dow===2&&c.throws)n+=trim(upperBlock("wed",w).reps);
-    if(dow===3&&c.plyo)n+=trim(THU_ROT_REPS[Math.min(2,Math.floor(w/4))]);
+    if(dow===3&&c.plyo)n+=trim(THU_ROT_REPS[Math.min(2,Math.floor(plyoWk("thu",w,k)/4))]);   /* v11.37: the plan week Thursday has earned */
     if(dow===4&&c.core)n+=trim(upperBlock("fri",w).reps);});
   return n;
 }
@@ -3127,6 +3132,48 @@ function groinDoneBefore(dISO){let n=0;
   Object.keys(Z.done||{}).forEach(k=>{if(k>=progStart()&&k<dISO&&(Z.done[k]||{}).groin&&mkWasFull(k,"g"))n++;});return n;}
 function groinKeyFor(w,dISO){return ISO_RE.test(dISO||"")?GROIN_ROT[groinDoneBefore(dISO)%GROIN_ROT.length]:groinKey(w);}
 /* ======================= end v11.36 additions ======================= */
+/* ======================= v11.37 — JUMPS: REAL CONTACTS AND A PAUSE (2026-10-05) =======================
+   His decisions, 2026-10-05:
+   1. COUNT REAL CONTACTS. Until now every plyo tick credited a flat 60, so two ticks read 120 ("progressing")
+      against a written week of about 66. The count is now read off the row that was ticked: sets x reps,
+      doubled for "/side", throws excluded (they have their own counter). Week-6 trim is applied.
+   2. MON AND THU EACH ON THEIR OWN PLAN WEEK (plyoWk), like the Markow shoulder and spine ladders. A day's
+      ladder moves on one week only when THAT day's plyo session was ticked in an earlier block week. Never
+      ahead of the calendar, and fixed for the whole week. No stored key: derived from Z.done.
+      Saturday is untouched: it already holds on his drill rating (sprintPhase).
+   3. SATURDAY ACCELERATIONS count as ESTIMATED ground contacts, SPRINT_STEP_PER_M per metre of the main
+      set only [INF: about 9 steps per 15 m and 11 per 20 m from a standing start; not measured on him].
+      Drill Saturdays stay at zero contacts and keep their own line.
+   Build and Peak prescriptions (weeks 5-12) are NOT changed here; reviewed before week 5 at his request. */
+const PLYO_DOW={mon:0,thu:3};
+const SPRINT_STEP_PER_M=0.57;
+function plyoWeekCounts(k,i){const d=mkBlockWeekDays(i)[PLYO_DOW[k]];return !!((Z.done[d]||{}).plyo);}
+function plyoWk(k,w,dISO){
+  if(PLYO_DOW[k]===undefined||!ISO_RE.test(dISO||"")||calWeekOf(dISO)==null)return w;
+  const cw=calWeekOf(dISO);let n=0;for(let i=0;i<cw;i++)if(plyoWeekCounts(k,i))n++;
+  return Math.min(cw,n);
+}
+function plyoHeldNote(k,w,pw){
+  if(pw>=w)return "";
+  return `<div class="mini" style="margin-bottom:6px;color:var(--z2)">Plan week ${pw+1}, calendar week ${w+1}. ${k==="mon"?"Monday":"Thursday"}'s jumps move on after a week in which this session was ticked. Nothing is owed.</div>`;
+}
+/* Foot contacts in a Mon/Thu row: sets x reps per item, x2 for "/side", a range reads at its low end, throws skipped. */
+function plyoJumpContacts(t){let n=0;
+  String(t).split(" · ").forEach(it=>{if(/throw/i.test(it))return;
+    const m=it.match(/(\d+)×(\d+)(?:–\d+)?(\/side)?/);if(m)n+=Number(m[1])*Number(m[2])*(m[3]?2:1);});
+  return n;}
+/* Estimated ground contacts in a Saturday acceleration row: the main set after "Then:", not the warm-up. */
+function sprintContacts(t){let n=0,m;const body=String(t).split("Then:")[1]||"";const re=/(\d+)×(\d+)m/g;
+  while((m=re.exec(body)))n+=Number(m[1])*Math.round(Number(m[2])*SPRINT_STEP_PER_M);return n;}
+/* Contacts credited to a plyo tick on date k. A tick on a day other than Thu/Sat reads the Monday row. */
+function plyoContactsOn(k){
+  const dow=dayIdx(new Date(k+"T00:00:00")),w=calWeekOf(k);
+  const tr=t=>(w!=null&&isDeloadWeek(w))?trimRow(t):t;
+  if(dow===5){const B=w==null?PLYO.sat[0]:sprintPhase(w,k).B;return B.drill?0:sprintContacts(tr(B.t));}
+  const key=dow===3?"thu":"mon";
+  return plyoJumpContacts(tr(plyoBlock(key,plyoWk(key,w==null?0:w,k)).t));
+}
+/* ======================= end v11.37 additions ======================= */
 /* ================= TABS ================= */
 /* v11.25 — CARDIO joins the tab strip, between Week and GMB.
    Layer 1 (the hard-aerobic maintenance floor) and Layer 2 (the VO2max block) used to render
@@ -3895,7 +3942,7 @@ function weekScore(dISO){
     /* v11.35 (K): skill is a CREDIT SUM from weekSkill() below — classes 1.0 on any day, solo 30+ min 0.5 */
     /* v11.34 — a drill-phase Saturday is a DRILL session, not 60 foot contacts (Moran 2024 is jump and
        sprint research). Mon/Thu plyos and Build/Peak Saturday accelerations still count as a block. */
-    if(c.plyo){if(dowK===5&&wK!=null&&sprintPhase(wK,k).B.drill)drills++;else plyo+=60;}
+    if(c.plyo){if(dowK===5&&wK!=null&&sprintPhase(wK,k).B.drill)drills++;else plyo+=plyoContactsOn(k);}   /* v11.37: real contacts from the row that was ticked, not a flat 60 */
     if(aeroQualify((Z.aero||{})[k]))aero++;
   });
   const restore=weeklyRestore(dISO), throws=weeklyThrows(dISO);
@@ -4775,7 +4822,8 @@ function skillCard(w,dow,dISO,editable,part){
 }
 function plyoCard(w,dow,dISO,editable){
   const k={0:"mon",3:"thu",5:"sat"}[dow];if(!k)return "";
-  const B=plyoBlock(k,w);const r=readyEff(dISO);
+  const pw=k==="sat"?w:plyoWk(k,w,dISO);   /* v11.37: Mon/Thu run the plan week that day has earned */
+  const B=plyoBlock(k,pw);const r=readyEff(dISO);
   if(!B.t)return "";  /* Sat Foundation: no sprint work yet */
   const isSprint=k==="sat";
   /* v11.34 — the weeks 11–12 "sprints yield to the PZ-Max FTP estimation ride" branch that used
@@ -4796,7 +4844,7 @@ function plyoCard(w,dow,dISO,editable){
   const sprintRate=isSprint&&editable&&(Z.done[dISO]&&Z.done[dISO].plyo)?vRate("sprint",{label:"Drill quality — how clean were the mechanics"}):"";
   return `<div class="card spine"><h3>${title} · ${BB.ph} <span class="tiertag T3">T3</span></h3>
   <div class="meta"><span class="why">${seqNote} </span>${blocked?"⛔ Skipped today — readiness/down-week gate.":(optional?"Optional at readiness 3 — quality reps only, cut volume.":(gateOv(dISO)?"Unlocked by today's override. Full intent, full rest.":"Unlocked (readiness ≥4). Full intent, full rest."))}${trim?" · week-6 trim: one set off each 3+ row":""}</div>
-  ${blocked?"":`<div class="row"><div class="nm">${body}</div></div><div class="mini why" style="margin-top:4px">Cue: ${BB.cue}</div>${isSprint&&BB.drill?`<div class="mini why" style="margin-top:4px">Drill Saturdays are counted as drill sessions, not as the 60 plyometric foot contacts — that floor is jump-and-sprint research (Moran 2024) and A-skips are neither.</div>`:""}${held}${editable?ckHTML(dISO,"plyo"):""}${sprintRate}${editable?rpeHTML(dISO,"plyo"):""}`}</div>`
+  ${blocked?"":`${isSprint?"":plyoHeldNote(k,w,pw)}<div class="row"><div class="nm">${body}</div></div><div class="mini why" style="margin-top:4px">Cue: ${BB.cue}</div>${isSprint?(BB.drill?"":`<div class="mini why" style="margin-top:4px">Counts as about ${sprintContacts(trim?trimRow(BB.t):BB.t)} ground contacts, estimated from the distance of the main set.</div>`):`<div class="mini why" style="margin-top:4px">${plyoJumpContacts(trim?trimRow(BB.t):BB.t)} foot contacts today. Throws are counted separately.</div>`}${isSprint&&BB.drill?`<div class="mini why" style="margin-top:4px">Drill Saturdays are counted as drill sessions, not as the 60 plyometric foot contacts — that floor is jump-and-sprint research (Moran 2024) and A-skips are neither.</div>`:""}${held}${editable?ckHTML(dISO,"plyo"):""}${sprintRate}${editable?rpeHTML(dISO,"plyo"):""}`}</div>`
   +(isSprint?fly10Card(w,dISO,editable):"");
 }
 /* v11.34 — ONE gated flying-10 late in the block: a test, not weekly training (ninth round C). */
