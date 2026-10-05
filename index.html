@@ -202,7 +202,7 @@ textarea{width:100%;background:var(--panel2);border:1px solid var(--line);color:
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.34 · 2026-09-20";
+const BUILD="v11.35 · 2026-10-04";
 /* v11.22 — THE START DATE IS NOW STATE, NOT A CONSTANT.
    Sixth start date (Jul 28 · Aug 3 · Aug 10 · Aug 17 · Aug 24), moved for an episodic
    lumbar recurrence. The point of this change is that there must never be a seventh
@@ -609,9 +609,13 @@ function plyoBlock(k,w){const arr=PLYO[k];const wn=w+1;return arr.find(b=>wn>=b.
 /* ---- Conditioning: Z2 base LOCKED on Tue + Sat (never rotated away). The harder FTP-data efforts
    ride on Wednesday only — legs-fresh upper day, optional + readiness-gated — so the aerobic base is
    protected and FTP still calculates from accumulated best-efforts. ---- */
+/* v11.35 (J) — THE SLOT IS NAMED FOR WHAT IT IS. Robert, 2026-09-29 and 2026-10-04: he rides Power Zone
+   Endurance here on purpose, and a PZE class is Zone 2/3 with most of the work in Zone 3. The old copy
+   described a different session from the one it prescribed. The ride is tempo-dominant aerobic base; true
+   Zone 2 is a per-day choice on the card (rideTypeOf), never a default. */
 const COND={
- tue:{t:"Zone 2 — Peloton PZ Endurance 90 min",d:"Conversational, zones from current FTP. Aerobic base + recovery. Feeds long-duration power for the FTP curve. Base anchor #1 — protected.",tier:"T2"},
- sat:{t:"Zone 2 — Peloton PZ Endurance 90 min",d:"Second Z2 anchor. Sits before Sunday BJJ — keep it easy. Base anchor #2 — protected.",tier:"T2"}
+ tue:{t:"Aerobic base — Peloton PZ Endurance 90 min",d:"Power Zone Endurance as the class is written: Zone 2/3, mostly Zone 3 efforts, zones from current FTP. Tempo-dominant aerobic base. Feeds long-duration power for the FTP curve. Base anchor #1 — protected.",tier:"T2"},
+ sat:{t:"Aerobic base — Peloton PZ Endurance 90 min",d:"Second base anchor: Zone 2/3, mostly Zone 3. Sits the day before Sunday BJJ. Base anchor #2 — protected.",tier:"T2"}
 };
 /* Wednesday optional ride types — athlete picks based on which FTP bucket is stalest */
 const WED_RIDE={
@@ -989,8 +993,12 @@ function setWu(dISO,exKey,i,field,val){Z.lifts[dISO]=Z.lifts[dISO]||{};const k=e
 function logWarmups(dISO,exKey,topLb){const r=warmupRamp(exKey,topLb,dISO);Z.lifts[dISO]=Z.lifts[dISO]||{};
   r.forEach(x=>{if(x.lb!=null)Z.lifts[dISO][exKey+"_wu"+x.i]={w:x.lb,reps:x.reps,sets:x.sets||1};});save();render();}
 
-/* Luke Thomas Saturday rotation (6 retained kick-flex videos) */
-const LT_SAT=["lt1","lt2","lt3","lt5","lt23","lt1","lt12","lt2","lt3","lt23","lt12","lt5"];
+/* Luke Thomas Saturday rotation.
+   v11.35 (L) — LT 1 IS OUT OF THE PROGRAMME (Robert, 2026-10-04: it duplicates yin). Five videos remain.
+   Week 6 is LT 2 as a trial. Index 0 is week 1, which is in the past: he did LT 1 on 2026-09-26 and his
+   note for that day says so; the slot shows LT 2 now only because no entry may name lt1. Do not reinstate
+   LT 1, including as a deload option. */
+const LT_SAT=["lt2","lt2","lt3","lt5","lt23","lt2","lt12","lt2","lt3","lt23","lt12","lt5"];
 /* Friday pre-kick drills + standing-leg pivot progression (4 levels) */
 const PIVOT=[
  "Level 1 — Wall-supported heel-sweep pivot, 2×5/side (slow, heel sweeps fully outward)",
@@ -1005,7 +1013,7 @@ const FRIKICK=w=>["Dynamic leg swings — 10/side, front + lateral planes",
 
 /* Tonight's Pick */
 const TP={
- Lower:{vids:["ham","hflex","her","slg","addc","groin","lt23","lt1"],min:15},
+ Lower:{vids:["ham","hflex","her","slg","addc","groin","lt23"],min:15},   /* v11.35: lt1 removed with the rest of LT 1 */
  Upper:{vids:["shtri","blades","tspine","benchmob"],min:12},
  Spine:{vids:["sp1","sp2","ribr","tspine"],min:15},
  Global:{vids:["glob","rot","udr","bk2","bk3"],min:20},
@@ -1205,9 +1213,9 @@ const EXPECT={
  6:[["gmb","T3","restore"],["bjj","T1","skill"],["sunlift","T2","strength"],["mkup","T3","upper"],["yin","T3","downreg"]]
 };
 const BLK={str:"Strength session",plyo:"Plyos / sprint",core:"Core",hooklying:"Hooklying primer",
- markow:"Markow hip",mkup:"Markow upper",groin:"Markow groin",cond_tue:"Zone 2 (Tue)",cond_sat:"Zone 2 (Sat)",kick:"Kickboxing",
+ markow:"Markow hip",mkup:"Markow upper",groin:"Markow groin",cond_tue:"Aerobic base ride",cond_sat:"Aerobic base ride",ineck:"Iron Neck",kick:"Kickboxing",
  lt:"Luke Thomas kick-flex",bjj:"BJJ",sunlift:"Sunday lift",yin:"Evening yin (pliability)",gmb:"GMB tissue prep",throws:"Upper ballistic throws",ffg:"Get Flex & Chill grappling",cond_wed:"Wednesday ride",kotg:"KOTG",baar:"Baar wrist/elbow",heavybag:"Heavy bag",gact:"Glute activator",gpump:"Glute pumper",ger:"Band hip ER",birddog:"Bird-dog",fly10:"Flying 10 (test)",night:"Kinstretch pick"};
-const DOMAIN={strength:"Strength",power:"Power",core:"Core",hip:"Hip mobility",upper:"Upper mobility",z2:"Zone 2",skill:"Skill",downreg:"Down-regulation",restore:"Restoration (GMB + yin)"};
+const DOMAIN={strength:"Strength",power:"Power",core:"Core",hip:"Hip mobility",upper:"Upper mobility",z2:"Aerobic base",skill:"Skill",downreg:"Down-regulation",restore:"Restoration (GMB + yin)"};
 
 /* ============ MEASURED DURATIONS — from Toggl, 2026-01-01 → 2026-08-02 ============
    339 training entries, 213 days, zero untagged, one 5h BJJ outlier excluded.
@@ -1346,7 +1354,8 @@ function domainDrift(dISO){
    v11.24: T1/T2 only. Yin joined EXPECT on all seven days at T3, so without the
    filter a single skipped-yin week would declare chaos with perfect training.
    T3 is "cut first" by definition; its absence is not chaos. */
-function chaosWeek(dISO){return scanMissed(dISO,7).filter(x=>x.tier!=="T3").length>=4;}
+/* v11.35 — an anchor closed as "substituted" (K) is not a miss. Window and tier filter unchanged. */
+function chaosWeek(dISO){return scanMissed(dISO,7).filter(x=>x.tier!=="T3"&&!isSubstituted(x,dISO)).length>=4;}
 
 /* ---- Tiers (chaos management) ---- */
 const TIERS={
@@ -1429,7 +1438,7 @@ const MED={
    progress:{v:3,u:"heavy compound days",note:"3-6 sets/lift/wk >80%, RPE 7.5-9.5. In intermediate-advanced powerlifters this added +34 kg to the PL total in 6 weeks (Androulakis-Korakakis 2021)."},
    decay:"1-2 weeks off = no measurable 1RM loss. Decay accelerates after 3-4 weeks."},
  aerobic:{k:"aerobic",n:"Hard aerobic",
-   maintain:{v:2,u:"exposures \u226513 min at intensity",note:"2 sessions/wk of 13-26 min at UNREDUCED intensity holds VO2max \u226515 weeks (Hickson 1981). Cutting intensity by a third lost VO2max even with volume intact."},
+   maintain:{v:2,get u(){return "exposures \u2265"+AERO_MIN+" min at intensity";},note:   /* v11.35: reads AERO_MIN, was a hardcoded 13 */"2 sessions/wk of 13-26 min at UNREDUCED intensity holds VO2max \u226515 weeks (Hickson 1981). Cutting intensity by a third lost VO2max even with volume intact."},
    progress:{v:3,u:"interval sessions",note:"3 interval sessions/wk for 3-6 weeks."},
    decay:"VO2max -7% at 21 days. The fastest-decaying quality you have."},
  hip:{k:"hip",n:"Hip / ROM",
@@ -1765,11 +1774,11 @@ function z5Threshold(){return hrThreshold().t5;}   /* Karvonen 85% HRR — 178 a
    tagging a day `lift` does NOT make it a strength exposure and does not touch `exposureClass()`
    — the two are counted from different keys and must stay that way, or a hard breathing day
    would start advancing the barbell wave. */
-const AERO_MODE={kick:"Kickboxing",bjj:"BJJ",bag:"Bag rounds",pz:"Power Zone",pzmax:"PZ Max",pelhiit:"Peloton HIIT",bball:"Basketball",tennis:"Tennis",lift:"Lifting",hiit:"Other HIIT",pzend:"PZ Endurance ride",z2other:"Other Zone 2",other:"Other"};
+const AERO_MODE={kick:"Kickboxing",bjj:"BJJ",box:"Boxing",bag:"Bag rounds",solo:"Solo skill work",pz:"Power Zone",pzmax:"PZ Max",pelhiit:"Peloton HIIT",bball:"Basketball",tennis:"Tennis",lift:"Lifting",hiit:"Other HIIT",pzend:"PZ Endurance (tempo)",z2true:"True Zone 2 ride",z2other:"Other Zone 2",other:"Other"};
 /* v11.34 — pelhiit, bball, tennis, pzend, z2other and other are NEW keys. Existing records keep theirs: the
    2026-09-19 tennis session is stored as `hiit` and stays `hiit`. Nothing is ever re-tagged. */
-/* Minutes above 176 are a SUBSET of minutes above 160. If z5 > hard, one of the two was
-   misread — flag it rather than storing a contradiction. */
+/* Minutes above the near-max boundary (z5Threshold()) are a SUBSET of minutes above the gate
+   (hrThreshold().t4). If z5 > hard, one of the two was misread — flag it rather than storing a contradiction. */
 function aeroZ5Bad(dISO){const hh=(Z.aero||{})[dISO], z=(Z.aeroZ5||{})[dISO];
   return (hh!=null&&z!=null&&z>hh);}
 function median(a){if(!a.length)return null;const s=a.slice().sort((x,y)=>x-y),m=Math.floor(s.length/2);
@@ -2191,14 +2200,27 @@ function ageYears(){const n=new Date();let a=n.getFullYear()-DOB.getFullYear();
   const m=n.getMonth()-DOB.getMonth();if(m<0||(m===0&&n.getDate()<DOB.getDate()))a--;return a;}
 function readiness(dISO){return Z.readiness[dISO]||null;}
 function isDown(){return Z.down&&todayISO()<=Z.down.until;}
-function downSuggest(){ /* ≥3 consecutive declining days OR avg<3 over last 5 logged */
-  const ks=Object.keys(Z.readiness).sort();if(ks.length<3)return false;
-  const last=ks.slice(-5).map(k=>Z.readiness[k]);
-  const l3=last.slice(-3);
-  const declining=l3.length===3&&l3[0]>=l3[1]&&l3[1]>=l3[2]&&l3[0]>l3[2];
-  const avg=last.length>=5&&(last.reduce((a,b)=>a+b,0)/last.length)<3;
-  return declining||avg;
+/* v11.35 (E) — THE DOWN-WEEK TRIGGER READS CALENDAR DAYS, AND ONE LOW MORNING IS NOT A TREND.
+   The old test took the last three LOGGED values, non-increasing with first > last. 5,5,2 passed it: two
+   good mornings and one bad one. It also walked logged entries, so an unlogged day was invisible and
+   "three days" could span a gap. On the 2026-10-04 export it fired on 09-18 (5,5,3), 09-22 (5,4,3) and
+   10-02 (5,5,2); the next logged morning was 4, 5 and 5.
+   Now: the five CALENDAR days ending on the day in question. Fires when 3 of the 5 are logged at or
+   below DOWN_LOW, or when the last three calendar days are all logged, strictly decline, and end at or
+   below DOWN_LOW. An unlogged day breaks a run and counts as not-low. A single low morning stays the
+   job of the same-day gate. [INF] best-practice thresholds, not from a named source — if this proves
+   too quiet, move DOWN_LOW or the 3-of-5, do not go back to single-day triggers.
+   startDown() / isDown() are untouched: this changes when the offer appears, not what a down-week is. */
+const DOWN_LOW=3, DOWN_WIN=5, DOWN_NEED=3;
+function downTrend(dISO){
+  const d0=ISO_RE.test(dISO||"")?dISO:todayISO();
+  const v=[];for(let i=DOWN_WIN-1;i>=0;i--){const x=Z.readiness[isoBack(d0,i)];v.push(x==null?null:Number(x));}
+  const low=v.filter(x=>x!=null&&x<=DOWN_LOW).length;
+  const l3=v.slice(-3);
+  const dec=l3.every(x=>x!=null)&&l3[0]>l3[1]&&l3[1]>l3[2]&&l3[2]<=DOWN_LOW;
+  return {v,low,dec,fire:low>=DOWN_NEED||dec};
 }
+function downSuggest(dISO){return downTrend(dISO).fire;}
 function isDeloadWeek(w){return w===DELOAD_WK;}
 function e1(w,r){return Math.round(w*(1+r/30));}
 function fmtT(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
@@ -2332,13 +2354,29 @@ function rpeHTML(dISO,key){
   return `<div class="rpe"><span class="mini">RPE</span>${[1,2,3,4,5,6,7,8,9,10].map(v=>`<button class="${cur===v?"on":""}" onclick="setRPE('${dISO}','${key}',${v})">${v}</button>`).join("")}</div>`;
 }
 /* Weekly session load = Σ RPE × block minutes (MEAS median via blockMin), plus cardio sessions that carry an RPE. */
+/* v11.35 (K) — ONE SESSION, ONE LOAD. Found 2026-10-04: a class both ticked with an RPE and logged on the
+   Cardio form was counted twice (10-02 kickboxing: 61 × 8 from the tick, then 3 × 6 from the cardio record).
+   Three rules, in order:
+     1. A skill-log entry for a date and type is THE record of that session: the matching tick's RPE
+        (kick, bjj, heavybag) is not also counted, and the cardio record the entry wrote (r.sk) is not either.
+     2. With no log entry, a ticked class that carries an RPE is the record, and a cardio record of the
+        same class on the same date is not counted on top of it.
+     3. Everything else as before. A base ride's minutes are its ride length (r.z2); a tempo ride may now
+        also carry minutes above the gate, and those are inside the ride, not added to it. */
+const SKTICK={kick:"kick_class",bjj:"bjj_class",heavybag:"bag"}, AEROTICK={kick:"kick",bjj:"bjj",bag:"heavybag"};
 function weeklyLoad(dISO){
   const days=weekBounds(dISO);let load=0,n=0,rated=0;
+  const sk={};skillLogAll().forEach(({r})=>{if(days.indexOf(r.date)>=0)sk[r.date+"|"+r.type]=true;});
   days.forEach(k=>{const w=calWeekOf(k);const dow=dayIdx(new Date(k+"T00:00:00"));const R=(Z.rpe||{})[k]||{};
-    Object.keys(R).forEach(key=>{const b=blockMin(key,w==null?0:w,dow);const mins=b?b.med:20;load+=R[key]*mins;rated++;});
+    Object.keys(R).forEach(key=>{if(SKTICK[key]&&sk[k+"|"+SKTICK[key]])return;
+      const b=blockMin(key,w==null?0:w,dow);const mins=b?b.med:20;load+=R[key]*mins;rated++;});
     n+=Object.keys(Z.done[k]||{}).filter(x=>Z.done[k][x]).length;});
-  aeroLogAll().forEach(({r})=>{if(days.indexOf(r.date)>=0&&r.rpe!=null){const mins=(Number(r.mins)||0)+(Number(r.z2)||0)||20;load+=r.rpe*mins;rated++;}});
-  return {load:Math.round(load),rated,ticks:n};
+  aeroLogAll().forEach(({r})=>{if(days.indexOf(r.date)<0||r.rpe==null||r.sk!=null)return;
+    const tk=AEROTICK[r.mode];
+    if(tk&&(sk[r.date+"|"+SKTICK[tk]]||((Z.rpe||{})[r.date]||{})[tk]!=null))return;
+    const mins=Number(r.z2)>0?Number(r.z2):((Number(r.mins)||0)||20);load+=r.rpe*mins;rated++;});
+  const S=weekSkill(dISO);load+=S.load;rated+=S.rated;
+  return {load:Math.round(load),rated,ticks:n,skill:S.load};
 }
 function saveNote(dISO,text){
   Z.notes=Z.notes||{};const t=String(text||"").trim();
@@ -2396,7 +2434,13 @@ function setVRate(k,v,ver){
    under one day tag `whoop`, which read literally downgrades a measurement to a floor. The instrument
    now lives on the SESSION; the day tag remains the fallback for session-less days, exactly as
    aeroByMode() does for mode. The 09-20 record is NOT re-tagged and no migration guesses an instrument. */
-const AERO_GROUP={hard:["kick","bjj","bag","pzmax","pz","pelhiit","bball","tennis","lift","hiit"],z2:["pzend","z2other"],other:["other"]};
+/* v11.35 (J) — the `z2` group is the AEROBIC-BASE group: every source whose minutes go in the stored `z2`
+   field. The field keeps its name; only the label moved. Two kinds of base ride: tempo (`pzend`, the PZ
+   Endurance class, Zone 2/3) and true Zone 2 (`z2true`, `z2other`). TRUE_Z2 is the subset that may feed the
+   Zone 2 heart-rate calibration and may not carry minutes above the gate. `box` and `solo` are new hard-group
+   keys written by the skill log (K). Nothing stored is re-tagged. */
+const AERO_GROUP={hard:["kick","bjj","box","bag","solo","pzmax","pz","pelhiit","bball","tennis","lift","hiit"],z2:["pzend","z2true","z2other"],other:["other"]};
+const TRUE_Z2=["z2true","z2other"];
 const AERO_INST={heartgraph:"Heart Graph (H10)",whoop:"Whoop sleeve",wrist:"Whoop band (wrist)",other:"Other"};
 function aeroGroupOf(mode){return AERO_GROUP.z2.indexOf(mode)>=0?"z2":(AERO_GROUP.hard.indexOf(mode)>=0?"hard":"other");}
 /* Instrument for a session record: its own, else the day tag (fallback for pre-v11.34 records). */
@@ -2407,7 +2451,9 @@ function sessInst(r){return r.inst||((Z.aeroSrc||{})[r.date])||null;}
 const Z2_MIN_RIDES=4;
 function z2Calib(){
   const by={};
-  aeroLogAll().forEach(({r})=>{if(!(Number(r.z2)>0)||!(Number(r.hr)>0))return;const i=sessInst(r)||"unknown";(by[i]=by[i]||[]).push(Number(r.hr));});
+  /* v11.35 (J) — TRUE Zone 2 only. A `pzend` record is a tempo ride (09-29: 59 of 90 min in Zone 3, avg 154)
+     and an untagged base session is of unknown kind; neither may print as "your Zone 2 heart rate". */
+  aeroLogAll().forEach(({r})=>{if(!(Number(r.z2)>0)||!(Number(r.hr)>0)||TRUE_Z2.indexOf(r.mode)<0)return;const i=sessInst(r)||"unknown";(by[i]=by[i]||[]).push(Number(r.hr));});
   const out={};Object.keys(by).forEach(i=>{const a=by[i].slice().sort((x,y)=>x-y),n=a.length;
     out[i]={n,med:median(a),q1:n>=Z2_MIN_RIDES?a[Math.floor((n-1)*0.25)]:null,q3:n>=Z2_MIN_RIDES?a[Math.ceil((n-1)*0.75)]:null,ready:n>=Z2_MIN_RIDES};});
   return out;
@@ -2562,7 +2608,9 @@ function sunLogAdd(dISO){
   const g=id=>{const e=document.getElementById(id);return e?String(e.value||"").trim():"";};
   const n=g("slName"),sets=Number(g("slSets")),reps=g("slReps"),lb=g("slLb"),mus=g("slMus");
   if(!n||!(sets>0)||!mus){alert("Exercise, sets and a muscle are needed. Reps and load are optional.");return;}
-  Z.sunLog=Z.sunLog||{};Z.sunLog[dISO]=Z.sunLog[dISO]||[];Z.sunLog[dISO].push({n,sets,reps,lb,mus});save();render();
+  Z.sunLog=Z.sunLog||{};Z.sunLog[dISO]=Z.sunLog[dISO]||[];Z.sunLog[dISO].push({n,sets,reps,lb,mus});
+  Z.done[dISO]=Z.done[dISO]||{};Z.done[dISO].sunlift=true;   /* v11.35 (G): logging a row IS doing the lift. Removing the last row does not untick. */
+  save();render();
 }
 function sunLogDel(dISO,i){if(Z.sunLog&&Z.sunLog[dISO]){Z.sunLog[dISO].splice(i,1);if(!Z.sunLog[dISO].length)delete Z.sunLog[dISO];save();render();}}
 /* Logged (not programmed) sets per muscle for program week w. */
@@ -2576,7 +2624,7 @@ function loggedVolume(w){
 function sunLogCard(dISO,editable){
   const L=(Z.sunLog||{})[dISO]||[];
   let h=`<div class="card spine"><h3>Sunday lift — what you actually did <span class="tiertag T3">log</span></h3>
-  <div class="meta">The partner-led part of the session, free entry. <span class="why">Counted on the Volume tab as <b>logged</b>, in its own colour, never mixed into the programmed model — so the programmed numbers stay clean and the real total stops being invisible.</span></div>`;
+  <div class="meta">The partner-led part of the session, free entry. Only rows count — loads typed into the day's note are read by nothing. <span class="why">Counted on the Volume tab as <b>logged</b>, in its own colour, never mixed into the programmed model — so the programmed numbers stay clean and the real total stops being invisible.</span></div>`;
   if(L.length){
     h+=`<div class="sumblock">${L.map((x,i)=>`<div class="row"><div class="nm">${esc(x.n)}</div><div class="rx">${x.sets}×${esc(x.reps||"—")}${x.lb?` · ${esc(x.lb)} lb`:""}</div>${editable?`<button class="mini" onclick="sunLogDel('${dISO}',${i})">×</button>`:""}</div>`).join("")}</div>`;
   }
@@ -2701,6 +2749,10 @@ function gmbRowsFor(cls,dur,dISO){
   if(isFF(cls))return ffRows(cls,dur);
   return gmbVersion(cls,dur,dISO).c;
 }
+/* v11.35 (P) — the movement list, shared by the GMB tab and the Today card. */
+function gmbListHTML(cls,dur,dISO){const c=gmbRowsFor(cls,dur,dISO);
+  return [["P","Prepare"],["R","Practice"],["Y","Play"]].map(([k,lab])=>`<div class="klabel">${lab}</div>`+
+    c[k].map(m=>`<div class="row">${thumbImg(m[0],"width:72px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;flex:0 0 auto")}<div class="nm">${m[0]}</div><div class="rx">${fmtT(m[1])}${m[2]?"/side":""}</div></div>`).join("")).join("");}
 function gmbThumbFor(base){
   if(FF_THUMB[base])return FF_THUMB[base];
   const id=GMB_THUMB_NAME[base];return id?GMB_THUMB[id]:null;
@@ -2766,15 +2818,247 @@ function ffHowtoHTML(cls){return FF_ROUTINES[cls].stretches.map(([n])=>{const h=
 function ffCard(w,dow,dISO,editable){
   if(dow!==6||(ISO_RE.test(dISO||"")&&dISO<FF_FROM))return "";
   const cls="FF Grappling",mins=ffMinutes(cls,30);
+  /* v11.35 (P) — on 09-27 he skipped this because he did not know the two "combined motions". The how-to
+     existed, but inside <details class="why">: compact mode (the default) hides every .why element and the
+     per-card "why" button re-shows div/span/i only, so the how-to was unreachable. The class is gone from
+     both FF how-to blocks, and this one opens by default until the routine has been ticked once. */
+  const everFF=Object.keys(Z.done||{}).some(k=>Z.done[k]&&Z.done[k].ffg);
   return `<div class="card spine"><h3>Get Flex &amp; Chill — Grappling (after BJJ) <span class="tiertag T3">T3</span></h3>
   <div class="meta">Full protocol, ${FF_ROUTINES[cls].rounds.full} rounds per stretch and side, ~${mins} min on the timer. <span class="why">${FF_ROUTINES[cls].why} Complements Markow's spine work (CARs, rotation, ribcage) rather than repeating it; if the afternoon is short, Markow's own minimum-dose line covers that.</span></div>
   ${FF_ROUTINES[cls].stretches.map(([n,ps])=>`<div class="row"><div class="nm">${n}</div><div class="rx">${ps?"per side":"both"}</div></div>`).join("")}
-  <details class="why"><summary class="mini">How to perform each stretch (FF library)</summary>${ffHowtoHTML(cls)}</details>
+  <details${everFF?"":" open"}><summary class="mini">How to perform each stretch (FF library)</summary>${ffHowtoHTML(cls)}</details>
   ${editable?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button class="btn sm sec" onclick="Z.gmb.dur=30;save();gmbStart('FF Grappling')">Run on the timer →</button></div>`:""}
   ${editable?`<div style="margin-top:8px">${ckHTML(dISO,"ffg")}<span class="mini" style="margin-left:8px">Done</span></div>${rpeHTML(dISO,"ffg")}`:""}</div>`;
 }
 
 /* ======================= end v11.34 additions ======================= */
+
+/* ======================= v11.35 additions (2026-10-04) =======================
+   Brief: handoffs/2026-10-04-brief-v11.35-build.md. Design: drafts/v11.35-miss-handling-2026-10-04.md.
+   Every stored key below is ADDITIVE: Z.skillLog, Z.skillSeq, Z.rideType, Z.sunRx, Z.gload, Z.ineck,
+   Z.yinAsk, and done[d].ineck. Nothing in Z.done or Z.aeroLog is migrated or re-dated. */
+const escA=t=>esc(t).replace(/"/g,"&quot;");
+
+/* ---------- K · THE SKILL-SESSION LOG ----------
+   Before this, weekly skill was done.kick + done.bjj and nothing else, load was RPE × a fixed 61 / 60 min
+   whatever the session ran, and a bag or drilling session counted for nothing. Robert's rules, 2026-10-04:
+   any boxing / kickboxing / BJJ class on any day is a skill session (1.0); solo work counts as a fraction
+   of a class, and only at SOLO_SKILL_MIN minutes or more; striking and footwork are separate line items.
+   SOLO_SKILL_W is one constant so 0.75 is a one-line change (he gave 0.5 or 0.75; 0.5 confirmed at build).
+   Skill LOAD is unweighted: actual minutes × session RPE for every entry, credit or not.
+   `hard` (minutes above the gate) on an entry writes the cardio record, so one entry serves both; that
+   record carries r.sk = the entry id and no RPE, so it can never be loaded twice. */
+const SKILL_TYPES={
+ kick_class:{n:"Kickboxing class",disc:"striking", fmt:"live",aero:"kick",anchor:"kick"},
+ bjj_class: {n:"BJJ class",       disc:"grappling",fmt:"live",aero:"bjj", anchor:"bjj"},
+ box_class: {n:"Boxing class",    disc:"striking", fmt:"live",aero:"box"},
+ bag:       {n:"Heavy bag",       disc:"striking", fmt:"solo",aero:"bag"},
+ shadow:    {n:"Shadow boxing",   disc:"striking", fmt:"solo",aero:"solo"},
+ striking:  {n:"Striking drills", disc:"striking", fmt:"solo",aero:"solo"},
+ footwork:  {n:"Footwork",        disc:"striking", fmt:"solo",aero:"solo"},
+ bjj_drill: {n:"BJJ drilling",    disc:"grappling",fmt:"solo",aero:"solo"},
+ bjj_dummy: {n:"BJJ dummy",       disc:"grappling",fmt:"solo",aero:"solo"}};
+const SOLO_SKILL_MIN=30, SOLO_SKILL_W=0.5;
+const SKILL_SHORT_MIN=60;   /* planner minutes at or under which the solo menu opens by default */
+const ANCHOR_DOW={kick:4,bjj:6};   /* the two T1 anchors: Friday kickboxing, Sunday BJJ */
+function skillRecOK(r){return !!r&&typeof r==="object"&&ISO_RE.test(r.date||"")&&!!SKILL_TYPES[r.type]&&isFinite(Number(r.mins))&&Number(r.mins)>0;}
+function skillLogAll(){return Array.isArray(Z.skillLog)?Z.skillLog.map((r,i)=>({r,i})).filter(o=>skillRecOK(o.r)):[];}
+function skillCreditOf(r){return SKILL_TYPES[r.type].fmt==="live"?1:(Number(r.mins)>=SOLO_SKILL_MIN?SOLO_SKILL_W:0);}
+/* An entry that IS that week's anchor session (a kickboxing class on the Friday, a BJJ class on the Sunday). */
+function skillIsAnchor(r){const a=SKILL_TYPES[r.type].anchor;return !!a&&dayIdx(new Date(r.date+"T00:00:00"))===ANCHOR_DOW[a];}
+/* Week totals. A ticked kick / bjj with no log entry for that date still counts 1.0: history and the quick path. */
+function weekSkill(dISO){
+  const days=weekBounds(dISO);let credit=0,load=0,n=0,rated=0;const split={striking:0,grappling:0,live:0,solo:0},has={};
+  skillLogAll().forEach(({r})=>{if(days.indexOf(r.date)<0)return;const t=SKILL_TYPES[r.type];
+    credit+=skillCreditOf(r);n++;has[r.date+"|"+r.type]=true;
+    if(r.rpe!=null){const l=Number(r.mins)*Number(r.rpe);load+=l;rated++;split[t.disc]+=l;split[t.fmt]+=l;}});
+  days.forEach(k=>{const c=Z.done[k]||{};if(c.kick&&!has[k+"|kick_class"])credit+=1;if(c.bjj&&!has[k+"|bjj_class"])credit+=1;});
+  Object.keys(split).forEach(k=>split[k]=Math.round(split[k]));
+  return {credit,load:Math.round(load),n,rated,split};
+}
+/* SUBSTITUTION (his answer at build, 2026-10-04: yes, both close it). A missed Friday / Sunday anchor is
+   closed by any OTHER class, or a solo session that earns credit, in the same block week. One session
+   closes one anchor, in date order, so a single bag session cannot close both. `beforeISO` is the cursor:
+   only anchors on days already past can be missed. */
+function skillSubsFor(weekISO,beforeISO){
+  const days=weekBounds(weekISO);
+  const subs=skillLogAll().map(o=>o.r).filter(r=>days.indexOf(r.date)>=0&&!skillIsAnchor(r)&&skillCreditOf(r)>0)
+    .sort((a,b)=>a.date<b.date?-1:(a.date>b.date?1:0));
+  const out={};let j=0;
+  days.forEach(k=>{if(k>=beforeISO||k<progStart())return;const dw=dayIdx(new Date(k+"T00:00:00")),c=Z.done[k]||{};
+    ["kick","bjj"].forEach(a=>{if(ANCHOR_DOW[a]===dw&&!c[a]&&j<subs.length)out[k+"|"+a]=subs[j++];});});
+  return out;
+}
+function isSubstituted(m,dISO){return (m.blk==="kick"||m.blk==="bjj")&&!!skillSubsFor(m.date,dISO)[m.date+"|"+m.blk];}
+function skillAdd(date,type,mins,rpe,hard,inst,note){
+  if(!ISO_RE.test(date||"")||!SKILL_TYPES[type])return false;
+  const m=Number(mins);if(mins===""||mins==null||!isFinite(m)||m<=0)return false;
+  const R=(rpe===""||rpe==null)?null:Number(rpe);
+  const H=(hard===""||hard==null)?0:Number(hard);
+  if(!isFinite(H)||H<0||H>m)return "hard";      /* minutes above the gate are inside the session, never more than it */
+  if(!Array.isArray(Z.skillLog))Z.skillLog=[];
+  Z.skillSeq=(Number(Z.skillSeq)||0)+1;const id=Z.skillSeq,T=SKILL_TYPES[type];
+  const ins=(inst&&AERO_INST[inst])?inst:null;
+  Z.skillLog.push({id,date,type,mins:m,rpe:(R!=null&&isFinite(R)&&R>=0&&R<=10)?R:null,hard:H>0?H:null,inst:ins,note:String(note||"").trim().slice(0,400),ts:todayISO()});
+  /* the Friday / Sunday class logged here is the anchor: tick it, exactly as G does for the Sunday lift */
+  if(T.anchor&&dayIdx(new Date(date+"T00:00:00"))===ANCHOR_DOW[T.anchor]){Z.done[date]=Z.done[date]||{};Z.done[date][T.anchor]=true;}
+  if(H>0&&aeroAdd(date,H,null,T.aero,null,ins,null,null)===true)Z.aeroLog[Z.aeroLog.length-1].sk=id;
+  save();render();return true;
+}
+/* Removing an entry removes the cardio record it wrote (aeroUnlog subtracts exactly what was added). The tick stays. */
+function skillDel(i){
+  if(!Array.isArray(Z.skillLog)||!Z.skillLog[i])return;
+  const id=Z.skillLog[i].id;Z.skillLog.splice(i,1);
+  const j=(id!=null&&Array.isArray(Z.aeroLog))?Z.aeroLog.findIndex(a=>a&&a.sk===id):-1;
+  if(j>=0){aeroUnlog(j);return;}
+  save();render();
+}
+function skillAddFromForm(dISO){
+  const g=id=>{const e=document.getElementById(id);return e?e.value:"";};
+  const res=skillAdd(dISO,g("skType"),g("skMin"),g("skRPE"),g("skHard"),g("skInst"),g("skNote"));
+  if(res==="hard"){alert("Minutes above the gate cannot be more than the session's minutes.");return;}
+  if(!res){alert("Pick a session type and enter how many minutes it ran.");return;}
+}
+function skPick(type){try{const t=document.getElementById("skType"),m=document.getElementById("skMin");
+  if(t)t.value=type;if(m&&!m.value)m.value=String(SOLO_SKILL_MIN);}catch(e){}}
+const fmtCredit=c=>(Math.round(c*100)/100).toString();
+function skillLogCard(dISO,editable){
+  if(!editable||!ISO_RE.test(dISO||""))return "";
+  const W=weekSkill(dISO),H=hrThreshold();
+  const mine=skillLogAll().filter(o=>o.r.date===dISO);
+  const solo=Object.keys(SKILL_TYPES).filter(k=>SKILL_TYPES[k].fmt==="solo");
+  let h=`<div class="card spine"><h3>Skill session — log it <span class="tiertag T3">log</span></h3>
+  <div class="meta">Any boxing, kickboxing or BJJ class on any day is a skill session. Solo work counts when it runs ${SOLO_SKILL_MIN}+ minutes. This week: <b>${fmtCredit(W.credit)}</b> skill credit${W.n?` · ${W.n} logged · skill load ${W.load}`:""}. <span class="why">Class = 1.0. Solo ${SOLO_SKILL_MIN}+ min = ${SOLO_SKILL_W} [INF]: two solo sessions equal one class, because there is no reacting opponent. Shorter solo work is logged and loaded but earns no credit. Load is actual minutes × RPE, unweighted. A class logged here on its Friday or Sunday ticks the anchor; a tick alone still counts 1.0.</span></div>`;
+  if(mine.length)h+=mine.map(({r,i})=>{const t=SKILL_TYPES[r.type],c=skillCreditOf(r);
+    return `<div class="row"><div class="nm">${t.n}<div class="sup">${r.mins} min${r.rpe!=null?` · RPE ${r.rpe}`:""}${r.hard?` · ${r.hard} min ≥${H.t4}`:""} · ${t.disc}, ${t.fmt} · credit ${fmtCredit(c)}${r.note?` · ${esc(r.note)}`:""}</div></div><button class="btn sm sec" onclick="skillDel(${i})">Remove</button></div>`;}).join("");
+  const short=!!(Z.avail&&Z.avail<=SKILL_SHORT_MIN);   /* the planner is set to an hour or less */
+  h+=`<details${short?" open":""}><summary class="mini">${short?"Short on time — the solo menu, and the entry form":"Log a session, or pick from the solo menu"}</summary>
+  <div class="seg" style="margin:8px 0;flex-wrap:wrap">${solo.map(k=>`<button onclick="skPick('${k}')">${SKILL_TYPES[k].n}</button>`).join("")}</div>
+  <div class="mini" style="margin-bottom:6px">Six solo options, ${SOLO_SKILL_MIN} minutes each as the default. Tap one to fill the form; change the minutes to what it actually ran.</div>
+  <div class="grid2">
+   <div><label class="f">Session</label><select id="skType"><option value="">—</option><optgroup label="Class (live)">${Object.keys(SKILL_TYPES).filter(k=>SKILL_TYPES[k].fmt==="live").map(k=>`<option value="${k}">${SKILL_TYPES[k].n}</option>`).join("")}</optgroup><optgroup label="Solo">${solo.map(k=>`<option value="${k}">${SKILL_TYPES[k].n}</option>`).join("")}</optgroup></select></div>
+   <div><label class="f">Minutes it ran</label><input type="number" inputmode="decimal" id="skMin" placeholder="actual"></div>
+   <div><label class="f">Session RPE</label><select id="skRPE"><option value="">—</option>${[1,2,3,4,5,6,7,8,9,10].map(v=>`<option value="${v}">${v}</option>`).join("")}</select></div>
+   <div><label class="f">Min above ${H.t4} (optional)</label><input type="number" inputmode="decimal" id="skHard" placeholder="writes the cardio record"></div>
+   <div><label class="f">Instrument</label><select id="skInst">${Object.keys(AERO_INST).map(k=>`<option value="${k}">${AERO_INST[k]}</option>`).join("")}</select></div>
+   <div><label class="f">Note (optional)</label><input type="text" id="skNote" placeholder="what you worked on"></div>
+  </div>
+  <div style="margin-top:8px"><button class="btn sm" onclick="skillAddFromForm('${dISO}')">Add for ${fmtD(dISO)}</button></div></details></div>`;
+  return h;
+}
+
+/* ---------- A–D · WHAT IS OPEN, AND WHAT WAS KEPT ----------
+   scanMissed() is unchanged and still feeds waveHolds() (14 d), domainDrift() (21 d) and chaosWeek() (7 d).
+   What changed is what the Today card LISTS:
+     A  T3 is never listed as missed. It shows as a neutral weekly count.
+     C  T1 is listed for 48 h (the displace window), T2 until the Monday boundary, nothing from before the
+        current block week, and a substituted anchor (K) not at all. */
+function scanOpen(dISO){
+  const ws=weekBounds(dISO)[0];
+  return scanMissed(dISO,7).filter(m=>m.tier!=="T3"&&m.date>=ws&&(m.tier!=="T1"||m.age<=2)&&!isSubstituted(m,dISO));
+}
+const T3LBL={yin:"yin",gmb:"GMB",groin:"groin",mkup:"Markow upper",throws:"throws"};
+function t3Blocks(){const s=[];Object.keys(EXPECT).forEach(d=>EXPECT[d].forEach(([b,t])=>{if(t==="T3"&&s.indexOf(b)<0)s.push(b);}));return s;}
+function weekT3Counts(dISO){const o={};t3Blocks().forEach(b=>o[b]=0);
+  weekBounds(dISO).forEach(k=>{const c=Z.done[k]||{};t3Blocks().forEach(b=>{if(c[b])o[b]++;});});return o;}
+function t3Line(dISO){const c=weekT3Counts(dISO);return ["yin","gmb","groin","mkup","throws"].filter(b=>c[b]!=null).map(b=>`${T3LBL[b]||b} ${c[b]}`).join(" · ")+" this week";}
+/* B — T1 this block week, through the cursor day. Today's own T1 is not due until the day is over, so it
+   appears only once ticked. */
+function weekKept(dISO){
+  const days=weekBounds(dISO),subs=skillSubsFor(dISO,dISO),parts=[];let sd=0,se=0;
+  days.forEach(k=>{if(k>dISO||k<progStart())return;const dw=dayIdx(new Date(k+"T00:00:00")),c=Z.done[k]||{};
+    (EXPECT[dw]||[]).forEach(([b,t])=>{if(t!=="T1")return;const on=!!c[b];
+      if(k===dISO&&!on)return;
+      if(b==="str"){se++;if(on)sd++;return;}
+      const s=subs[k+"|"+b];
+      parts.push(`${BLK[b]||b} ${on?"✓":(s?`substituted (${SKILL_TYPES[s.type].n}, ${DOWN[dayIdx(new Date(s.date+"T00:00:00"))]})`:"not done")}`);});});
+  if(se)parts.unshift(`Strength ${sd}/${se}`);
+  return parts;
+}
+
+/* ---------- J · BASE-RIDE TYPE, PER DATE ---------- */
+const TRUE_Z2_FROM_WK=6;   /* zero-indexed: from week 7, one true Zone 2 ride a week, his pick of Tue or Sat */
+function rideTypeOf(dISO){const v=(Z.rideType||{})[dISO];return (v==="z2"||v==="tempo")?v:null;}
+function setRideType(dISO,v){Z.rideType=Z.rideType||{};if(Z.rideType[dISO]===v)delete Z.rideType[dISO];else Z.rideType[dISO]=v;save();render();}
+/* Why true Zone 2 is the suggestion today, or null. A prompt, never a switch: the selector stays his. */
+function rideSuggest(dISO,w){
+  if(!ISO_RE.test(dISO||""))return null;
+  if(isDown())return "down-week";
+  if(isDeloadWeek(w))return "week 6 deload";
+  if(gateOv(dISO))return null;
+  const r=readiness(dISO),rec=whoopReady(dISO);
+  if(r!==null&&r<=3)return "readiness "+r;
+  if(rec!=null&&rec<REC_GATE)return "Whoop recovery "+rec+"%";
+  return null;
+}
+function trueZ2Week(dISO){
+  const days=weekBounds(dISO);let done=null,chosen=null;
+  aeroLogAll().forEach(({r})=>{if(days.indexOf(r.date)>=0&&r.mode==="z2true"&&Number(r.z2)>0)done=done||r.date;});
+  days.forEach(k=>{if(rideTypeOf(k)!=="z2")return;const dw=dayIdx(new Date(k+"T00:00:00")),c=Z.done[k]||{};
+    if((dw===1&&c.cond_tue)||(dw===5&&c.cond_sat))done=done||k;else if(dw===1||dw===5)chosen=chosen||k;});
+  return {done,chosen};
+}
+function baseWeekCard(dISO){
+  const w=calWeekOf(dISO),wk=weekBounds(dISO),mins=wk.reduce((a,k)=>a+((Z.z2||{})[k]||0),0);
+  let row="";
+  if(w!=null&&w>=TRUE_Z2_FROM_WK){const t=trueZ2Week(dISO);
+    row=`<div class="row"><div class="nm">True Zone 2 ride this week<div class="sup">From week 7, one of the two base rides is true Zone 2. Tuesday or Saturday, your pick each week.</div></div><div class="rx" style="color:${t.done?"var(--ok,#3a7)":"var(--dim,#777)"}">${t.done?"done · "+fmtD(t.done):(t.chosen?"chosen · "+fmtD(t.chosen):"not yet")}</div></div>`;}
+  return `<div class="card"><h3>Aerobic base <span class="chip ghost">minutes</span></h3>
+  <div class="row"><div class="nm">Base minutes this week<div class="sup">PZ Endurance (tempo) and true Zone 2 together. Stored as before; nothing logged earlier is relabelled.</div></div><div class="rx"><b>${mins}</b> min</div></div>${row}</div>`;
+}
+
+/* ---------- I · "YIN LAST NIGHT?" ----------
+   The yin timer runs on the iPad and the log lives on the iPhone; the two share no state, and sync stays
+   deferred. So the phone asks once in the morning. One tap writes done[yesterday].yin. It also covers the
+   after-midnight tick that landed on the wrong date (09-25). Yin stays nightly; this is a logging fix. */
+function yinAskOn(dISO){
+  if(!ISO_RE.test(dISO||""))return false;const y=isoBack(dISO,1);
+  return y>=progStart()&&!(Z.done[y]||{}).yin&&!(Z.yinAsk||{})[dISO];
+}
+function yinYesterday(dISO,did){
+  if(did){const y=isoBack(dISO,1);Z.done[y]=Z.done[y]||{};Z.done[y].yin=true;}
+  else{Z.yinAsk=Z.yinAsk||{};Z.yinAsk[dISO]=true;}
+  save();render();
+}
+function yinAskHTML(dISO){
+  if(!yinAskOn(dISO))return "";const y=isoBack(dISO,1);
+  return `<div class="row" style="margin-bottom:8px"><div class="nm">Yin last night?<div class="sup">${fmtD(y)} has no yin tick. One tap records it on that date.</div></div><button class="btn sm" onclick="yinYesterday('${dISO}',true)">Yes</button><button class="btn sm sec" style="margin-left:6px" onclick="yinYesterday('${dISO}',false)">No</button></div>`;
+}
+
+/* ---------- N · OPTIONAL LOAD ON THE GLUTE ROWS ---------- */
+function setGload(dISO,key,v){Z.gload=Z.gload||{};Z.gload[dISO]=Z.gload[dISO]||{};
+  const s=String(v==null?"":v).trim().slice(0,24);if(s==="")delete Z.gload[dISO][key];else Z.gload[dISO][key]=s;save();render();}
+function gloadLast(dISO,key){const ks=Object.keys(Z.gload||{}).filter(k=>k<dISO).sort();
+  for(let j=ks.length-1;j>=0;j--){const x=(Z.gload[ks[j]]||{})[key];if(x)return x;}return null;}
+function gloadInp(dISO,key){const cur=((Z.gload||{})[dISO]||{})[key]||"",last=gloadLast(dISO,key);
+  return `<input class="win" style="width:92px" type="text" placeholder="${escA(last||"band / lb")}" value="${escA(cur)}" onchange="setGload('${dISO}','${key}',this.value)">`;}
+
+/* ---------- O · IRON NECK ----------
+   Robert, 2026-10-04: an optional row on every day; load is hard to tag, so none is tracked and it feeds no
+   volume bucket. His progression rule, as he stated it from the Iron Neck guidance: ramp up, and advance a
+   stage once he is holding 3–4 sessions a week at 40 s per movement. Not in EXPECT — it can never be missed. */
+const INECK_SESS=3, INECK_SEC=40;
+function setIneck(dISO,f,v){Z.ineck=Z.ineck||{};Z.ineck[dISO]=Z.ineck[dISO]||{};
+  if(f==="sec"){const n=Number(v);if(v===""||v==null||!isFinite(n)||n<=0)delete Z.ineck[dISO].sec;else Z.ineck[dISO].sec=n;}
+  else{const s=String(v==null?"":v).trim().slice(0,60);if(s==="")delete Z.ineck[dISO].note;else Z.ineck[dISO].note=s;}
+  save();render();}
+function ineckWeek(dISO){const days=weekBounds(dISO).filter(k=>(Z.done[k]||{}).ineck);
+  const secs=days.map(k=>((Z.ineck||{})[k]||{}).sec).filter(x=>x!=null);
+  return {n:days.length,secs,ready:days.length>=INECK_SESS&&secs.length===days.length&&secs.every(s=>s>=INECK_SEC)};}
+function ironNeckCard(dISO,editable){
+  if(!editable||!ISO_RE.test(dISO||""))return "";
+  const W=ineckWeek(dISO),cur=(Z.ineck||{})[dISO]||{};
+  const ks=Object.keys(Z.ineck||{}).filter(k=>k<dISO&&(Z.ineck[k].sec||Z.ineck[k].note)).sort(),last=ks.length?Z.ineck[ks[ks.length-1]]:null;
+  return `<div class="card spine"><h3>Iron Neck (optional) <span class="tiertag T3">log</span></h3>
+  <div class="meta"><b>${W.n}</b> session${W.n===1?"":"s"} this week${last?` · last: ${last.sec?last.sec+" s per movement":"no time logged"}${last.note?" · "+esc(last.note):""}`:""}. Never counted as missed. <span class="why">Your rule (2026-10-04, from the Iron Neck guidance as you described it): ramp up, and move to the next stage once you are holding ${INECK_SESS}–4 sessions a week at ${INECK_SEC} s per movement. No load is tracked — band resistance is hard to tag — and it feeds no volume bucket.</span></div>
+  <div class="grid2">
+   <div><label class="f">Seconds per movement</label><input type="number" inputmode="numeric" value="${cur.sec??""}" onchange="setIneck('${dISO}','sec',this.value)"></div>
+   <div><label class="f">Stage / note</label><input type="text" value="${escA(cur.note||"")}" placeholder="e.g. stage 1, light band" onchange="setIneck('${dISO}','note',this.value)"></div>
+  </div>
+  ${W.ready?`<div class="mini" style="margin-top:6px;color:var(--good)">${W.n} sessions this week, each at ${INECK_SEC}+ s per movement: your own criterion for the next stage is met.</div>`:""}
+  <div style="margin-top:8px">${ckHTML(dISO,"ineck")}<span class="mini" style="margin-left:8px">Done</span></div></div>`;
+}
+/* ======================= end v11.35 additions ======================= */
 /* ================= TABS ================= */
 /* v11.25 — CARDIO joins the tab strip, between Week and GMB.
    Layer 1 (the hard-aerobic maintenance floor) and Layer 2 (the VO2max block) used to render
@@ -2835,8 +3119,12 @@ function regBanner(dISO){
   const r=readiness(dISO);let h="";
   const dow=dayIdx(new Date(dISO+"T00:00:00")), plyoDay=[0,3,5].includes(dow);   /* v11.34: plyo copy only where plyos exist */
   const ov=gateOv(dISO);
-  if(downSuggest()&&!isDown()){
-    h+=`<div class="banner amber"><b>Readiness trend is down.</b> ≥3 declining days or 5-day avg &lt;3. Suggest a self-directed down-week: barbell base stays as written, everything the app owns offloads — trim non-Biolayne volume 40–50%, Z2 only, easy GMB, light core, no plyos. <button class="btn sm red" style="margin-top:6px" onclick="startDown()">Start 7-day down-week</button></div>`;
+  /* v11.35 (E) — an OFFER, not an instruction. Teal, a plain button, says what it protects and that declining
+     is fine. Hidden on a day he has overridden the gates (he has already said how he feels), and it names the
+     disagreement when Whoop reads green, so the two cards cannot contradict each other silently. It renders
+     here, under the readiness buttons; the open-items card now sits below the morning card, not next to it. */
+  if(downSuggest(dISO)&&!isDown()&&!ov){const T=downTrend(dISO),rec=whoopReady(dISO);
+    h+=`<div class="banner teal"><b>A down-week is on offer.</b> ${T.low>=DOWN_NEED?`Readiness was ${DOWN_LOW} or lower on ${T.low} of the last ${DOWN_WIN} days.`:`Readiness has fallen three days running and is at ${T.v[T.v.length-1]}.`} Seven days: the barbell work stays as written and everything the app owns offloads — accessory volume down 40–50%, base rides at true Zone 2, easy GMB, light core, no plyos. It protects the heavy sets and the weeks behind them. Declining is fine: nothing changes, and the same-day readiness gate still handles a single low morning.${rec!=null&&rec>=REC_GREEN?` Whoop reads ${rec}% today; this offer comes from your own 1–5 trend, which Whoop does not see.`:""}<br><button class="btn sm sec" style="margin-top:6px" onclick="startDown()">Start 7-day down-week</button></div>`;
   }
   if(isDown())h+=`<div class="banner teal"><b>Down-week through ${Z.down.until}.</b> App-owned volume trimmed. Barbell base unchanged (source of truth). <button class="btn sm sec" onclick="endDown()">End early</button></div>`;
   if(ov)h+=`<div class="banner teal"><b>Gates overridden today${r!==null?` (readiness ${r} logged)`:""}.</b> Readiness and Whoop brakes are off for ${fmtD(dISO)} — your call, recorded. ${isDown()?"The down-week still applies; it is not a readiness gate.":""}</div>`;
@@ -2958,7 +3246,6 @@ function lastLoadTag(exKey,beforeISO){
    So this number is an ORDINAL marker for progression, not a real load. It is
    deliberately kept out of barbell tonnage and out of the volume model's load math.
    Sets still count normally toward the horizontal glute vector. */
-const BS_BANDS=[45,70];
 function bsLoad(c){return (c.b45||0)*45+(c.b70||0)*70;}
 function bsLabel(c){const p=[];if(c.b45)p.push(`${c.b45}×45`);if(c.b70)p.push(`${c.b70}×70`);
   return p.length?p.join(" + ")+` = ${bsLoad(c)} lb nominal`:"no bands set";}
@@ -2996,38 +3283,46 @@ function bootyRow(dISO,s,r,rir,editable){
 }
 /* ===== Missed-session triage card ===== */
 function chaosCard(dISO){
-  const missed=scanMissed(dISO,7),holds=waveHolds(dISO),drift=domainDrift(dISO),chaos=chaosWeek(dISO);
-  if(!missed.length&&!holds.length&&!drift.length)
-    /* v11.13: one line, not a card. It occupied a full card slot above the session purely
-       to report that there was nothing to report. */
-    return `<div class="mini" style="padding:2px 14px 6px;opacity:.65">Nothing missed in the last 7 days. When something is, the plan for it appears here \u2014 the default is to absorb it, not make it up.</div>`;
-  let h=`<div class="card spine ${chaos?"t1":"t2"}"><h3>Missed work — what to actually do</h3>`;
+  /* v11.35 (A–D) — THE CARD LEADS WITH WHAT WAS KEPT, AND LISTS ONLY WHAT IS STILL OPEN.
+     Robert, 2026-10-04: the red "Missed work" card read as punishment, and it sat above a fortnight with
+     every strength, power and core session done (09-21 → 10-03: T1 misses zero; yin 7 of 13). It never
+     emptied because yin and GMB are expected daily. Now: T3 is a neutral weekly count, T1 is listed for 48 h,
+     T2 until Monday, nothing from before the current block week, and red is not used at all — `.banner.red`
+     is reserved for pain and safety gates. The wave-hold (14 d) and domain-drift (21 d) rules keep their own
+     windows and still read every tier. The makeup rule stands: nothing here tells him not to catch up. */
+  const open=scanOpen(dISO),holds=waveHolds(dISO),drift=domainDrift(dISO),chaos=chaosWeek(dISO);
+  const kept=weekKept(dISO),t3=t3Line(dISO);
+  const keptTxt=kept.length?`T1 kept this week: <b>${kept.join(" · ")}</b>`:`T1 this week: nothing due yet`;
+  if(!open.length&&!holds.length&&!drift.length&&!chaos)
+    /* v11.13: one line, not a card, when there is nothing to act on. */
+    return `<div class="mini" style="padding:2px 14px 6px;opacity:.65">${keptTxt}. Nothing open. ${t3}.</div>`;
+  let h=`<div class="card spine t2"><h3>Kept and open — this week</h3>
+  <div class="row"><div class="nm">${keptTxt}</div></div>`;
 
   if(chaos){
-    h+=`<div class="banner red"><b>Chaos week.</b> ${missed.length} sessions missed in 7 days. <b>Do not try to catch any of it up.</b>
-    Run T1 only for the next 7 days: strength mains, Friday kickboxing, Sunday BJJ, protein. Everything else is optional.
-    <br><b>Low-readiness swap, home edition:</b> not machines \u2014 you do not own any. Drop to the <b>maintenance dose</b>: one heavy triple at \u226580%, skip the back-offs, done in ~12 minutes. That provably holds the lift for weeks (Spiering 2021). If even that is wrong, trap bar instead of box squat drops the technical and spinal demand without dropping load.
-    Then resume the calendar where it stands. The block still ends on schedule.</div>`;
+    const n=scanMissed(dISO,7).filter(x=>x.tier!=="T3"&&!isSubstituted(x,dISO)).length;
+    h+=`<div class="banner teal" style="margin-top:8px"><b>Short week: T1 is the whole plan.</b> ${n} T1/T2 sessions went unticked in the last 7 days. For the next few days the plan is the T1 list — strength mains, Friday kickboxing, Sunday BJJ, protein — and everything else is optional.
+    <br><span class="mini"><b>An option if a lift day is tight:</b> the maintenance dose. One heavy triple at \u226580%, skip the back-offs, about 12 minutes. That holds the lift for weeks (Spiering 2021). Trap bar instead of box squat drops the technical and spinal demand without dropping load.</span></div>`;
   }
 
-  const t1=missed.filter(m=>m.tier==="T1"),t2=missed.filter(m=>m.tier!=="T1");
-  if(t1.length&&!chaos){
-    h+=`<div class="klabel" style="margin-top:8px">T1 missed — the only tier worth displacing</div>`;
+  const t1=open.filter(m=>m.tier==="T1"),t2=open.filter(m=>m.tier!=="T1");
+  if(t1.length){
+    h+=`<div class="klabel" style="margin-top:8px">Open T1 — listed for 48 h</div>`;
     t1.forEach(m=>{
-      const tg=displaceTargets(m.blk,m.dow);
-      const fresh=m.age<=2;
+      const tg=displaceTargets(m.blk,m.dow),anchor=(m.blk==="kick"||m.blk==="bjj");
       h+=`<div class="row"><div class="nm">${BLK[m.blk]||m.blk} · ${DOWN[m.dow]} ${m.date}
-      <div class="sup">${fresh
-        ? (tg.length?`Displace once into <b>${tg.join(" or ")}</b>, replacing that day's T3 work. Never stack it on top of a full day.`
-                    :`No safe slot this week without colliding with a heavy lower day or an anchor. <b>Absorb it.</b>`)
-        : `More than 48 h old. <b>Absorb it</b> — the stimulus window has passed and catching up now just costs recovery.`}</div></div></div>`;
+      <div class="sup">${anchor
+        ? `Any other class this week, or a solo session of ${SOLO_SKILL_MIN}+ minutes, closes this as substituted — log it under <b>Skill session</b>. Otherwise it leaves this list after 48 h.`
+        : (tg.length?`Can move once into <b>${tg.join(" or ")}</b>, in place of that day's T3 work. Otherwise it leaves this list after 48 h.`
+                    :`No slot this week that avoids a heavy lower day or an anchor. It leaves this list after 48 h.`)}</div></div></div>`;
     });
   }
-  if(t2.length&&!chaos){
-    h+=`<div class="klabel" style="margin-top:10px">T2/T3 missed — absorb, no action</div>
+  if(t2.length){
+    h+=`<div class="klabel" style="margin-top:10px">Open T2 — clears Monday</div>
     <div class="row"><div class="nm">${t2.map(m=>`${BLK[m.blk]||m.blk} (${DOWN[m.dow]})`).join(" · ")}
-    <div class="sup">Not made up. One missed accessory or mobility session costs almost nothing; a week spent catching up costs more. Nothing repeats.</div></div></div>`;
+    <div class="sup">No action needed. If you do one later, tick it on its own date with the date bar and it leaves this list.</div></div></div>`;
   }
+  h+=`<div class="mini" style="margin-top:10px">${t3}. <span class="why">T3 is a count, never a miss.</span></div>`;
 
   if(holds.length){
     h+=`<div class="banner amber" style="margin-top:10px"><b>Wave hold — ${holds.join(", ").toUpperCase()}.</b>
@@ -3038,10 +3333,11 @@ function chaosCard(dISO){
   drift.forEach(d=>{
     h+=`<div class="banner teal" style="margin-top:10px"><b>${DOMAIN[d.dom]} is at ${d.pct}% over 3 weeks.</b>
     That is not a discipline problem, it is a dose or a slot problem. Two honest options: move it to a different day, or drop it to the short version permanently and actually hit it.
+    ${d.dom==="downreg"?`<br><span class="mini">Part of a low yin count can be logging: the timer runs on the iPad and the log is here. The morning "Yin last night?" tap records it on the right date.</span>`:""}
     ${d.dom==="hip"?`<br><button class="btn sm" style="margin-top:6px" onclick="mkDefaultMed()">Make Markow default to the short version</button>`:""}</div>`;
   });
 
-  h+=`<div class="mini why" style="margin-top:10px"><b>Why most of this says absorb.</b> The app schedules no deloads of its own beyond Biolayne's written week 6 — readiness logging is the only brake. If you choose to make something up anyway, that is your call: log it on the day you did it with the date bar at the top, and it is scored as work done, not as a deviation.</div></div>`;
+  h+=`<div class="mini why" style="margin-top:10px"><b>How this list works.</b> The app schedules no deloads of its own beyond Biolayne's written week 6 — readiness logging is the only brake. T1 stays listed for 48 h, T2 until Monday, and nothing from an earlier week is carried. If you make something up, log it on its own date with the date bar at the top: it is scored as work done, not as a deviation.</div></div>`;
   return h;
 }
 function mkDefaultMed(){Z.mkMedDefault=true;save();render();}
@@ -3237,7 +3533,7 @@ function aeroAdd(date,mins,z5,mode,z2,inst,hr,rpe){
   const q=(z2===""||z2==null)?null:Number(z2);
   const hasQ=(q!=null&&isFinite(q)&&q>0);
   if(m<=0&&!hasQ)return false;
-  if(mode&&aeroGroupOf(mode)==="z2"&&m>0)return "z2src";   /* v11.34: a Zone 2 source cannot carry gate minutes */
+  if(mode&&TRUE_Z2.indexOf(mode)>=0&&m>0)return "z2src";   /* v11.34: a Zone 2 source cannot carry gate minutes. v11.35: TRUE Zone 2 only — a PZ Endurance tempo ride can */
   Z.aero=Z.aero||{}; Z.aeroZ5=Z.aeroZ5||{}; Z.z2=Z.z2||{}; if(!Array.isArray(Z.aeroLog))Z.aeroLog=[];
   if(m>0)Z.aero[date]=Number(((Z.aero[date]||0)+m).toFixed(2));
   if(z!=null&&isFinite(z)&&z>0)Z.aeroZ5[date]=Number(((Z.aeroZ5[date]||0)+z).toFixed(2));
@@ -3248,6 +3544,8 @@ function aeroAdd(date,mins,z5,mode,z2,inst,hr,rpe){
      and a lift in the evening, no single tag is true, so the day carries none rather than
      claiming the last one entered — which is what it used to do, and what made the rollup wrong.
      Attribution for such a day comes off the session records instead. */
+  /* v11.35 (J) — a logged base ride records which kind it was; the card's selector follows the record. */
+  if(mode==="pzend"||mode==="z2true"){Z.rideType=Z.rideType||{};Z.rideType[date]=(mode==="z2true")?"z2":"tempo";}
   {const ms=aeroSessModes(date);
    if(ms.length===1)setAeroMode(date,ms[0]);
    else if(Z.aeroMode)delete Z.aeroMode[date];}
@@ -3258,8 +3556,8 @@ function aeroAddFromForm(){
   const date=g("aeSessDate")||viewISO();
   let inst="heartgraph";try{const b=document.querySelector('#aeInstSeg button.on');if(b&&b.dataset&&b.dataset.inst)inst=b.dataset.inst;}catch(e){}
   const res=aeroAdd(date,g("aeSessMin"),g("aeSessZ5"),g("aeSessMode"),g("aeSessZ2"),inst,g("aeSessHR"),g("aeSessRPE"));
-  if(res==="z2src"){alert("A Zone 2 source cannot carry minutes above the gate. If the ride went hard, tag it as what it was (Power Zone, PZ Max…); if it was Zone 2, leave the gate box empty.");return;}
-  if(!res){alert("Enter a date and either minutes above the threshold or minutes in Zone 2.");return;}
+  if(res==="z2src"){alert("A true Zone 2 source cannot carry minutes above the gate. If the ride went hard, tag it as what it was (PZ Endurance tempo, Power Zone, PZ Max…); if it was Zone 2, leave the gate box empty.");return;}
+  if(!res){alert("Enter a date and either minutes above the threshold or base minutes.");return;}
   ["aeSessMin","aeSessZ5","aeSessZ2","aeSessHR"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});
 }
 /* Removing a session subtracts what it added, so the day total and the record stay in step.
@@ -3487,7 +3785,7 @@ function whoopCard(dISO){
      the 30-day resting HR moved to the Cardio tab as a calibration constant. Two optional fields he
      actually collects join: Heart Graph morning resting HR (mean + range, 10 min) and the Elite HRV score. */
   return `<div class="card spine t2"><h3>This morning <span class="tiertag T2">T2</span></h3>
-  <div class="grid2">
+  ${yinAskHTML(dISO)}<div class="grid2">
     <div><label class="f">Whoop recovery %</label><input type="number" inputmode="decimal" value="${rec??""}" onchange="setWhoop('${dISO}','rec',this.value)"></div>
     <div><label class="f">Whoop HRV (ms)</label><input type="number" inputmode="decimal" value="${r.hrv??""}" onchange="setWhoop('${dISO}','hrv',this.value)"></div>
     <div><label class="f">Elite HRV score (0–100)</label><input type="number" inputmode="decimal" value="${el??""}" onchange="setElite('${dISO}',this.value)"></div>
@@ -3526,13 +3824,14 @@ function weekScore(dISO){
     if(c.str&&dk==="d4")d4++;
     if(c.sunlift)d4++;                        /* D4 made up at the Sunday social lift — his call 2026-08-03 */
     if(c.markow)hipD++;
-    if(c.kick)skill++; if(c.bjj)skill++;
+    /* v11.35 (K): skill is a CREDIT SUM from weekSkill() below — classes 1.0 on any day, solo 30+ min 0.5 */
     /* v11.34 — a drill-phase Saturday is a DRILL session, not 60 foot contacts (Moran 2024 is jump and
        sprint research). Mon/Thu plyos and Build/Peak Saturday accelerations still count as a block. */
     if(c.plyo){if(dowK===5&&wK!=null&&sprintPhase(wK,k).B.drill)drills++;else plyo+=60;}
     if(aeroQualify((Z.aero||{})[k]))aero++;
   });
   const restore=weeklyRestore(dISO), throws=weeklyThrows(dISO);
+  skill=weekSkill(dISO).credit;
   const st={strength:medStatus("strength",heavy),aerobic:medStatus("aerobic",aero),
             hip:medStatus("hip",hipD),power:medStatus("power",plyo),skill:medStatus("skill",skill)};
   /* Tier. HELD is the literature's maintenance floor — hitting it means you
@@ -3690,25 +3989,25 @@ function aeroCard(dISO){
    const grp=(name,keys)=>`<optgroup label="${name}">${keys.map(m=>`<option value="${m}">${AERO_MODE[m]}</option>`).join("")}</optgroup>`;
    h+=`<div class="card addform" style="margin:8px 0 0;padding:10px 12px">
    <div class="klabel">Log a session — any date</div>
-   <div class="mini" style="margin:4px 0 8px">Every session goes here, on the day it happened. Minutes <b>add</b> into that day. A Zone 2 ride: leave the gate box empty, fill Zone 2. ${wkSess?`<b>${wkSess}</b> logged this week.`:""}</div>
+   <div class="mini" style="margin:4px 0 8px">Every session goes here, on the day it happened. Minutes <b>add</b> into that day. A base ride (PZ Endurance or true Zone 2): put the ride length in base minutes; a tempo ride can also hold minutes above the gate. ${wkSess?`<b>${wkSess}</b> logged this week.`:""}</div>
    <div class="grid2">
     <div><label class="f">Date</label><input type="date" id="aeSessDate" value="${viewISO()}"></div>
-    <div><label class="f">Source</label><select id="aeSessMode"><option value="">—</option>${grp("Hard / HIIT",AERO_GROUP.hard)}${grp("Zone 2",AERO_GROUP.z2)}${grp("Other",AERO_GROUP.other)}</select></div>
+    <div><label class="f">Source</label><select id="aeSessMode"><option value="">—</option>${grp("Hard / HIIT",AERO_GROUP.hard)}${grp("Aerobic base",AERO_GROUP.z2)}${grp("Other",AERO_GROUP.other)}</select></div>
     <div><label class="f">Min above ${H.t4} (the gate)</label><input type="number" inputmode="decimal" id="aeSessMin" placeholder="Z4 + Z5 together"></div>
     <div><label class="f">Min above ${Z5} (optional)</label><input type="number" inputmode="decimal" id="aeSessZ5" placeholder="Z5 alone"></div>
-    <div><label class="f">Min in Zone 2 (optional)</label><input type="number" inputmode="decimal" id="aeSessZ2" placeholder="metabolic Z2"></div>
-    <div><label class="f">Avg HR (optional)</label><input type="number" inputmode="decimal" id="aeSessHR" placeholder="bpm — calibrates Zone 2"></div>
+    <div><label class="f">Base minutes — ride length (optional)</label><input type="number" inputmode="decimal" id="aeSessZ2" placeholder="PZE or Zone 2 ride"></div>
+    <div><label class="f">Avg HR (optional)</label><input type="number" inputmode="decimal" id="aeSessHR" placeholder="bpm — true Zone 2 rides calibrate"></div>
     <div style="grid-column:1/-1"><label class="f">Measured with</label><div class="seg" id="aeInstSeg">${Object.keys(AERO_INST).map((k,i)=>`<button class="${k==="heartgraph"?"on":""}" data-inst="${k}" onclick="[...document.querySelectorAll('#aeInstSeg button')].forEach(b=>b.classList.remove('on'));this.classList.add('on')">${AERO_INST[k]}</button>`).join("")}</div></div>
     <div><label class="f">Session RPE (optional)</label><select id="aeSessRPE"><option value="">—</option>${[1,2,3,4,5,6,7,8,9,10].map(v=>`<option value="${v}">${v}</option>`).join("")}</select></div>
    </div>
    <div style="margin-top:8px"><button onclick="aeroAddFromForm()">Add session</button></div>
-   <details style="margin-top:6px"><summary class="mini">How to read the boxes</summary><div class="mini" style="margin:4px 0"><b>The gate and near-max boxes nest; they do not add.</b> On your zones — ${H.t4}–${Z5} is Z4 and ${Z5}+ is Z5 — the gate box takes <b>Z4 + Z5 together</b>, the near-max box takes <b>Z5 alone</b>: 6 min in Z4 and 4 in Z5 is <b>10</b> and <b>4</b>. Zone 2 is a separate band and is added on its own, ungated. A Zone 2 source cannot carry gate minutes — if a ride went hard, tag it as what it was. The instrument goes on the session: the sleeve and the wrist under-read time in the top zone (a floor), the H10 is a measurement. Nothing logged before v11.34 is re-tagged.</div></details>`;
+   <details style="margin-top:6px"><summary class="mini">How to read the boxes</summary><div class="mini" style="margin:4px 0"><b>The gate and near-max boxes nest; they do not add.</b> On your zones — ${H.t4}–${Z5} is Z4 and ${Z5}+ is Z5 — the gate box takes <b>Z4 + Z5 together</b>, the near-max box takes <b>Z5 alone</b>: 6 min in Z4 and 4 in Z5 is <b>10</b> and <b>4</b>. Base minutes are the ride length and are added on their own, ungated. A PZ Endurance (tempo) ride may also hold minutes above the gate; a true Zone 2 source cannot — if a Zone 2 ride went hard, tag it as what it was. The instrument goes on the session: the sleeve and the wrist under-read time in the top zone (a floor), the H10 is a measurement. Nothing logged before v11.34 is re-tagged.</div></details>`;
    const S=L.filter(o=>o.r.date===dISO);   /* raw indices — aeroUnlog indexes the raw log */
-   if(S.length)h+=`<div class="mini" style="margin:10px 0 4px"><b>${S.length} session${S.length===1?"":"s"} on ${fmtD(dISO)}</b></div>`+S.map(({r,i})=>`<div class="row"><div class="nm">${r.mode?(AERO_MODE[r.mode]||r.mode):"<i>untagged</i>"}<div class="sup">${Number(r.mins)>0?`${r.mins} min ≥${H.t4}`:""}${r.z5?` · ${r.z5} min ≥${Z5}`:""}${r.z2?` · ${r.z2} min Zone 2`:""}${r.hr?` · avg ${r.hr}`:""}${r.rpe!=null?` · RPE ${r.rpe}`:""} · ${aeroSrcLabel(r)}</div></div><button class="btn sm sec" onclick="aeroUnlog(${i})">Remove</button></div>`).join("");
+   if(S.length)h+=`<div class="mini" style="margin:10px 0 4px"><b>${S.length} session${S.length===1?"":"s"} on ${fmtD(dISO)}</b></div>`+S.map(({r,i})=>`<div class="row"><div class="nm">${r.mode?(AERO_MODE[r.mode]||r.mode):"<i>untagged</i>"}<div class="sup">${Number(r.mins)>0?`${r.mins} min ≥${H.t4}`:""}${r.z5?` · ${r.z5} min ≥${Z5}`:""}${r.z2?` · ${r.z2} base min`:""}${r.hr?` · avg ${r.hr}`:""}${r.rpe!=null?` · RPE ${r.rpe}`:""} · ${aeroSrcLabel(r)}</div></div><button class="btn sm sec" onclick="aeroUnlog(${i})">Remove</button></div>`).join("");
    const recent=L.slice().sort((a,b)=>a.r.date<b.r.date?1:-1).filter(o=>o.r.date!==dISO).slice(0,6);
    if(recent.length){
      h+=`<details style="margin-top:8px"><summary class="mini">Recent sessions (${L.length} logged)</summary>`;
-     recent.forEach(({r,i})=>{h+=`<div class="row"><div class="nm">${fmtD(r.date)}${r.mode?` · ${AERO_MODE[r.mode]||r.mode}`:""}<div class="sup">${Number(r.mins)>0?`${r.mins} min ≥${H.t4}`:""}${r.z5?` · ${r.z5} min ≥${Z5}`:""}${r.z2?` · ${r.z2} min Zone 2`:""}${r.hr?` · avg ${r.hr}`:""} · ${aeroSrcLabel(r)}${r.ts&&r.ts!==r.date?` · entered ${fmtD(r.ts)}`:""}</div></div><button class="btn sm sec" onclick="aeroUnlog(${i})">Remove</button></div>`;});
+     recent.forEach(({r,i})=>{h+=`<div class="row"><div class="nm">${fmtD(r.date)}${r.mode?` · ${AERO_MODE[r.mode]||r.mode}`:""}<div class="sup">${Number(r.mins)>0?`${r.mins} min ≥${H.t4}`:""}${r.z5?` · ${r.z5} min ≥${Z5}`:""}${r.z2?` · ${r.z2} base min`:""}${r.hr?` · avg ${r.hr}`:""} · ${aeroSrcLabel(r)}${r.ts&&r.ts!==r.date?` · entered ${fmtD(r.ts)}`:""}</div></div><button class="btn sm sec" onclick="aeroUnlog(${i})">Remove</button></div>`;});
      h+=`</details>`;
    }
    {const drifted=[...new Set(L.map(o=>o.r.date))].map(d=>({d,x:aeroDrift(d)})).filter(o=>o.x);
@@ -3726,7 +4025,7 @@ function aeroCard(dISO){
    <div class="grid2">
     <div><label class="f">Day total: min above ${H.t4}</label><input type="number" inputmode="decimal" value="${mins??""}" onchange="setAero('${dISO}',this.value)"></div>
     <div><label class="f">Day total: min above ${Z5}</label><input type="number" inputmode="decimal" value="${z5v??""}" onchange="setAeroZ5('${dISO}',this.value)"></div>
-    <div><label class="f">Day total: min in Zone 2</label><input type="number" inputmode="decimal" value="${(Z.z2||{})[dISO]??""}" onchange="setZ2('${dISO}',this.value)"></div>
+    <div><label class="f">Day total: base minutes</label><input type="number" inputmode="decimal" value="${(Z.z2||{})[dISO]??""}" onchange="setZ2('${dISO}',this.value)"></div>
    </div>
    ${aeroZ5Bad(dISO)?`<div class="banner red" style="margin-top:8px"><b>Impossible: ${z5v} min above ${Z5} but only ${mins} min above ${H.t4}.</b> Every beat above ${Z5} is also above ${H.t4}.</div>`:""}
    <div class="mini" style="margin:8px 0 4px"><b>Day tag and instrument</b> — only for a day logged without sessions (the session carries its own). ${aeroSessModes(dISO).length>1?"<b>This day has two sources; leave the tag blank.</b>":""}</div>
@@ -3739,10 +4038,10 @@ function aeroCard(dISO){
     <div class="rx" style="color:${v==null?"var(--dim)":(q?"var(--ok,#3a7)":"var(--t2)")}">${v==null?"—":(q?"✓ "+v:v+" min")}</div>
     <input class="win" inputmode="decimal" value="${v??""}" onchange="setAero('${k}',this.value)" placeholder="hard">
     <input class="win" inputmode="decimal" value="${(Z.aeroZ5||{})[k]??""}" onchange="setAeroZ5('${k}',this.value)" placeholder="${Z5}+">
-    <input class="win" inputmode="decimal" value="${(Z.z2||{})[k]??""}" onchange="setZ2('${k}',this.value)" placeholder="Z2">
+    <input class="win" inputmode="decimal" value="${(Z.z2||{})[k]??""}" onchange="setZ2('${k}',this.value)" placeholder="base">
     ${aeroSessModes(k).length>1?`<div class="rx mini" style="max-width:96px;opacity:.8">Mixed (${aeroSessModes(k).length})</div>`
       :`<select onchange="setAeroMode('${k}',this.value)" style="max-width:96px"><option value=""${!(Z.aeroMode||{})[k]?" selected":""}>—</option>${Object.keys(AERO_MODE).map(m=>`<option value="${m}"${(Z.aeroMode||{})[k]===m?" selected":""}>${AERO_MODE[m]}</option>`).join("")}</select>`}</div>`;}).join("")}
-   <div class="mini" style="margin-top:4px">Left to right: min above ${H.t4} · min above ${Z5} · min in Zone 2 · which activity.</div>
+   <div class="mini" style="margin-top:4px">Left to right: min above ${H.t4} · min above ${Z5} · base minutes · which activity.</div>
    </div></details>`;}
 
   /* ---- Per-modality rollup: the whole reason the tag exists ---- */
@@ -3762,17 +4061,22 @@ function aeroCard(dISO){
    his choice: Zone 2 sessions record average HR and, once ≥4 rides exist on one instrument, the card shows
    his own observed Zone 2 HR range (median, IQR) for that instrument. Sleeve, wrist and strap never mix. ---- */
 function z2Card(dISO){
+  /* v11.35 (J) — the card separates the two things the slot can hold. Base minutes are every `z2` minute
+     (tempo and true Zone 2 alike; the stored field keeps its name). The heart-rate calibration reads TRUE
+     Zone 2 rides only. */
   const B=z2Band(),wk=weekBounds(dISO),z2w=wk.reduce((a,k)=>a+((Z.z2||{})[k]||0),0),cal=z2Calib();
-  const F=Z.ftp;const lo=F?Math.round(F.w*0.56):null,hi=F?Math.round(F.w*0.75):null;
-  let h=`<div class="card spine t2" style="border-left-color:var(--z2)"><h3>Zone 2 — metabolic <span class="chip teal">base</span></h3>
-  <div class="meta"><b>Definition:</b> the highest steady output at which lactate stays under ~2 mmol/L. <b>Proxy:</b> the talk test — full sentences, but you would rather not. <b>On the bike:</b> Peloton Power Zone 2${F?` = <b>${lo}–${hi} W</b> at FTP ${F.w}`:" (56–75% of FTP — record FTP above to see watts)"}, held where the talk test still passes. Tue + Sat, 90 min, protected; never gated.</div>
-  <div class="row"><div class="nm">This week</div><div class="rx"><b>${z2w}</b> min</div></div>
-  <div class="mini why" style="margin-top:6px">The old ${B.lo}–${B.hi} bpm band (60–70% of your ${HRMAX} max) is a heart-rate <i>guide</i> only; it likely under-reads metabolic Zone 2 for you. Log the ride's average HR on each session and the range below becomes yours.</div>`;
+  const F=Z.ftp;const lo=F?Math.round(F.w*0.56):null,hi=F?Math.round(F.w*0.75):null,z3=F?Math.round(F.w*0.76):null,z3h=F?Math.round(F.w*0.90):null;
+  const tempoHR=aeroLogAll().filter(({r})=>Number(r.z2)>0&&Number(r.hr)>0&&TRUE_Z2.indexOf(r.mode)<0).length;
+  let h=`<div class="card spine t2" style="border-left-color:var(--z2)"><h3>Aerobic base — tempo and true Zone 2 <span class="chip teal">base</span></h3>
+  <div class="meta"><b>What the Tue + Sat slot holds:</b> Power Zone Endurance, by your choice — Zone 2/3, mostly Zone 3${F?` (Zone 3 = <b>${z3}–${z3h} W</b> at FTP ${F.w})`:""}. That is tempo-dominant base work, logged as <i>PZ Endurance (tempo)</i>. <b>True Zone 2</b> is the other option on the ride card: the highest steady output at which lactate stays under ~2 mmol/L; proxy, the talk test — full sentences, but you would rather not. On the bike: Power Zone 2${F?` = <b>${lo}–${hi} W</b>`:" (56–75% of FTP — record FTP above to see watts)"}. Both are 90 min, protected, never gated, and credit the same base minutes.</div>
+  <div class="row"><div class="nm">Base minutes this week<div class="sup">Tempo and true Zone 2 together. Minutes logged before v11.35 were labelled Zone 2; they are base minutes and stay as stored.</div></div><div class="rx"><b>${z2w}</b> min</div></div>
+  <div class="mini why" style="margin-top:6px">The old ${B.lo}–${B.hi} bpm band (60–70% of your ${HRMAX} max) is a heart-rate <i>guide</i> only; it likely under-reads metabolic Zone 2 for you. A true Zone 2 ride logged with its average HR builds the range below.</div>`;
   const insts=Object.keys(cal);
   if(insts.length){
-    h+=`<div class="mini" style="margin:8px 0 4px"><b>Your observed Zone 2 heart rate</b> — per instrument, never mixed</div>`;
-    insts.forEach(i=>{const c=cal[i];h+=`<div class="row"><div class="nm">${AERO_INST[i]||i}<div class="sup">${c.n} ride${c.n===1?"":"s"} with an average HR</div></div><div class="rx">${c.ready?`<b>${c.med}</b> bpm · IQR ${c.q1}–${c.q3}`:`median ${c.med} · needs ${Z2_MIN_RIDES-c.n} more`}</div></div>`;});
-  } else h+=`<div class="mini" style="margin-top:6px">No Zone 2 session carries an average HR yet. Four on one instrument give you a personal range.</div>`;
+    h+=`<div class="mini" style="margin:8px 0 4px"><b>Your observed Zone 2 heart rate</b> — true Zone 2 rides only, per instrument, never mixed</div>`;
+    insts.forEach(i=>{const c=cal[i];h+=`<div class="row"><div class="nm">${AERO_INST[i]||i}<div class="sup">${c.n} true Zone 2 ride${c.n===1?"":"s"} with an average HR</div></div><div class="rx">${c.ready?`<b>${c.med}</b> bpm · IQR ${c.q1}–${c.q3}`:`median ${c.med} · needs ${Z2_MIN_RIDES-c.n} more`}</div></div>`;});
+  } else h+=`<div class="mini" style="margin-top:6px">No true Zone 2 ride carries an average HR yet. Four on one instrument give you a personal range.</div>`;
+  if(tempoHR)h+=`<div class="mini" style="margin-top:4px">${tempoHR} tempo or untagged base ride${tempoHR===1?"":"s"} with an average HR ${tempoHR===1?"is":"are"} on file and deliberately left out: a tempo heart rate is not a Zone 2 heart rate.</div>`;
   return h+`</div>`;
 }
 /* ---- v11.34 — the 30-day resting HR is a CALIBRATION CONSTANT, not a daily input. ---- */
@@ -4047,7 +4351,15 @@ function realityCard(dow){
 function orToggle(d,i){Z.orDone[d]=Z.orDone[d]||{};Z.orDone[d][i]=!Z.orDone[d][i];save();render();}
 /* v11.22 — per-exercise logging for the Sunday add-on. Ticking a row is what puts its
    sets into the Volume tab; nothing is credited by default. */
-function sunToggle(d,i){Z.sunDone[d]=Z.sunDone[d]||{};Z.sunDone[d][i]=!Z.sunDone[d][i];save();render();}
+function sunToggle(d,i){Z.sunDone[d]=Z.sunDone[d]||{};Z.sunDone[d][i]=!Z.sunDone[d][i];
+  if(Z.sunDone[d][i]){Z.done[d]=Z.done[d]||{};Z.done[d].sunlift=true;}   /* v11.35 (G): a ticked row ticks the block; unticking a row never unticks it */
+  save();render();}
+/* v11.35 (H) — load and reps on the four programmed Sunday rows, per date. He had been typing these into the
+   day's note (09-27, 10-04), where nothing can read them. Free text on purpose ("42.5", "8 lb band"). */
+function setSunRx(d,i,f,v){Z.sunRx=Z.sunRx||{};Z.sunRx[d]=Z.sunRx[d]||{};Z.sunRx[d][i]=Z.sunRx[d][i]||{};
+  const s=String(v==null?"":v).trim().slice(0,24);if(s==="")delete Z.sunRx[d][i][f];else Z.sunRx[d][i][f]=s;save();render();}
+function sunRxLast(d,i,f){const ks=Object.keys(Z.sunRx||{}).filter(k=>k<d).sort();
+  for(let j=ks.length-1;j>=0;j--){const x=(Z.sunRx[ks[j]]||{})[i];if(x&&x[f])return x[f];}return null;}
 function saveScreen(){
   const g=id=>{const v=parseFloat((document.getElementById(id)||{}).value);return isNaN(v)?null:v;};
   const mEl=document.getElementById("smeth");
@@ -4141,12 +4453,12 @@ function strengthCard(w,dkey,dISO,editable){
     const [s,r,rir]=rx[i];
     if(e.sup){rows+=`<div class="row"><div class="nm" style="color:var(--dim)">${e.n} <span class="sup why">— suppressed; replaced by the Core block</span></div></div>`;
       if(i===exs.length-1&&GLUTE_PUMP[{d1:0,d3:3}[dkey]]){const gp=GLUTE_PUMP[{d1:0,d3:3}[dkey]];
-        rows+=`<div class="row"><div class="nm">${gp.n}<div class="sup">Pumper · <span class="why">${gp.cue}</span></div></div><div class="rx">${gp.vec==="H"?"horizontal":"lateral"}</div>${editable?ckHTML(dISO,"gpump"):""}</div>`;}
+        rows+=`<div class="row"><div class="nm">${gp.n}<div class="sup">Pumper · <span class="why">${gp.cue}</span></div></div><div class="rx">${gp.vec==="H"?"horizontal":"lateral"}</div>${editable?gloadInp(dISO,"gpump")+ckHTML(dISO,"gpump"):""}</div>`;}
       return;}
     const seTxt="";
     if(e.k==="bht"){rows+=bootyRow(dISO,s,r,rir,editable);
       if(i===exs.length-1&&GLUTE_PUMP[{d1:0,d3:3}[dkey]]){const gp=GLUTE_PUMP[{d1:0,d3:3}[dkey]];
-        rows+=`<div class="row"><div class="nm">${gp.n}<div class="sup">Pumper · <span class="why">${gp.cue}</span></div></div><div class="rx">${gp.vec==="H"?"horizontal":"lateral"}</div>${editable?ckHTML(dISO,"gpump"):""}</div>`;}
+        rows+=`<div class="row"><div class="nm">${gp.n}<div class="sup">Pumper · <span class="why">${gp.cue}</span></div></div><div class="rx">${gp.vec==="H"?"horizontal":"lateral"}</div>${editable?gloadInp(dISO,"gpump")+ckHTML(dISO,"gpump"):""}</div>`;}
       return;}
     const sg=suggestLoad(e.k,r,rir,dISO);
     const inp=editable?`<input class="win" inputmode="decimal" placeholder="${sg?sg.lb:(lastLoad(e.k,dISO)||"lb")}" value="${(Z.lifts[dISO]&&Z.lifts[dISO][e.k]&&Z.lifts[dISO][e.k].w)||""}" onchange="setLoad('${dISO}','${e.k}',this.value)">`:"";
@@ -4156,7 +4468,7 @@ function strengthCard(w,dkey,dISO,editable){
        exactly the failure this project keeps finding; the card carries the percentage and
        the day count so the size of the adjustment is visible, not just its effect. */
     const _dcy=(sg&&MAINLIFT[e.k])?decayFactor({boxsq:"d1",bench:"d2",trap:"d3"}[MAINLIFT[e.k]],MAINLIFT[e.k],dISO):null;
-    const dcyNote=(_dcy&&_dcy.mult<1)?`<div class="mini" style="margin-top:4px;color:var(--t2)">Reference decayed <b>−${_dcy.pct.toFixed(1)}%</b> — ${_dcy.days} days since ${_dcy.since===decayAnchor()?"the block-start decay anchor":"your last "+e.tag.toLowerCase()+" session"} (${_dcy.since}). <span class="why">Grace is ${DECAY_GRACE} days, then −${(DECAY_RATE*100).toFixed(1)}%/week, floored at −${DECAY_FLOOR*100}%. <b>Inference, not a published figure.</b> The first top set you log overwrites this upward.</span></div>`:"";
+    const dcyNote=(_dcy&&_dcy.mult<1)?`<div class="mini" style="margin-top:4px;color:var(--t2)">Reference decayed <b>−${_dcy.pct.toFixed(1)}%</b> — ${_dcy.days} days since ${_dcy.since===decayAnchor()?(decayAnchor()===progStart()?"the decay anchor at the block start":"the decay anchor"):"your last "+e.tag.toLowerCase()+" session"} (${_dcy.since}). <span class="why">Grace is ${DECAY_GRACE} days, then −${(DECAY_RATE*100).toFixed(1)}%/week, floored at −${DECAY_FLOOR*100}%. <b>Inference, not a published figure.</b> The first top set you log overwrites this upward.</span></div>`:"";
     const sub2=sg?`${e.tag} · <b>start ~${sg.lb} lb</b> (${sg.pct}% of ${sg.e1}${sg.src&&sg.src!=="on-ramp test"?` — from your ${sg.src} on ${sg.when}`:""}) — then let RIR decide`
                  :(MAINLIFT[e.k]?`${e.tag} · <i>no e1RM yet — set a baseline in the Test tab and this fills in</i>`
                                 :`${e.tag}${lastLoadTag(e.k,dISO)}`);
@@ -4183,7 +4495,7 @@ function strengthCard(w,dkey,dISO,editable){
     /* v11.32 — Contreras pumpers, after the last glute slot on the day: frog pump after the D1
        accessories (Mon), banded seated abduction after the Booty Sprout (Thu). Own tick. */
     if(i===exs.length-1&&GLUTE_PUMP[{d1:0,d3:3}[dkey]]){const gp=GLUTE_PUMP[{d1:0,d3:3}[dkey]];
-      rows+=`<div class="row"><div class="nm">${gp.n}<div class="sup">Pumper · <span class="why">${gp.cue}</span></div></div><div class="rx">${gp.vec==="H"?"horizontal":"lateral"}</div>${editable?ckHTML(dISO,"gpump"):""}</div>`;}
+      rows+=`<div class="row"><div class="nm">${gp.n}<div class="sup">Pumper · <span class="why">${gp.cue}</span></div></div><div class="rx">${gp.vec==="H"?"horizontal":"lateral"}</div>${editable?gloadInp(dISO,"gpump")+ckHTML(dISO,"gpump"):""}</div>`;}
     /* the heavy back-offs sit between the top set and the hypertrophy back-offs */
     if(i===0&&HEAVY_BO_DAYS.includes(dkey)){
       const hk=e.k.replace("_top","_hbo");
@@ -4209,9 +4521,9 @@ function strengthCard(w,dkey,dISO,editable){
     ? `<div class="banner amber"><b>Calendar week ${w+1}. Loading week ${R.i+1}.</b>
        This lift has had <b>${R.exp} heavy exposure${R.exp===1?"":"s"}</b>, so the prescription is <b>${R.lag} week${R.lag===1?"":"s"} behind the calendar</b> — deliberately.
        <span class="mini">The calendar never stalls and nothing is owed. The <i>load</i> waits for the work. Progressing the bar on weeks you did not train is how a block starts prescribing numbers you have no business hitting, and failing them reads as failure. One free week is built in, because 1&ndash;2 weeks off costs no measurable 1RM.</span></div>`
-    : `<div class="mini" style="margin-bottom:6px">Week ${R.i+1} loading, on schedule — ${R.exp} heavy exposure${R.exp===1?"":"s"} logged for this lift.${decayAnchor()?` <span class="why">Decay clock anchored at block start ${decayAnchor()} (your instruction, 2026-09-14).</span>`:""}</div>`}
+    : `<div class="mini" style="margin-bottom:6px">Week ${R.i+1} loading, on schedule — ${R.exp} heavy exposure${R.exp===1?"":"s"} logged for this lift.${decayAnchor()?` <span class="why">Decay clock anchored at ${decayAnchor()}${decayAnchor()===progStart()?", the block start":`; the block starts ${progStart()}`}.</span>`:""}</div>`}
   ${rows}
-  ${(dkey==="d1"||dkey==="d3")&&GLUTE_ER[{d1:0,d3:3}[dkey]]?(()=>{const g=GLUTE_ER[{d1:0,d3:3}[dkey]];return `<div class="row"><div class="nm">${g.n}<div class="sup">Rotary · <span class="why">${g.cue}</span></div></div><div class="rx">ER</div>${editable?ckHTML(dISO,"ger"):""}</div>`;})():""}
+  ${(dkey==="d1"||dkey==="d3")&&GLUTE_ER[{d1:0,d3:3}[dkey]]?(()=>{const g=GLUTE_ER[{d1:0,d3:3}[dkey]];return `<div class="row"><div class="nm">${g.n}<div class="sup">Rotary · <span class="why">${g.cue}</span></div></div><div class="rx">ER</div>${editable?gloadInp(dISO,"ger")+ckHTML(dISO,"ger"):""}</div>`;})():""}
   ${editable?sessionSummary(w,dkey,dISO):""}
   ${editable?`<div style="margin-top:8px">${ckHTML(dISO,"str")}<span class="mini" style="margin-left:8px">Session complete</span></div>${rpeHTML(dISO,"str")}`:""}</div>`;
 }
@@ -4249,12 +4561,12 @@ function gmbCard(dow,dISO,editable){
   return `<div class="card spine"><h3>${ff?"Get Flex &amp; Chill — Kicking (prep)":"GMB Tissue Prep"} <span class="tiertag T3">T3</span></h3>
   <div class="meta">${label}${alt&&alt!==cls&&!ff?` · alt: ${alt}`:""} · ${ff?`~${ffMinutes(cls,dur)} min`:`${dur} min`} · run before the day's work${ff?` — then the pre-kick drills, then the 6:30 class`:""}</div>
   ${ff?`<div class="mini why" style="margin-bottom:6px">${FF_ROUTINES[cls].why} One round per stretch and side: hold 10 s · 10 contractions · hold 10 s · 10 contractions · final hold 20 s · exit with the contraction. Every hold stays under 60 s on purpose. Go well under maximum the first two Fridays — GMB warns of DOMS at first.</div>
-  <details class="why"><summary class="mini">How to perform each stretch (FF library)</summary>${ffHowtoHTML(cls)}</details>`:""}
+  <details><summary class="mini">How to perform each stretch (FF library)</summary>${ffHowtoHTML(cls)}</details>`:`<details><summary class="mini">Movement list — today's version</summary>${gmbListHTML(cls,dur,dISO)}</details>`}
   ${editable?`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
     <button class="btn sm ${on?"":"sec"}" onclick="Z.gmb['on_${dISO}']=${on?"false":"true"};save();render()">${on?"Planned ✓":"Plan it"}</button>
     <button class="btn sm sec" onclick="go('gmb')">Open timer →</button>
     <span style="display:inline-flex;align-items:center;gap:6px">${ckHTML(dISO,"gmb")}<span class="mini">Done</span></span></div>
-  <div class="mini" style="margin-top:6px">"Plan it" is intent; the tick is the record. ${ff?"":"A finished timer run ticks it for you; the Praxis version advances only on the tick."} ${dISO<GMB_TICK_FROM?"(Before "+fmtD(GMB_TICK_FROM)+" a plan toggle still counts as done — that was all the history there was.)":""}</div>
+  <div class="mini" style="margin-top:6px">"Plan it" is intent; the tick is the record. ${ff?"":"A finished timer run ticks it for you; the Praxis version advances only on the tick."}</div>
   ${done?vRate("g_"+cls+"_"+dur,{label:"Class difficulty",v:ver&&ver.i!=null?ver.i:null}):""}${rpeHTML(dISO,"gmb")}
   ${ff?"":`<div class="mini why" style="margin-top:6px">Every class includes the wrist hold — stacks with Baar; don't double-dose.</div>`}`:""}</div>`;
 }
@@ -4273,7 +4585,7 @@ function warmupCard(w,dow,dISO,editable){
     h+=`<div class="row"><div class="nm">${BIRDDOG.n}<div class="sup why">${BIRDDOG.cue}</div></div>${editable?ckHTML(dISO,"birddog"):""}</div>
     <div class="mini why">Added v11.34 from the core report: the posterior-core gap. Credited 2 sets to posterior core when ticked.</div>`;}
   if(GLUTE_ACT[dow]){const g=GLUTE_ACT[dow];
-    h+=`<div class="row"><div class="nm">${g.n}<div class="sup">${g.cue}</div></div>${editable?ckHTML(dISO,"gact"):""}</div>
+    h+=`<div class="row"><div class="nm">${g.n}<div class="sup">${g.cue}</div></div>${editable?gloadInp(dISO,"gact")+ckHTML(dISO,"gact"):""}</div>
     <div class="mini why">Contreras activator: low load, primes the glute med before the lift, does not train it. Counted in the lateral bucket on the Volume tab when ticked. Added v11.32.</div>`;}
   return h+`</div>`;
 }
@@ -4435,8 +4747,14 @@ function condCard(w,dow,dISO,editable){
   const k={1:"tue",2:"wed",5:"sat"}[dow];if(!k)return "";
   const r=readyEff(dISO);   /* v11.34: the override unlocks the Wednesday ride too */
   /* Tue + Sat — locked Zone 2 base */
-  if(k==="tue"||k==="sat"){const C=COND[k];
-    return `<div class="card spine t2" style="border-left-color:var(--z2)"><h3>Zone 2 — PZ Endurance 90 min <span class="chip teal">Cond · base</span></h3><div class="meta why">${C.d} Zone 2 here means metabolic — PZ 2 (56–75% FTP) and the talk test — see the Cardio tab.</div>${editable?`${ckHTML(dISO,"cond_"+k)}${rpeHTML(dISO,"cond_"+k)}`:""}</div>`;}
+  if(k==="tue"||k==="sat"){const C=COND[k],rt=rideTypeOf(dISO)||"tempo",sg=rideSuggest(dISO,w),F=Z.ftp;
+    const z2w=F?` (${Math.round(F.w*0.56)}–${Math.round(F.w*0.75)} W at FTP ${F.w})`:"";
+    /* v11.35 (J) — tempo is the default because it is what he rides; true Zone 2 is one tap, stored per date. */
+    return `<div class="card spine t2" style="border-left-color:var(--z2)"><h3>Aerobic base — PZ Endurance 90 min <span class="chip teal">Cond · base</span></h3><div class="meta why">${C.d}</div>
+    ${editable?`<div class="seg" style="margin:6px 0"><button class="${rt==="tempo"?"on":""}" onclick="setRideType('${dISO}','tempo')">Tempo (PZE)</button><button class="${rt==="z2"?"on":""}" onclick="setRideType('${dISO}','z2')">True Zone 2</button></div>`:""}
+    <div class="mini">${rt==="z2"?`<b>True Zone 2 today.</b> Hold Power Zone 2${z2w} where the talk test still passes: skip the Zone 3 efforts, or take a Zone 2 class. Log it as <i>True Zone 2 ride</i> with the average HR — only these rides calibrate your Zone 2 heart rate.`:`<b>Tempo (PZE) today.</b> The class as written: Zone 2/3, mostly Zone 3. Log it as <i>PZ Endurance (tempo)</i>; it credits base minutes and can hold minutes above the gate.`}</div>
+    ${sg&&rt!=="z2"?`<div class="mini" style="margin-top:4px;color:var(--z2)">True Zone 2 is the suggestion today (${sg}). Your call.</div>`:""}
+    ${editable?`${ckHTML(dISO,"cond_"+k)}${rpeHTML(dISO,"cond_"+k)}`:""}</div>`;}
   /* v11.34 — Layer 2 lands here from week 7 (Robert, 2026-09-18): one interval session a week in the
      Wednesday optional-ride slot, readiness-gated like the ride it replaces. Z.vo2 is the state; nothing new. */
   if(vo2Active(dISO)){const P=VO2_PROTO[vo2Proto()],marked=!!vo2Done()[dISO];
@@ -4469,9 +4787,10 @@ function sunLiftCard(w,dISO,editable){
   <div class="meta">MMA gym, circuit-style between your partner's sets. Minimal + surgical — rear delt is the point. <span class="why">Do NOT add arms/side-delt (already high). No abduction machine or GHD here, so the Contreras lateral work and the Nordics live at home.</span></div>
   ${SUNBLOCK(w).map((x,i)=>{
     const on=editable&&((Z.sunDone||{})[dISO]||{})[i];
+    const sx=editable?(((Z.sunRx||{})[dISO]||{})[i]||{}):{};   /* v11.35 (H): load + reps per row, per date */
     return `<div class="row"><div class="nm">${x.n}<div class="sup">${x.why}</div></div><div class="rx">${x.rx}</div>${
-      editable?`<div class="ck ${on?"on":""}" onclick="sunToggle('${dISO}',${i})">✓</div>`:""}</div>`;}).join("")}
-  <div class="mini why" style="margin-top:6px">Tick what you actually got to. <b>Only ticked rows count toward the Volume tab</b> — rear delt is the hole this block exists to fill, so it is not credited by default. The rest of the session goes in the log card below (v11.34).</div>
+      editable?`<input class="win" type="text" inputmode="decimal" placeholder="${escA(sunRxLast(dISO,i,"lb")||"lb")}" value="${escA(sx.lb||"")}" onchange="setSunRx('${dISO}',${i},'lb',this.value)"><input class="win" type="text" placeholder="${escA(sunRxLast(dISO,i,"reps")||"reps")}" value="${escA(sx.reps||"")}" onchange="setSunRx('${dISO}',${i},'reps',this.value)"><div class="ck ${on?"on":""}" data-row="sun${i}" onclick="sunToggle('${dISO}',${i})">✓</div>`:""}</div>`;}).join("")}
+  <div class="mini why" style="margin-top:6px">Load and reps are optional; the placeholder is what you used last time. A ticked row or a logged row below ticks the block. Tick what you actually got to. <b>Only ticked rows count toward the Volume tab</b> — rear delt is the hole this block exists to fill, so it is not credited by default. The rest of the session goes in the log card below (v11.34).</div>
   ${editable?`${ckHTML(dISO,"sunlift")}${rpeHTML(dISO,"sunlift")}`:""}</div>`+sunLogCard(dISO,editable);
 }
 function heavyBagCard(dow,dISO,editable){
@@ -4505,6 +4824,8 @@ function dayStack(w,dow,dISO,editable){
   h+=groinCard(w,dow,dISO,editable);
   h+=skillCard(w,dow,dISO,editable,"tail");
   h+=heavyBagCard(dow,dISO,editable);
+  h+=skillLogCard(dISO,editable);                                  /* v11.35 (K) — any day: classes and solo work */
+  h+=ironNeckCard(dISO,editable);                                  /* v11.35 (O) — optional, every day, never expected */
   h+=tonightCard(w,dow,dISO);                                      /* 6 */
   return editable?decorateCards(h,dISO):h;
 }
@@ -4520,8 +4841,13 @@ function decorateCards(h,dISO){
   const parts=h.split('<div class="card');
   return parts.map((seg,i)=>{
     if(i===0)return seg;
-    const doneM=seg.match(/class="ck on" data-ck="([^"]+)"/);
-    const id=doneM?doneM[1]:null;
+    /* v11.35 (M) — A CARD IS DONE WHEN EVERY TICK IN IT IS ON. This matched the FIRST ticked box, so one
+       tick on a card with several (warm-up: hooklying, bird-dog, activator; a lift: pumper, band ER, session)
+       collapsed the whole card as "done" — Robert's 09-28 note. No block key is shared between rows; the
+       collapse rule was the bug. Sunday row ticks (data-row) count too, now that one of them ticks the block. */
+    const cks=[...seg.matchAll(/class="ck (on)?" data-(?:ck|row)="([^"]+)"/g)];
+    const keys=[...seg.matchAll(/data-ck="([^"]+)"/g)];
+    const id=(cks.length&&cks.every(m=>m[1]==="on")&&keys.length)?keys[keys.length-1][1]:null;
     const hasWhy=/class="[^"]*\bwhy\b/.test(seg);
     const open=id&&UI.open[dISO+":"+id];
     const why=UI.why[dISO+":"+i];
@@ -4633,10 +4959,10 @@ function rToday(){
   <div class="seg">${[1,2,3,4,5].map(v=>`<button class="${r===v?"on":""}" onclick="setReady(${v})">${v}</button>`).join("")}</div>
   <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn sm ${gateOv(dISO)?"":"sec"}" onclick="setGateOv('${dISO}')">${gateOv(dISO)?"Gates overridden ✓":"I feel fine — override today's gates"}</button><span class="mini">Lifts the readiness and Whoop brakes for ${fmtD(dISO)} only. Not the down-week, not Biolayne's deload week.</span></div></div>`;
   h+=regBanner(dISO);
-  h+=chaosCard(dISO);
   h+=`<div class="card" style="padding:10px 14px"><b>${DAYS[dow]}</b> · <span class="mini">${dISO} · Week ${w+1}${isDeloadWeek(w)?" · Biolayne's written week-6 deload (the app adds no others) · app-owned rows with 3+ sets lose one":""}</span></div>`;
   h+=proteinLine();
   h+=whoopCard(dISO);
+  h+=chaosCard(dISO);                /* v11.35: below the morning card, so the down-week offer never sits beside open items */
   h+=plannerCard(w,dow,dISO);
   h+=dayStack(w,dow,dISO,true);      /* THE WORK — everything above it decides what it is */
   /* v11.34 — Today keeps only today's work, readiness, the override and the note. The scorecard, the
@@ -4718,10 +5044,12 @@ function rWeek(){
    h+=`<div class="card"><h3>Session load <span class="chip ghost">RPE × minutes</span></h3>
    <div class="meta">Σ session RPE × the minutes MEAS gives that block, across every rated session this week. Display only — nothing acts on it. It exists so a future block can compare weeks, and so the week-7 Whoop-vs-Elite question has something to test against.</div>
    <div class="row"><div class="nm">This week</div><div class="rx"><b>${L.load}</b> · ${L.rated} rated session${L.rated===1?"":"s"}</div></div>
+   ${(()=>{const S=weekSkill(dISO);return `<div class="row"><div class="nm">Skill load — actual minutes × RPE<div class="sup">Inside the total above. <b>${fmtCredit(S.credit)}</b> skill credit · striking ${S.split.striking} / grappling ${S.split.grappling} · live ${S.split.live} / solo ${S.split.solo}. From the skill log; a ticked class with no log entry is loaded at its usual length and is not in this line.</div></div><div class="rx"><b>${S.load}</b> · ${S.n} logged</div></div>`;})()}
    ${[1,2,3].map(n=>{const k=isoBack(weekBounds(dISO)[0],7*n);if(weekBounds(k)[0]<progStart())return "";const x=weeklyLoad(k);return `<div class="row"><div class="nm">${n} week${n>1?"s":""} ago</div><div class="rx">${x.load} · ${x.rated} rated</div></div>`;}).join("")}</div>`;}
   h+=benchTodayCard(dISO);
   h+=dueCard(dISO);
   h+=aeroStrip(dISO);
+  h+=baseWeekCard(dISO);   /* v11.35 (J) — base minutes; from week 7, whether the week's true Zone 2 ride is done or chosen */
   h+=realityCard(dowT);
   {const tot=loggedVolume(wNow);const any=Object.keys(tot).some(k=>tot[k]>0);
    if(any)h+=`<div class="card"><h3>Sunday lift — logged volume, week ${wNow+1}</h3><div class="meta">Free-entry rows from the Sunday card. Shown on the Volume tab in its own colour; never merged into the programmed model.</div>${Object.keys(tot).filter(k=>tot[k]>0).map(k=>`<div class="row"><div class="nm">${MUS[k][0]}</div><div class="rx">${tot[k]} sets</div></div>`).join("")}</div>`;}
@@ -4754,7 +5082,7 @@ function rWeek(){
   <span class="mini">The load does not need catching up because it never ran ahead: your prescription is indexed to <b>heavy exposures completed</b>, so a missed D1 simply means D1 loads next time from where it actually is. The calendar moves; the barbell waits. If you choose to make something up, log it on the day you did it with the date bar on Today — it is scored as work done, not as a deviation.</span></div>
   <div class="mini" style="margin-top:8px"><b>Three layers handle this, on three different clocks:</b></div>
   <div class="row"><div class="nm">Right now — minutes<div class="sup">&ldquo;How much time do you actually have?&rdquo; on Today. Tap the minutes you have; it returns what fits, in tier order.</div></div></div>
-  <div class="row"><div class="nm">This week — 7 days<div class="sup">The missed-work card on Today. Four or more misses in seven days trips a chaos week: run T1 only.</div></div></div>
+  <div class="row"><div class="nm">This week — 7 days<div class="sup">The Kept-and-open card on Today: what T1 was kept, then open items only — T1 for 48 h, T2 until Monday, T3 as a count. Four or more T1/T2 misses in seven days marks a short week, where T1 is the whole plan.</div></div></div>
   <div class="row"><div class="nm">This block — 3 weeks<div class="sup">The scorecard adaptation. A domain below its floor three weeks running gets its prescription cut to the MED with intensity protected.</div></div></div>
   <details style="margin-top:8px"><summary>End-of-week assessment</summary><div class="mini"><b>Weeks never repeat.</b> Progression is calendar-driven; week 5 follows week 4 regardless. The old rule here said &ldquo;repeat if 2 of 4 strength sessions missed&rdquo; — against your own 7-month record that would have fired in roughly 3 weeks out of 4, inside an app whose stated design is that nothing repeats. It is gone.<br><br>What happens instead: the <b>weekly scorecard</b> above grades each domain against its published minimum effective dose, and when a domain sits below its floor for 3 straight weeks the <b>prescription</b> changes — volume drops to the MED and intensity is protected. Load still self-corrects through the wave-hold rule. <b>1&ndash;2 weeks off produces no measurable 1RM loss</b> (Hortob&aacute;gyi 1993), so an ordinary bad week has no physiological claim on the calendar.</div></details></div>`;
   h+=`</details>`;
@@ -4968,6 +5296,10 @@ function updTimer(){
   /* On a transition the screen should name what is COMING, not the word "Get set" — he is
      looking at the phone to find out what to set up for. */
   document.getElementById("tMove").textContent=m.t?("Get set \u2014 "+m.nx):m.n;
+  /* v11.35 (P) — Get Flex & Chill stretches show their key point and action under the name, on the timer
+     itself, so an unfamiliar stretch does not need the card opened first. Praxis movements have no text. */
+  try{const hw=document.getElementById("tHow");if(hw){const bb=m.t?(T.seq[T.i+1]&&T.seq[T.i+1].b):m.b;const HT=bb&&FF_HOWTO[bb];
+    hw.innerHTML=HT?`${HT[1]} <b>Action:</b> ${HT[2]}`:"";}}catch(e){}
   /* v11.34 — the thumbnail: during a transition, the NEXT movement (what he is setting up for). */
   try{const im=document.getElementById("tImg");if(im){const b=m.t?(T.seq[T.i+1]&&T.seq[T.i+1].b):m.b;const src=b?gmbThumbFor(b):null;
     if(src){im.src=src;im.style.display="block";}else{im.removeAttribute("src");im.style.display="none";}}}catch(e){}
@@ -4986,7 +5318,7 @@ function rGMB(){
   if(T.seq.length&&T.i<T.seq.length&&(T.run||T.left>0)){
     h+=`<div class="card" id="tCard"><div class="timerPhase" id="tPh"></div>
     <img id="tImg" class="thumb big" alt="" style="display:none">
-    <div class="timerMove" id="tMove"></div><div class="timerBig" id="tBig"></div>
+    <div class="timerMove" id="tMove"></div><div class="mini" id="tHow" style="text-align:center;margin:2px 12px 0"></div><div class="timerBig" id="tBig"></div>
     <div class="timerNext" id="tNext"></div><div class="tprog"><div class="f" id="tFill"></div></div>
     <div class="trow"><button class="btn sec sm" onclick="gmbSkip(-1)">‹ Back</button>
     <button class="btn ${T.run?"red":""}" onclick="gmbPause()">${T.run?"Pause":"Resume"}</button>
@@ -5338,7 +5670,7 @@ function rTest(){
   <div class="mini" style="margin-top:6px">Weight-bearing lunge, barefoot, facing a wall, second toe in line with the knee. Drive the knee to the wall; <b>the heel must stay flat</b>. Slide the foot back until the knee only just reaches. Phone flat on the shin, angle off vertical. Single leg \u2014 do not let the back leg push you forward. This is the <b>weight-bearing lunge test</b>, the version the research uses; passive seated DF measures something you never use.<br><br>Worth the attention: ankle range responds to training better than any other joint, and eccentric-emphasis work carries the strongest effect of any modality (<b>g = 1.12</b>). Markow gives ankle and foot its own day from week 6.</div></details>
   <details><summary><b>What weight do I actually use?</b></summary>
   <div class="mini" style="margin-top:6px">Once the on-ramp gives you e1RMs, every main-lift row on Today shows a <b>suggested opening load</b> \u2014 e.g. &ldquo;start ~245 lb (86% of 285)&rdquo; \u2014 computed from your e1RM and that set&rsquo;s prescribed reps and RIR.<br><br>
-  <b>It updates as you get stronger. You do not wait for a retest.</b> Every top set you log is itself an e1RM estimate (weight &divide; the %1RM that set represents), so a good day on week 3 raises the suggestions for week 4. The app takes the best of the last 6 weeks, floored at your on-ramp number \u2014 a light day never drags it down, because e1RM is a statement about capacity, not about average effort. <b>So there is no strength retest at all</b> &mdash; not at week 4, 8 or 12. Max or AMRAP attempts on top of an already high-volume block would cost real fatigue to produce a number the log already contains. Weeks 4/8/12 are <b>screen weeks</b>: kick height, rotation, ankle DF. Fifteen minutes, no barbell.<br><br>
+  <b>It updates as you get stronger. You do not wait for a retest.</b> Every top set you log is itself an e1RM estimate (weight &divide; the %1RM that set represents), so a good day on week 3 raises the suggestions for week 4. The app takes the best of the last 6 weeks, floored at your on-ramp number \u2014 a light day never drags it down, because e1RM is a statement about capacity, not about average effort. <b>So there is no strength retest at all</b> &mdash; not at week 4, 8 or 12. Max or AMRAP attempts on top of an already high-volume block would cost real fatigue to produce a number the log already contains. Weeks ${DUE_REG.find(x=>x.k==="kick").weeks.join("/")} are <b>screen weeks</b>: kick height, rotation, ankle DF. Fifteen minutes, no barbell.<br><br>
   <b>Why you can&rsquo;t be marked down for following the program.</b> A session counts as a heavy exposure if it hit either &ge;80% of your working e1RM <i>or</i> &ge;97% of what the block prescribed that day. As written every top set here lands at 81&ndash;88%, so the two agree \u2014 but if the program ever prescribed lighter, doing it correctly would still count.<br><br>
   <b>It is a starting point, not a command.</b> RIR still governs the set: if 3 &times; 5 @ RIR 2 turns out to be RIR 0, the weight was wrong for today and the number in the app does not know that. Autoregulation is the design, and it is how the 4D Hybrid source is written.<br><br>
   Accessories get no suggestion \u2014 there is no e1RM for a machine row, and inventing one would be false precision.<br><br>
@@ -5397,7 +5729,7 @@ function rLog(){
   <div class="mini" style="margin-top:6px">Moving it <b>preserves everything you have logged</b> — readiness, lifts, HR, benchmarks are all keyed by calendar date. What resets is the periodization: which week the wave thinks you are in. Sessions logged before the new start date fall outside the block and stop counting toward the ledger, which is what you want after a layoff.</div>
   <div class="mini" style="margin-top:6px;opacity:.7">Set to a <b>Monday</b>. Any other weekday shifts the whole D1–D4 pattern off the week and the day-of-week prescriptions will not line up.</div>
   <label class="f">Decay anchor</label>
-  <div class="mini">${decayAnchor()?`The e1RM layoff-decay clock for all three lifts cannot start before <b>${decayAnchor()}</b> (your instruction, 2026-09-14: reset all decay for the block). Banked test dates are unchanged. <button class="btn sm sec" style="margin-left:6px" onclick="Z.decayAnchor=null;save();render()">Clear anchor</button>`
+  <div class="mini">${decayAnchor()?`The e1RM layoff-decay clock for all three lifts cannot start before <b>${decayAnchor()}</b>${decayAnchor()===progStart()?", the block start":`, which is not the current block start (${progStart()}) — clear it and re-anchor to move it`}. Banked test dates are unchanged. <button class="btn sm sec" style="margin-left:6px" onclick="Z.decayAnchor=null;save();render()">Clear anchor</button>`
     :`No anchor — the decay clock reads the last tested or logged date. <button class="btn sm sec" style="margin-left:6px" onclick="Z.decayAnchor=progStart();save();render()">Anchor at block start</button>`}</div>
   <label class="f">Today tab</label>
   <div class="mini">${isCompact()?"<b>Compact</b> — rationale prose hidden; each card has a <i>why</i> button.":"<b>Full text</b> — every card shows its rationale."} <button class="btn sm sec" style="margin-left:6px" onclick="toggleCompact()">Switch</button></div></div>
