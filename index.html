@@ -219,7 +219,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.38 · 2026-10-08";
+const BUILD="v11.39 · 2026-10-12";
 /* v11.22 — THE START DATE IS NOW STATE, NOT A CONSTANT.
    Sixth start date (Jul 28 · Aug 3 · Aug 10 · Aug 17 · Aug 24), moved for an episodic
    lumbar recurrence. The point of this change is that there must never be a seventh
@@ -518,36 +518,24 @@ const DELOAD_WK=5; /* index of Week 6 — Biolayne's written deload; kept as-wri
    model. Each day: pattern focus + phase-progressed anchor(s) + a swap LIBRARY (report + Prehab Guys)
    the athlete can rotate in. Loaded-flexion work must ADD LOAD week to week, not just reps/time. */
 const CORE={
- mon:{lbl:"Anti-extension + anti-rotation",tier:"T2",focus:"RA long-lever + rotary stability",ph:[
-   ["Ab-Wheel Roll-out — from knees, 3×8 (control the extension)","Band Dead Bug, anti-rotation — 3×10/side"],
-   ["Ab-Wheel Roll-out — knees, add ROM/tempo, 3×8","Pallof March, arms extended — 3×30s/side"],
-   ["Ab-Wheel Roll-out — extended-lever/standing progression, 3×6","Half-Kneeling Chop (band) — 3×10/side"]],
+ /* v11.39 — the three calendar phases (ph) are gone from here: they fold into the step ladders (LAD / CORE_ROWS,
+    below KOTG), where each old phase exercise is a later step that cannot arrive before its old week (5 or 9). */
+ mon:{lbl:"Anti-extension + anti-rotation",tier:"T2",focus:"RA long-lever + rotary stability",
   lib:["Tier-1 anti-ext: roll-out, pike, suspended roll-out plank","Plank / long-lever plank / body saw","Prehab: Bird Dog (band), Tall-Plank Shoulder Tap, Tall→Low Plank","Prehab: Dead Bug, Standing Psoas March (band)"]},
- wed:{lbl:"Loaded flexion + hip-flexion (aesthetics + iliopsoas)",tier:"T2",focus:"RA hypertrophy + psoas (feeds sprint & kick chamber)",ph:[
-   ["Hanging Knee Raise (PPT) — 3×12","Cable/Rope Crunch — 3×12 (log load, add weekly)"],
-   ["Hanging Leg Raise — 3×10 (straighter lever)","Cable Crunch — 3×10 (heavier)"],
-   ["Weighted Hanging Leg Raise — 3×8","Cable Crunch, top load — 4×8"]],
+ wed:{lbl:"Loaded flexion + hip-flexion (aesthetics + iliopsoas)",tier:"T2",focus:"RA hypertrophy + psoas (feeds sprint & kick chamber)",
   lib:["Tier-1 RA: hanging leg/knee raise, roll-out, pike","Loaded flexion: cable crunch, weighted decline sit-up (controlled)","Psoas: ASLR eccentric, resisted hip flexion (band, 30–60°)","Prehab: Flutter Kick, Oblique Crunch, Curl-Up Segmental"]},
- /* v11.32 — Copenhagen ladder from WEEK 1, Thu + Fri, on Robert's instruction ("we lost our
-    adductor work"). The Copenhagen is still an anti-lateral trunk exercise, so it replaces the
-    side plank here rather than adding to the day; the side plank moves to the library.
-    Progression per Markow's Golden Groin cue: bent-knee -> full -> straight-leg. */
- thu:{lbl:"Anti-lateral + adductor — trunk pre-taxed by trap bar",tier:"T3",focus:"QL / lateral wall + adductors, kept light",ph:[
-   ["Copenhagen Plank (knees) — 2×20s/side (hip higher than the top knee)","Suitcase Carry — 3×40yd/side"],
-   ["Copenhagen Plank (full, foot on bench) — 2×25s/side","Suitcase Carry, heavier — 3×40yd/side"],
-   ["Copenhagen Plank (straight-leg, per Golden Groin) — 2×20s/side","Front-Rack Carry, unilateral — 3×30yd/side"]],
+ /* v11.32 — Copenhagen ladder from WEEK 1, Thu + Fri, on Robert's instruction ("we lost our adductor work"); it
+    replaces the side plank here (the side plank is in the library). Golden Groin cue: bent-knee -> full -> straight-leg.
+    v11.39: one shared ladder for both days, moving by the week (his answer 2026-10-12). */
+ thu:{lbl:"Anti-lateral + adductor — trunk pre-taxed by trap bar",tier:"T3",focus:"QL / lateral wall + adductors, kept light",
   lib:["Tier-1 QL/lateral: side plank (toes), side plank + top-leg lift, side plank row","Carries: suitcase, front-rack, waiter","Prehab: Incline Adductor Side Plank, Copenhagen (knees)"]},
- fri:{lbl:"Obliques (V-taper) + adductor + rotation",tier:"T2",focus:"EO/IO — pike is Tier-1 (84% MVIC)",ph:[
-   ["Pike (Power-Wheel/Swiss-ball) — 3×10","Copenhagen Plank (knees) — 2×20s/side"],
-   ["Pike — 3×12 (or feet-elevated)","Copenhagen Plank (full) — 2×25s/side","Standing band rotation — 2×10/side"],
-   ["Pike — 4×10 (deficit)","Copenhagen Plank (straight-leg) — 2×20s/side"]],   /* v11.34: the phase-3 "Medball Side Slam" line moved to the upper ballistic ladder (UPPER_BALL.fri), which now owns every Friday slam */
+ fri:{lbl:"Obliques (V-taper) + adductor + rotation",tier:"T2",focus:"EO/IO — pike is Tier-1 (84% MVIC)",
   lib:["Tier-1 EO: pike, front plank (brace), side bridge on toes","Rotation: resisted cable/band rotation, medball side slam","Prehab: Plank Oblique Crunch (SB), Hollow Hold/Rock, Copenhagen"]},
- sun:{lbl:"Optional rotation — BJJ prep",tier:"T3",focus:"transverse-plane power",ph:[
-   ["Half-Kneeling Lift (band) — 2×10/side"],
-   ["Split-Stance Medball Rotation, feed-in — 2×8/side"],
-   ["Landmine Rotation — 2×8/side"]],
+ sun:{lbl:"Optional rotation — BJJ prep",tier:"T3",focus:"transverse-plane power",
   lib:["Prehab: Half-Kneeling Chop/Lift, Split-Stance Medball Rotation","Medball: scoop toss, shot-put, rotational throw","Landmine rotation / Russian twist (loaded)"]}
 };
+/* v11.39 — corePhase now drives only SUNBLOCK (reverse pec deck 3 -> 4 sets in weeks 9–12, kept on the calendar on
+   purpose) and the header's block label. Core itself is on the ladders. */
 const corePhase=w=>w<4?0:(w<8?1:2);
 /* ============ v11.34: CORE — four targeted fixes from the complete core report, no rebuild ============
    Robert, 2026-09-16, checked against claude/core-training-report.md Parts 4–7:
@@ -568,34 +556,219 @@ const BIRDDOG={n:"Bird-dog — 2×6/side, 5 s hold",cue:"Hold a slight arch (pos
 /* Trim one set from any row that prescribes 3 or more. "3×8" -> "2×8", "4×15" -> "3×15", "2×20s" untouched. */
 function trimRow(t){return t.replace(/(\d+)(×)(?=\d)/g,(m,n,x)=>Number(n)>=3?String(Number(n)-1)+x:m);}   /* every "N×" in the row, so multi-item plyo rows trim each item */
 function coreTrimOn(w,dISO){return isDeloadWeek(w)&&!isDown()&&((readyEff(dISO)||5)>2);}
-function coreItems(k,w,dISO){
-  const p=corePhase(w);let items=CORE[k].ph[p].slice();
-  if(k==="mon")items.push(SIDE_PLANK);
-  items=items.map(t=>/Roll-out|Hanging/.test(t)?t+" · lower ~3 s":t);
-  if(coreTrimOn(w,dISO))items=items.map(t=>{const u=trimRow(t);return u!==t?u+" · wk-6 trim":t;});
-  return items;
-}
-/* Sets removed from CORE by the week-6 trim, across the week's core days — so the Volume tab reflects it. */
+/* v11.39 — the day's core rows as text, from the ladders (the step this week has earned). */
+function coreItems(k,w,dISO){const trim=coreTrimOn(w,dISO);
+  return CORE_ROWS[k].filter(id=>ladVisible(id,w,dISO)).map(id=>ladText(id,w,dISO,{trim}).name);}
+/* Sets removed from the core rows by the week-6 trim, across the week's core days (rows with 3+ sets lose one). */
 function coreTrimSets(w){
-  if(!isDeloadWeek(w))return 0;const p=corePhase(w);let n=0;
-  Object.keys(CORE).forEach(k=>{const rows=CORE[k].ph[p].concat(k==="mon"?[SIDE_PLANK]:[]);
-    rows.forEach(t=>{[...t.matchAll(/(\d+)×(?=\d)/g)].forEach(m=>{if(Number(m[1])>=3)n++;});});});
+  if(!isDeloadWeek(w))return 0;let n=0;
+  Object.keys(CORE_ROWS).forEach(k=>CORE_ROWS[k].forEach(id=>{if(LAD[id].st[0].from<=w&&LAD[id].sets>=3)n++;}));
   return n;
 }
 
-/* ---- KOTG (carried from v7 unchanged) ---- */
+/* ---- KOTG (carried from v7; v11.39: each row is a step ladder, `t` kept as the day's summary) ---- */
 const KOTG={
- mon:{t:"KOTG — Tibialis Raises 2×20 + Patrick Steps 2×10/side (home)",tier:"T2"},
+ mon:{t:"KOTG — Tibialis Raises 2×20–25 + Patrick Steps 2×10–15/side (home)",tier:"T2",rows:["k_tib","k_pat"]},
  /* v11.32 — Nordic curl added here on Robert's instruction (2026-09-15). Never in any earlier
     version. Wednesday: shortest day, no lower lift, 48 h from Friday kicks, legs warm from
     the ride if he took it. Low volume is enough — 1×10/wk matched 4×40 for fascicle length in
     the mobility evidence report (Lacome 2020, as cited there). Feet under a loaded bar in the
     rack; hands catch at the bottom. Counted as 2 hamstring sets when ticked. */
- wed:{t:"KOTG — Tibialis Raises 2×20 + ATG Split Squat 2×8/side + Nordic Curl 2×3–6 (feet under a loaded bar; hands catch)",tier:"T2"},
+ wed:{t:"KOTG — Tibialis Raises 2×20–25 + ATG Split Squat 2×8–12/side + Nordic Curl 2×3–6 (feet under a loaded bar; hands catch)",tier:"T2",rows:["k_tib","k_atg","k_nor"]},
  fri:{t:"KOTG — Backward treadmill 5 min (MMA gym, optional)",tier:"T3"},
  sat:{t:"KOTG — Optional outdoor/home backward walk + calf work",tier:"T3"},
- sun:{t:"KOTG PRIMARY — Backward sled/treadmill 5 min · Slant-board calf raise 2×25 · Elephant walk 2×10/side",tier:"T2"}
+ sun:{t:"KOTG PRIMARY — Backward sled/treadmill 5 min · Slant-board calf raise 2×20–25 · Elephant walk 2×10–15/side",tier:"T2",rows:["k_sled","k_calf",{t:"Elephant Walk — 2×10–15/side"}]}
 };
+
+/* ======================= v11.39 — STEP LADDERS FOR APP-OWNED ROWS (2026-10-12) =======================
+   Design: drafts/v11.39-progression-design-2026-10-12.md. His decisions 2026-10-12: scope is core, the pumpers + band
+   hip ER, the four shoulder rows and KOTG (plus the capped side-lying abduction); the core phases fold into the ladders
+   and the calendar is only a ceiling; one tap per row, "top of range" (every set reached the top of the range or the
+   target hold with about 2 reps in reserve); the weight vest only as the last step, loaded before the session.
+   Build answers 2026-10-12 (his, in one questionnaire, before any edit):
+     1. He picks the starting step once per row, on first open; the last logged load is shown beside it as a hint.
+     2. Set counts are frozen at today's (no row grows to 4 sets). The Friday band rotation runs weeks 5–12 (2 sets).
+     3. Side-lying abduction starts at bodyweight, then ankle-weight steps to a 5 lb cap [INF].
+     4. Copenhagen is one ladder on Thursday and Friday, and it moves by the WEEK: a top tap on either session moves the
+        following week up one step. Applied to every ladder here (none moves inside its own week), so a Monday tap never
+        changes Thursday's row two days later [INF: his reasoning for Copenhagen, extended].
+     5. On a hold, "top" means every set, both sides, reached the time.
+   Derived, never a stored counter (the plyoWk / mkWk pattern): the step for block week w = his start + the block weeks
+   before w with a counting top tap, one step per week, held in week 6 and on down-week dates, capped at the end of the
+   ladder and at the calendar ceiling (an exercise change never arrives before its old core phase week, 5 or 9).
+   Stored keys, all additive: Z.top[iso][rowId] (the tap), Z.stepStart[rowId] (flat start index) and
+   Z.stepStart[rowId+"#"+stage] (starting band on a band stage), Z.downLog[] ({from,until}, written by startDown/endDown
+   so a past down-week is still recognised by date — isDown() only knows today). Nothing migrated, re-dated or deleted.
+   Bands are steps by colour in his own order (database/exercises/bands.md); the rated pounds are a guide, never a load. */
+const TUBE=["yellow","green","red","yellow + red","blue","yellow + blue","green + blue","black","yellow + black","green + black","red + black"];
+const TUBE_OVER=["past the list: one step further from the anchor (mark the spot)","past the list: band doubled"];
+const TUBE_STEPS=TUBE.map(b=>"Bodylastics "+b).concat(TUBE_OVER);
+const MINI_FAB=["green mini","blue mini","yellow mini","red mini","black mini","Sling Shot purple (L1)","Sling Shot blue (L1.5)","Sling Shot red (L2)"];   /* mini → fabric order across brands is his feel on first use */
+const LAD_OPEN=40;   /* an open-ended increment stage: effectively no end */
+const VEST_NOTE="load the vest before the session starts, not mid-circuit; write the total plate weight in the load box";
+const LAD={
+ /* ---- core, Monday ---- */
+ c_mon_ro:{sets:3,ant:1,ecc:1,st:[
+  {x:"Ab-Wheel Roll-out",rx:"3×6–10",from:0,steps:["from the knees, partial range (stop before the hips sag)","from the knees, full range"]},
+  {x:"Ab-Wheel Roll-out",rx:"3×6–10",from:4,steps:["from the knees, full range, 2 s pause at full reach"]},
+  {x:"Ab-Wheel Roll-out, standing",rx:"3×6–10",from:8,steps:["roll out to a wall stop","wall stop moved closer (longer reach)","weight vest, one pair of the lightest plates","weight vest, two pairs","weight vest, three pairs"]}]},
+ c_mon_ar:{sets:3,st:[
+  {x:"Band Dead Bug, anti-rotation",rx:"3×10–15/side",from:0,band:1,len:3},
+  {x:"Pallof March, arms extended",rx:"3×30–45s/side",from:4,band:1,len:3},
+  {x:"Half-Kneeling Chop (band)",rx:"3×10–15/side",from:8,band:1}]},
+ c_mon_sp:{sets:2,ant:1,hold:1,st:[
+  {x:"Side Plank",from:0,steps:[{t:"toes",rx:"2×30s/side"},{t:"toes",rx:"2×35s/side"},{t:"toes",rx:"2×40s/side"},{t:"toes",rx:"2×45s/side"}]},
+  {x:"Side Plank, top-leg lift",from:0,steps:[{rx:"2×30s/side"},{rx:"2×35s/side"},{rx:"2×40s/side"},{rx:"2×45s/side"}]},
+  {x:"Side Plank, top-leg lift",from:0,steps:[{t:"weight vest, one pair of the lightest plates",rx:"2×30s/side"},{t:"weight vest, two pairs",rx:"2×30s/side"}]}]},
+ /* ---- core, Wednesday ---- */
+ c_wed_hr:{sets:3,ant:1,ecc:1,st:[
+  {x:"Hanging Knee Raise (PPT)",rx:"3×10–15",from:0,steps:["bodyweight","ankle weights 2 lb each","ankle weights 4 lb each"]},
+  {x:"Hanging Leg Raise",rx:"3×8–12",from:4,steps:["bodyweight, straighter lever"]},
+  {x:"Weighted Hanging Leg Raise",rx:"3×8–12",from:8,steps:["ankle weights 2 lb each","ankle weights 4 lb each","ankle weights 6 lb each","ankle weights 8 lb each","ankle weights 10 lb each","DB held between the feet"]}]},
+ c_wed_cc:{sets:3,ant:1,st:[{x:"Cable/Rope Crunch",rx:"3×10–15",from:0,inc:"stack plate"}]},
+ /* ---- core, Thursday + Friday: ONE Copenhagen ladder (his answer 2026-10-12) ---- */
+ c_cop:{sets:2,hold:1,st:[
+  {x:"Copenhagen Plank (knees)",from:0,steps:[{t:"hip higher than the top knee",rx:"2×20s/side"},{t:"hip higher than the top knee",rx:"2×25s/side"},{t:"hip higher than the top knee",rx:"2×30s/side"}]},
+  {x:"Copenhagen Plank (full, foot on bench)",from:4,steps:[{rx:"2×20s/side"},{rx:"2×25s/side"},{rx:"2×30s/side"}]},
+  {x:"Copenhagen Plank (straight-leg, per Golden Groin)",from:8,steps:[{rx:"2×20s/side"},{rx:"2×25s/side"},{rx:"2×30s/side"},
+   {t:"2 lb ankle weight strapped at the top hip (or a plate held on it), not at the ankle",rx:"2×30s/side"},{t:"4 lb at the hip",rx:"2×30s/side"},{t:"6 lb at the hip",rx:"2×30s/side"},{t:"8 lb at the hip",rx:"2×30s/side"},{t:"10 lb at the hip",rx:"2×30s/side"}]}]},
+ c_thu_carry:{sets:3,st:[
+  {x:"Suitcase Carry",rx:"3×40yd/side",from:0,inc:"DB / KB",len:4},
+  {x:"Front-Rack Carry, unilateral",rx:"3×30yd/side",from:8,inc:"KB"}]},
+ /* ---- core, Friday ---- */
+ c_fri_pike:{sets:3,ant:1,st:[
+  {x:"Pike (Power-Wheel/Swiss-ball)",rx:"3×10–15",from:0,steps:[""]},
+  {x:"Pike, feet-elevated",rx:"3×10–15",from:4,steps:[""]},
+  {x:"Pike, deficit",rx:"3×10–15",from:8,steps:["","2 s hold at the top"]}]},
+ c_fri_rot:{sets:2,ant:1,st:[{x:"Standing Band Rotation",rx:"2×10–15/side",from:4,steps:TUBE_STEPS}]},   /* weeks 5–12, his answer 2026-10-12 */
+ /* ---- core, Sunday ---- */
+ c_sun_rot:{sets:2,st:[
+  {x:"Half-Kneeling Lift (band)",rx:"2×10–15/side",from:0,band:1,len:3},
+  {x:"Split-Stance Medball Rotation, feed-in",rx:"2×8–12/side",from:4,inc:"ball",len:3},
+  {x:"Landmine Rotation",rx:"2×8–12/side",from:8,inc:"plate"}]},
+ /* ---- pumpers, band hip ER, the capped side-lying abduction ---- */
+ g_frog:{sets:2,days:[0],key:"gpump",st:[
+  {x:"Frog pump",rx:"2×25–30",from:0,steps:["bodyweight"].concat(MINI_FAB.slice(0,5).map(b=>b+" above the knees"))},
+  {x:"Frog pump, DB on the hips",rx:"2×25–30",from:0,inc:"DB"}]},
+ g_abd:{sets:2,days:[3],key:"gpump",st:[{x:"Banded seated hip abduction",rx:"2×20–30",from:0,steps:MINI_FAB}]},
+ g_er:{sets:2,days:[0,3],key:"ger",st:[{x:"Standing hip external rotation, short hip loop",rx:"2×12–20/side",from:0,steps:MINI_FAB}]},
+ g_sla:{sets:2,days:[3],key:"gact",st:[{x:"Side-lying hip abduction",rx:"2×15/side",from:0,steps:["bodyweight","ankle weight 2 lb","ankle weight 3 lb","ankle weight 4 lb","ankle weight 5 lb (the cap: it is a primer)"]}]},
+ /* ---- shoulder rows (v11.38) ---- */
+ s_rdfly:{sets:3,days:[2],key:"rdfly",st:[{x:"Banded rear-delt fly",rx:"3×10–15",from:0,steps:TUBE_STEPS}]},
+ s_bander:{sets:4,days:[2],key:"bander",st:[{x:"Banded ER + IR",rx:"2×12–15 each",from:0,steps:TUBE_STEPS}]},
+ s_rdflyf:{sets:3,days:[4],key:"rdflyf",st:[{x:"DB rear-delt fly",rx:"3×10–15",from:0,inc:"DB"}]},
+ s_yraise:{sets:3,days:[4],key:"yraise",st:[{x:"DB Y raise",rx:"3×10–15",from:0,inc:"DB"}]},
+ /* ---- KOTG ---- */
+ k_tib:{sets:2,days:[0,2],key:"k:k_tib",st:[{x:"Tibialis Raise",rx:"2×20–25",from:0,steps:["bodyweight, back to the wall"]},{x:"Tibialis Raise, loaded",rx:"2×20–25",from:0,inc:"DB / tib-bar plate"}]},
+ k_pat:{sets:2,days:[0],key:"k:k_pat",st:[{x:"Patrick Step",rx:"2×10–15/side",from:0,steps:["lowest step you have","next step height up","next height up again"]},{x:"Patrick Step, DB in each hand",rx:"2×10–15/side",from:0,inc:"DB"}]},
+ k_atg:{sets:2,days:[2],key:"k:k_atg",st:[{x:"ATG Split Squat",rx:"2×8–12/side",from:0,steps:["bodyweight"]},{x:"ATG Split Squat, DB",rx:"2×8–12/side",from:0,inc:"DB"}]},
+ k_nor:{sets:2,days:[2],key:"k:k_nor",st:[{x:"Nordic Curl",rx:"2×3–6",from:0,steps:["feet under a loaded bar; hands catch early","lower further before the hands catch","full range to the catch","full range, slower lowering (~5 s)"]}]},
+ k_calf:{sets:2,days:[6],key:"k:k_calf",st:[{x:"Slant-board Calf Raise",rx:"2×20–25",from:0,steps:["bodyweight"]},{x:"Slant-board Calf Raise, DB",rx:"2×20–25",from:0,inc:"DB"}]},
+ k_sled:{sets:1,days:[6],key:"k:k_sled",st:[{x:"Backward Sled",rx:"5 min",from:0,steps:["empty sled (or a backward treadmill walk)"]},{x:"Backward Sled, loaded",rx:"5 min",from:0,inc:"plate"}]}
+};
+/* Core rows per day, in card order. The slot index is the row's position here, so the v11.38 load keys c:<day>:<i>
+   keep pointing at the same ladder (Mon 0 roll-out, 1 anti-rotation, 2 side plank; Fri 2 is the rotation). */
+const CORE_ROWS={mon:["c_mon_ro","c_mon_ar","c_mon_sp"],wed:["c_wed_hr","c_wed_cc"],thu:["c_cop","c_thu_carry"],fri:["c_fri_pike","c_cop","c_fri_rot"],sun:["c_sun_rot"]};
+const CORE_DOWK={0:"mon",2:"wed",3:"thu",4:"fri",6:"sun"};
+function ladCW(w,dISO){const c=ISO_RE.test(dISO||"")?calWeekOf(dISO):null;return c==null?w:c;}
+function ladBase(id,si){const v=(Z.stepStart||{})[id+"#"+si];if(v!=null&&v!==""&&!isNaN(v))return Math.max(0,Math.min(TUBE.length-1,Number(v)));
+  for(let p=si-1;p>=0;p--)if(LAD[id].st[p].band)return ladBase(id,p);   /* [INF] a new band exercise starts on the band the last one started on */
+  return 0;}
+function ladFlat(id){const out=[];
+  LAD[id].st.forEach((s,si)=>{
+    if(s.steps)s.steps.forEach((t,j)=>{const o=typeof t==="string"?{t}:t;out.push({si,j,t:o.t||"",rx:o.rx||s.rx});});
+    else if(s.band){const b=ladBase(id,si),room=TUBE_STEPS.length-b,n=s.len?Math.min(s.len,room):room;
+      for(let j=0;j<n;j++)out.push({si,j,t:TUBE_STEPS[b+j],rx:s.rx,band:b+j});}
+    else if(s.inc){const n=s.len||LAD_OPEN;for(let j=0;j<n;j++)out.push({si,j,t:"",rx:s.rx,inc:s.inc});}
+  });return out;}
+function ladMax(id,w){const F=ladFlat(id),S=LAD[id].st;let m=-1;F.forEach((f,i)=>{if(S[f.si].from<=w)m=i;});return m;}
+function ladStart(id){const v=(Z.stepStart||{})[id];return (v==null||v===""||isNaN(v))?0:Math.max(0,Number(v));}
+/* Was this date inside a down-week? The stored log first, then the live one (a pre-v11.39 Z.down has no `from`). */
+function inDownOn(d){
+  if((Z.downLog||[]).some(r=>r&&r.from&&r.until&&d>=r.from&&d<=r.until))return true;
+  return !!(Z.down&&Z.down.until&&d<=Z.down.until&&d>=(Z.down.from||isoBack(Z.down.until,7)));
+}
+/* Did block week i move this row? Any session of the week with a top tap, outside week 6 and outside a down-week. */
+function ladWeekCounts(id,i){if(isDeloadWeek(i))return false;
+  return mkBlockWeekDays(i).some(d=>!!(((Z.top||{})[d]||{})[id])&&!inDownOn(d));}
+function ladPos(id,cw){const F=ladFlat(id),last=F.length-1;
+  const cap=k=>Math.min(last,ladMax(id,k));
+  let s=Math.min(ladStart(id),last);
+  for(let i=0;i<cw&&i<12;i++)if(ladWeekCounts(id,i)){if(s<cap(i+1))s++;}
+  return Math.max(0,Math.min(s,cap(cw)));}
+function ladLoadKey(id,dow){const k=CORE_DOWK[dow];if(k&&CORE_ROWS[k].indexOf(id)>=0)return coreLoadKey(k,CORE_ROWS[k].indexOf(id));return LAD[id].key||null;}
+function ladDays(id){if(LAD[id].days)return LAD[id].days;return Object.keys(CORE_DOWK).map(Number).filter(d=>CORE_ROWS[CORE_DOWK[d]].indexOf(id)>=0);}
+/* Last load typed for this row on one of its own weekdays (gpump is one key for the Mon frog pump and the Thu abduction). */
+function ladLastLoad(id,dISO){let best=null,bd="";
+  ladDays(id).forEach(dow=>{const key=ladLoadKey(id,dow);if(!key)return;
+    Object.keys(Z.gload||{}).forEach(d=>{if(!(d<dISO)||!ISO_RE.test(d)||dayIdx(new Date(d+"T00:00:00"))!==dow)return;
+      const x=(Z.gload[d]||{})[key];if(x&&d>bd){bd=d;best=x;}});});
+  return best;}
+/* The last block week before cw in which the row was done (a top tap, or a load typed on one of its days). */
+function ladPrevWeek(id,cw){const days=ladDays(id);
+  for(let i=Math.min(cw,12)-1;i>=0;i--){const ds=mkBlockWeekDays(i);
+    if(ds.some((d,dow)=>((Z.top||{})[d]||{})[id]||(days.indexOf(dow)>=0&&ladLoadKey(id,dow)&&((Z.gload||{})[d]||{})[ladLoadKey(id,dow)])))return i;}
+  return null;}
+function ladIncText(id,cw,pos,f,dISO){const u=f.inc,pw=ladPrevWeek(id,cw);
+  const last=ladLastLoad(id,ISO_RE.test(dISO||"")?dISO:mkBlockWeekDays(Math.min(cw,11))[0]);
+  if(pw==null||ladFlat(id)[ladPos(id,pw)].si!==f.si)return `new: pick a ${u} that gets you to the bottom of the range`;
+  return pos>ladPos(id,pw)?`up one ${u} from ${last?esc(last):"last time"}`:`same ${u} as last time${last?" ("+esc(last)+")":""}`;}
+function ladText(id,w,dISO,o){o=o||{};const cw=ladCW(w,dISO),F=ladFlat(id),pos=ladPos(id,cw),f=F[pos],S=LAD[id].st[f.si];
+  const trim=!!o.trim&&LAD[id].sets>=3,rx=trim?trimRow(f.rx):f.rx;
+  const t=f.inc!=null?ladIncText(id,cw,pos,f,dISO):f.t;
+  return {cw,pos,f,S,rx,trim,t,last:F.length-1,
+    name:`${o.label||S.x}${o.noRx?"":" — "+rx}${t?" · "+t:""}${LAD[id].ecc?" · lower ~3 s":""}${trim?" · wk-6 trim":""}`};}
+function ladVisible(id,w,dISO){return LAD[id].st[0].from<=ladCW(w,dISO);}
+function ladNotes(id,R,dISO){const L=LAD[id],F=ladFlat(id),n=[];
+  const lastSt=L.st[L.st.length-1],open=!!(lastSt.inc&&!lastSt.len);
+  n.push(open?`Step ${R.pos+1}`:`Step ${R.pos+1} of ${F.length}`);   /* an open-ended last stage has no honest "of N" */
+  if(isDeloadWeek(R.cw))n.push("week 6: steps hold, a top tap this week does not move the row");
+  else if(ISO_RE.test(dISO||"")&&inDownOn(dISO))n.push("down-week: steps hold");
+  else if(ISO_RE.test(dISO||"")&&ladWeekCounts(id,R.cw)&&R.pos<ladMax(id,R.cw+1))n.push("topped this week: next week moves up one step");
+  if(R.pos===R.last)n.push("end of the ladder: stay here and own it");
+  else if(R.pos===ladMax(id,R.cw)){const ns=L.st[F[R.pos+1].si];if(ns.from>R.cw)n.push(`top of this lever until week ${ns.from+1}, when ${ns.x} opens`);}
+  if(/weight vest/.test(R.f.t))n.push(VEST_NOTE);
+  if(L.hold)n.push("top = every set, both sides, reached the time");
+  return n.join(" · ");}
+function ladStepLabel(id,x){const S=LAD[id].st[x.si];return `${S.x} — ${x.rx}${x.inc!=null?" · "+x.inc+" (from your last load)":(x.t?" · "+x.t:"")}`;}
+function ladPicker(id,R,dISO){const SS=Z.stepStart||{},F=ladFlat(id),S=LAD[id].st[R.f.si];
+  const last=ladLastLoad(id,ISO_RE.test(dISO||"")?dISO:"9999");const hint=last?` <span class="mini">last logged: ${esc(last)}</span>`:"";
+  const sty=`style="width:100%;max-width:100%;min-width:0;box-sizing:border-box"`;   /* a % width keeps a long option from widening the row on the phone */
+  if(S.band){const b=ladBase(id,R.f.si),set=SS[id+"#"+R.f.si]!=null;
+    const sel=`<select class="win" ${sty} onchange="setStepStart('${id}',this.value)">${TUBE.map((t,i)=>`<option value="b${R.f.si}:${i}"${i===b?" selected":""}>Bodylastics ${t}</option>`).join("")}</select>`;
+    return set?`<details class="corelib"><summary class="mini">starting band: ${TUBE[b]} · change</summary>${sel}</details>`
+              :`<div class="mini" style="flex:1 1 100%;min-width:0">${R.f.si===0?"Starting band":"Starting band for "+esc(S.x)} (pick once): ${sel}${hint}</div>`;}
+  const max=ladMax(id,R.cw),opts=[];
+  F.forEach((x,i)=>{if(i>max)return;if(x.inc!=null&&x.j>0)return;if(LAD[id].st[x.si].band)return;opts.push([i,ladStepLabel(id,x)]);});
+  if(opts.length<2)return "";
+  const cur=SS[id]==null?null:ladStart(id);
+  const sel=`<select class="win" ${sty} onchange="setStepStart('${id}',this.value)">${cur==null?`<option value="" selected>where are you now?</option>`:""}${opts.map(([i,l])=>`<option value="${i}"${i===cur?" selected":""}>${esc(l)}</option>`).join("")}</select>`;
+  return cur==null?`<div class="mini" style="flex:1 1 100%;min-width:0">Starting step (pick once): ${sel}${hint}</div>`
+                  :`<details class="corelib"><summary class="mini">starting step: ${cur+1} · change</summary>${sel}</details>`;}
+function setStepStart(id,v){if(!LAD[id])return;Z.stepStart=Z.stepStart||{};const s=String(v==null?"":v);
+  if(/^b\d+:\d+$/.test(s)){const a=Number(s.slice(1).split(":")[0]),b=Number(s.split(":")[1]);Z.stepStart[id+"#"+a]=b;
+    if(Z.stepStart[id]==null){const i=ladFlat(id).findIndex(x=>x.si===a);Z.stepStart[id]=Math.max(0,i);}}
+  else if(/^\d+$/.test(s))Z.stepStart[id]=Number(s);
+  else return;
+  save();render();}
+function topTog(dISO,id){if(!ISO_RE.test(dISO||"")||!LAD[id])return;Z.top=Z.top||{};Z.top[dISO]=Z.top[dISO]||{};
+  if(Z.top[dISO][id])delete Z.top[dISO][id];else Z.top[dISO][id]=true;
+  if(!Object.keys(Z.top[dISO]).length)delete Z.top[dISO];save();render();}
+/* Not a tick: no data-ck, so a card still collapses on its ticks alone (decorateCards) and EXPECT never sees it. */
+function topBtn(dISO,id){const on=!!(((Z.top||{})[dISO]||{})[id]);
+  return `<button class="btn sm ${on?"":"sec"} topb" title="Every set reached the top of the range (or the hold) with about 2 reps in reserve" onclick="topTog('${dISO}','${id}')">${on?"top ✓":"top"}</button>`;}
+function ladRow(id,w,dISO,editable,o){o=o||{};if(!ladVisible(id,w,dISO))return "";
+  const R=ladText(id,w,dISO,o),live=editable&&ISO_RE.test(dISO||"");
+  const dow=ISO_RE.test(dISO||"")?dayIdx(new Date(dISO+"T00:00:00")):null;
+  const key=o.loadKey!==undefined?o.loadKey:(dow!=null?ladLoadKey(id,dow):null);
+  /* The top button and the one-time picker sit under the name, so the right-hand column (load box + tick) is no wider
+     than in v11.38 — the iOS row-squeeze fixes of v11.36 stay intact. */
+  return `<div class="row"><div class="nm">${R.name}<div class="sup">${o.sup?o.sup+" · ":""}<span class="mini">${ladNotes(id,R,dISO)}</span></div>${live?`<div class="ladctl" style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:0">${topBtn(dISO,id)}${ladPicker(id,R,dISO)}</div>`:""}</div>${o.rxCol!=null?`<div class="rx">${o.rxCol}</div>`:""}${live?(key?gloadInp(dISO,key):"")+(o.tick?ckHTML(dISO,o.tick):""):""}</div>`;}
+function pumperRow(dkey,w,dISO,editable){const gp=GLUTE_PUMP[{d1:0,d3:3}[dkey]];
+  return ladRow(dkey==="d1"?"g_frog":"g_abd",w,dISO,editable,{sup:`Pumper · <span class="why">${gp.cue}</span>`,rxCol:gp.vec==="H"?"horizontal":"lateral",tick:"gpump",loadKey:"gpump"});}
+function kotgRows(kk,w,dISO,editable){const K=KOTG[kk];if(!K.rows)return `<div class="row"><div class="nm">${K.t}</div></div>`;
+  return K.rows.map(r=>typeof r==="string"?ladRow(r,w,dISO,editable,{}):`<div class="row"><div class="nm">${r.t}</div></div>`).join("");}
+/* ======================= end v11.39 step ladders ======================= */
 
 /* ---- Baar wrist/elbow micro-dose ---- */
 const BAAR={t:"Baar wrist/elbow isometrics — reverse wrist-curl hold, wrist-flexion hold, pronation hold, supination hold. 4 holds × 10s (30s if a niggle), ~2 min rest between, ~3–5 min total.",
@@ -956,10 +1129,10 @@ function mkUpOpt(dow,w){const ph=mkUpPhase(dow,w);if(!ph||!ph.opt)return [];cons
    rows on one line, so the week-6 trim (3+ sets lose one) does not touch it.
    Unchanged: Sunday face pull, reverse pec deck, band ER. Side delts and biceps are at MAV — nothing added there. */
 const SH_ROWS={
- d2:[{k:"rdfly", n:"Banded rear-delt fly",rx:"3×10–15",sets:3,mus:{rdelt:1},cue:"After the bench work. Band, hinge or bent-over; squeeze, do not swing."},
-     {k:"bander",n:"Banded ER + IR",rx:"2×12–15 each",sets:4,noTrim:true,mus:{rdelt:.25},cue:"Your preference over the Cuban rotation (note 2026-10-07). Elbow pinned, slow return; the right side has the IR deficit."}],
- d4:[{k:"rdflyf",n:"DB rear-delt fly",rx:"3×10–15",sets:3,mus:{rdelt:1},cue:"Chest-supported or bent-over; light, long sets."},
-     {k:"yraise",n:"DB Y raise",rx:"3×12",sets:3,mus:{rdelt:1},cue:"Incline or prone, thumbs up, arms to a Y. Counted as rear delt — your call, 2026-10-08."}]
+ d2:[{k:"rdfly",lad:"s_rdfly",n:"Banded rear-delt fly",rx:"3×10–15",sets:3,mus:{rdelt:1},cue:"After the bench work. Band, hinge or bent-over; squeeze, do not swing."},
+     {k:"bander",lad:"s_bander",n:"Banded ER + IR",rx:"2×12–15 each",sets:4,noTrim:true,mus:{rdelt:.25},cue:"Your preference over the Cuban rotation (note 2026-10-07). Elbow pinned, slow return; the right side has the IR deficit."}],
+ d4:[{k:"rdflyf",lad:"s_rdflyf",n:"DB rear-delt fly",rx:"3×10–15",sets:3,mus:{rdelt:1},cue:"Chest-supported or bent-over; light, long sets."},
+     {k:"yraise",lad:"s_yraise",n:"DB Y raise",rx:"3×10–15",sets:3,mus:{rdelt:1},cue:"Incline or prone, thumbs up, arms to a Y. Counted as rear delt — your call, 2026-10-08."}]
 };
 const SH_ROW_DOW={2:"d2",4:"d4"};
 function shRowSets(r,w,dISO){return (r.sets>=3&&!r.noTrim&&coreTrimOn(w,dISO))?r.sets-1:r.sets;}   /* ER+IR is two 2-set rows written on one line: the trim never touches a 2-set row */
@@ -1007,7 +1180,7 @@ function groinKey(w){return GROIN_ROT[w%GROIN_ROT.length];}
    alarming. The 4/8/12 landmarks on the new bucket are INFERENCE (a scaled-down Israetel
    heuristic), labelled as such. Sunday is the MMA gym: no abduction machine, so nothing there. */
 const GLUTE_ACT={0:{n:"Glute-med activation — band lateral walk 2×15 steps/side",cue:"Mini band above the knees, quarter squat, toes forward. Slow. You should feel the side of the hip, not the front."},
-                 3:{n:"Glute-med activation — side-lying hip abduction 2×15/side",cue:"Heel leads, toes slightly down, top hip stacked. Ankle weight optional."}};
+                 3:{n:"Glute-med activation — side-lying hip abduction 2×15/side",cue:"Heel leads, toes slightly down, top hip stacked. The only activator on a ladder (his choice 2026-10-12): bodyweight first, then an ankle weight, capped at 5 lb so it primes the trap bar rather than tiring the hip [INF]."}};
 const GLUTE_PUMP={0:{n:"Frog pump — 2×25–30",vec:"H",cue:"Soles together, chin tucked, elbows down. Drive through the outside of the feet; one-second squeeze at the top. Stop 5+ reps short of failure — this is a pumper."},
                   3:{n:"Banded seated hip abduction — 2×20–30",vec:"L",cue:"Band above the knees, lean forward for upper glute, upright for the middle. Chase strong end-range abduction, no trunk momentum."}};
 
@@ -1496,7 +1669,10 @@ const HEAVY_BO_DAYS=["d1","d2","d3"];
    found no clear recoverability cliff. This is prudence under a caloric deficit with kicks
    and BJJ on top, not a hard physiological limit. */
 function hboTrade(w){return w>=3?2:1;}
-Z.down=Z.down||null;           /* {until:dateISO} auto down-week */
+Z.down=Z.down||null;           /* {until:dateISO, from (v11.39)} auto down-week */
+Z.downLog=Z.downLog||[];       /* v11.39 [{from,until}] — every down-week, so a step ladder can hold on a past one by date */
+Z.top=Z.top||{};               /* v11.39 {iso:{rowId:true}} — "top of range" taps */
+Z.stepStart=Z.stepStart||{};   /* v11.39 {rowId: flat start index, "rowId#stage": starting band} — his pick, once */
 delete Z.assumeDismiss;        /* v11.23 — assumptions card removed; clears old saved state */
 /* v11.22 — `Z.coreLoads` DELETED. Declared since v9, written by nothing, read by
    nothing. A state key that looks like it stores something is how a future session
@@ -2360,8 +2536,10 @@ function weeklyThrows(dISO){
    side-lying abduction, Thu banded seated abduction); ER was not. Standing band hip ER 2×15/side, Mon +
    Thu, after the pumpers. Counted in the lateral/rotary bucket, shown as its own sub-line.
    Caveat, INFERENCE: the limiter is capsular hip IR; ER strength work does not add IR range. */
-const GLUTE_ER={0:{n:"Standing band hip external rotation — 2×15/side",cue:"Band at the knee, anchored to the side. Foot planted, turn the thigh out against the band; no trunk lean. Lateral/rotary vector — the ER half."},
-                3:{n:"Standing band hip external rotation — 2×15/side",cue:"Same as Monday. Strength at end range of ER; it does not add IR range, which stays Markow's."}};
+/* v11.39 — he does this on a short hip loop around both knees, not an anchored band (his answer 2026-10-12); the cue
+   is rewritten to match, and the row is a step ladder: mini loops green → black, then the Sling Shot fabric circles. */
+const GLUTE_ER={0:{n:"Standing hip external rotation, short hip loop — 2×12–20/side",cue:"Mini loop around both knees (a fabric circle further up the ladder). Stand tall, foot planted; turn one thigh out against the loop without the trunk leaning or the pelvis turning. Lateral/rotary vector — the ER half."},
+                3:{n:"Standing hip external rotation, short hip loop — 2×12–20/side",cue:"Same as Monday. Strength at end range of ER; it does not add IR range, which stays Markow's."}};
 
 /* ============ v11.34: SPRINT LADDER — gate, ceiling and honest contacts (ninth round, 2026-09-20) ============
    B. PHASE ADVANCE IS GATED ON HIS OWN DRILL RATING. The calendar is a FLOOR (a phase cannot start before
@@ -3214,8 +3392,8 @@ function shoulderRows(dkey,w,dISO,editable){
   const R=SH_ROWS[dkey];if(!R)return "";
   const trim=coreTrimOn(w,dISO);
   let h=`<div class="klabel" style="margin-top:8px">Shoulder strength <span class="why" style="font-weight:400;text-transform:none;letter-spacing:0">— moved here from the Markow card 2026-10-07 · rear delt is the tracked hole · credited only when ticked</span></div>`;
-  R.forEach(r=>{const n=shRowSets(r,w,dISO);
-    h+=`<div class="row"><div class="nm">${r.n}<div class="sup why">${r.cue}</div></div><div class="rx">${trim&&n<r.sets?trimRow(r.rx):r.rx}</div>${editable?gloadInp(dISO,r.k)+ckHTML(dISO,r.k):""}</div>`;});
+  R.forEach(r=>{const n=shRowSets(r,w,dISO);   /* v11.39: each row is a step ladder (bands by colour, DBs by the next one up) */
+    h+=ladRow(r.lad,w,dISO,editable,{label:r.n,noRx:true,rxCol:trim&&n<r.sets?trimRow(r.rx):r.rx,sup:`<span class="why">${r.cue}</span>`,tick:r.k,loadKey:r.k});});
   return h;
 }
 
@@ -3246,7 +3424,7 @@ function coreLoadKey(k,i){return "c:"+k+":"+i;}
 /* ---------- D · BAR CALCULATOR — kg on the bar, pick the bar, total in lb (his note 10-07) ----------
    The gym's plates are in kilograms and the bars are not all the same weight. No plate entry, no storage of the
    result; the bar picked is remembered (Z.barSel) so it is one tap next time. Pure arithmetic: kg × 2.20462 + bar. */
-const BARS=[["oly","Olympic bar — 20 kg",44.1],["power","Power bar — 45 lb",45],["ez","EZ bar — 35 lb",35],["women","Women's bar — 35 lb",35],["kids","Children's bar — 25 lb",25]];
+const BARS=[["oly","Olympic bar — 20 kg",44.1],["power","Power bar — 45 lb",45],["trap","Trap bar — 65 lb",65],["ez","EZ bar — 35 lb",35],["women","Women's bar — 35 lb",35],["kids","Children's bar — 25 lb",25]];
 const KG_LB=2.20462;
 function barLb(id){const b=BARS.find(x=>x[0]===id)||BARS[0];return b[2];}
 function barCalc(dkey){
@@ -3432,8 +3610,8 @@ function regBanner(dISO){
   else if(r===3)h+=`<div class="banner amber"><b>Readiness 3 — moderate.</b> Cap or skip extra top sets${plyoDay?" · plyos optional":""} · Z2 not HIIT · keep core light.</div>`;
   return h;
 }
-function startDown(){const d=new Date();d.setDate(d.getDate()+7);Z.down={until:iso(d)};save();render();}
-function endDown(){Z.down=null;save();render();}
+function startDown(){const d=new Date();d.setDate(d.getDate()+7);const from=todayISO(),until=iso(d);Z.down={until,from};Z.downLog=Z.downLog||[];Z.downLog.push({from,until});save();render();}
+function endDown(){if(Z.down){const r=(Z.downLog||[]).find(x=>x&&x.until===Z.down.until);if(r)r.until=isoBack(todayISO(),1);}Z.down=null;save();render();}
 function setReady(v){Z.readiness[viewISO()]=v;save();render();}
 
 /* ================= v11.26 — THE DATE CURSOR =================
@@ -4752,12 +4930,12 @@ function strengthCard(w,dkey,dISO,editable){
     const [s,r,rir]=rx[i];
     if(e.sup){rows+=`<div class="row"><div class="nm" style="color:var(--dim)">${e.n} <span class="sup why">— suppressed; replaced by the Core block</span></div></div>`;
       if(i===exs.length-1&&GLUTE_PUMP[{d1:0,d3:3}[dkey]]){const gp=GLUTE_PUMP[{d1:0,d3:3}[dkey]];
-        rows+=`<div class="row"><div class="nm">${gp.n}<div class="sup">Pumper · <span class="why">${gp.cue}</span></div></div><div class="rx">${gp.vec==="H"?"horizontal":"lateral"}</div>${editable?gloadInp(dISO,"gpump")+ckHTML(dISO,"gpump"):""}</div>`;}
+        rows+=pumperRow(dkey,w,dISO,editable);}
       return;}
     const seTxt="";
     if(e.k==="bht"){rows+=bootyRow(dISO,s,r,rir,editable);
       if(i===exs.length-1&&GLUTE_PUMP[{d1:0,d3:3}[dkey]]){const gp=GLUTE_PUMP[{d1:0,d3:3}[dkey]];
-        rows+=`<div class="row"><div class="nm">${gp.n}<div class="sup">Pumper · <span class="why">${gp.cue}</span></div></div><div class="rx">${gp.vec==="H"?"horizontal":"lateral"}</div>${editable?gloadInp(dISO,"gpump")+ckHTML(dISO,"gpump"):""}</div>`;}
+        rows+=pumperRow(dkey,w,dISO,editable);}
       return;}
     const sg=suggestLoad(e.k,r,rir,dISO);
     const inp=editable?`<input class="win" inputmode="decimal" placeholder="${sg?sg.lb:(lastLoad(e.k,dISO)||"lb")}" value="${(Z.lifts[dISO]&&Z.lifts[dISO][e.k]&&Z.lifts[dISO][e.k].w)||""}" onchange="setLoad('${dISO}','${e.k}',this.value)">`:"";
@@ -4794,7 +4972,7 @@ function strengthCard(w,dkey,dISO,editable){
     /* v11.32 — Contreras pumpers, after the last glute slot on the day: frog pump after the D1
        accessories (Mon), banded seated abduction after the Booty Sprout (Thu). Own tick. */
     if(i===exs.length-1&&GLUTE_PUMP[{d1:0,d3:3}[dkey]]){const gp=GLUTE_PUMP[{d1:0,d3:3}[dkey]];
-      rows+=`<div class="row"><div class="nm">${gp.n}<div class="sup">Pumper · <span class="why">${gp.cue}</span></div></div><div class="rx">${gp.vec==="H"?"horizontal":"lateral"}</div>${editable?gloadInp(dISO,"gpump")+ckHTML(dISO,"gpump"):""}</div>`;}
+      rows+=pumperRow(dkey,w,dISO,editable);}
     /* the heavy back-offs sit between the top set and the hypertrophy back-offs */
     if(i===0&&HEAVY_BO_DAYS.includes(dkey)){
       const hk=e.k.replace("_top","_hbo");
@@ -4822,22 +5000,23 @@ function strengthCard(w,dkey,dISO,editable){
        <span class="mini">The calendar never stalls and nothing is owed. The <i>load</i> waits for the work. Progressing the bar on weeks you did not train is how a block starts prescribing numbers you have no business hitting, and failing them reads as failure. One free week is built in, because 1&ndash;2 weeks off costs no measurable 1RM.</span></div>`
     : `<div class="mini" style="margin-bottom:6px">Week ${R.i+1} loading, on schedule — ${R.exp} heavy exposure${R.exp===1?"":"s"} logged for this lift.${decayAnchor()?` <span class="why">Decay clock anchored at ${decayAnchor()}${decayAnchor()===progStart()?", the block start":`; the block starts ${progStart()}`}.</span>`:""}</div>`}
   ${rows}
-  ${(dkey==="d1"||dkey==="d3")&&GLUTE_ER[{d1:0,d3:3}[dkey]]?(()=>{const g=GLUTE_ER[{d1:0,d3:3}[dkey]];return `<div class="row"><div class="nm">${g.n}<div class="sup">Rotary · <span class="why">${g.cue}</span></div></div><div class="rx">ER</div>${editable?gloadInp(dISO,"ger")+ckHTML(dISO,"ger"):""}</div>`;})():""}
+  ${(dkey==="d1"||dkey==="d3")&&GLUTE_ER[{d1:0,d3:3}[dkey]]?(()=>{const g=GLUTE_ER[{d1:0,d3:3}[dkey]];return ladRow("g_er",w,dISO,editable,{sup:`Rotary · <span class="why">${g.cue}</span>`,rxCol:"ER",tick:"ger",loadKey:"ger"});})():""}
   ${shoulderRows(dkey,w,dISO,editable)}
   ${barCalcHTML(dkey)}
   ${editable?sessionSummary(w,dkey,dISO):""}
   ${editable?`<div style="margin-top:8px">${ckHTML(dISO,"str")}<span class="mini" style="margin-left:8px">Session complete</span></div>${rpeHTML(dISO,"str")}`:""}</div>`;
 }
 function coreCard(w,dow,dISO,editable){
-  const map={0:"mon",2:"wed",3:"thu",4:"fri",6:"sun"};const k=map[dow];if(!k)return "";
-  const c=CORE[k],p=corePhase(w);
+  const k=CORE_DOWK[dow];if(!k)return "";
+  const c=CORE[k];
   const down=isDown()||((readyEff(dISO)||5)<=2);   /* v11.34: override lifts the readiness cut, never the down-week */
-  const items=down?["Anti-rotation only — Pallof march / bird dog, 2 easy sets"]:coreItems(k,w,dISO);
   const loadNote=(k==="wed"||k==="fri")?" · loaded work ADDS LOAD weekly (aesthetics #1)":"";
   const slam=(k==="fri"&&!down)?upperBlock("fri",w):null;const trim=coreTrimOn(w,dISO);
+  const rows=down?`<div class="row"><div class="nm">Anti-rotation only — Pallof march / bird dog, 2 easy sets</div></div>`
+                 :CORE_ROWS[k].map(id=>ladRow(id,w,dISO,editable,{trim})).join("");
   return `<div class="card spine ${c.tier==="T2"?"t2":""}"><h3>Core — ${c.lbl} <span class="tiertag ${c.tier}">${c.tier}</span></h3>
-  <div class="meta">Circuited between strength sets · Phase ${p+1}${trim?" · <b>week-6 trim</b>: one set off each 3+ row":""}<span class="why"> · ${c.focus}${loadNote}</span></div>
-  ${items.map((t,i)=>`<div class="row"><div class="nm">${t}</div>${editable&&!down?gloadInp(dISO,coreLoadKey(k,i)):""}</div>`).join("")}
+  <div class="meta">Circuited between strength sets · each row is a step ladder: tap <b>top</b> when every set reached the top of the range with about 2 in reserve, and the row moves up one step next week${trim?" · <b>week-6 trim</b>: one set off each 3+ row":""}<span class="why"> · ${c.focus}${loadNote}</span></div>
+  ${rows}
   ${slam?`<div class="row"><div class="nm">${trim?trimRow(slam.t):slam.t} <span class="chip ghost">ballistic · ${slam.ph}</span><div class="sup why">${slam.cue} Counted as throws, not as core sets — power, not hypertrophy; the cable crunch stays the loaded-flexion driver.</div></div>${velocityGated(dISO)?`<div class="rx" style="color:var(--t2)">gated today</div>`:""}</div>`:""}
   ${!down?`<details class="corelib"><summary class="mini">Swap library (evidence Tier-1 + Prehab Guys)</summary>${c.lib.map(x=>`<div class="mini" style="opacity:.8">· ${x}</div>`).join("")}</details>`:""}
   ${editable?`<div style="margin-top:8px">${ckHTML(dISO,"core")}<span class="mini" style="margin-left:8px">Done</span></div>${rpeHTML(dISO,"core")}`:""}</div>`;
@@ -4886,7 +5065,8 @@ function warmupCard(w,dow,dISO,editable){
     h+=`<div class="row"><div class="nm">${BIRDDOG.n}<div class="sup why">${BIRDDOG.cue}</div></div>${editable?ckHTML(dISO,"birddog"):""}</div>
     <div class="mini why">Added v11.34 from the core report: the posterior-core gap. Credited 2 sets to posterior core when ticked.</div>`;}
   if(GLUTE_ACT[dow]){const g=GLUTE_ACT[dow];
-    h+=`<div class="row"><div class="nm">${g.n}<div class="sup">${g.cue}</div></div>${editable?gloadInp(dISO,"gact")+ckHTML(dISO,"gact"):""}</div>
+    h+=(dow===3?ladRow("g_sla",w,dISO,editable,{label:"Glute-med activation — side-lying hip abduction 2×15/side",noRx:true,sup:g.cue,tick:"gact",loadKey:"gact"})
+               :`<div class="row"><div class="nm">${g.n}<div class="sup">${g.cue}</div></div>${editable?gloadInp(dISO,"gact")+ckHTML(dISO,"gact"):""}</div>`)+`
     <div class="mini why">Contreras activator: low load, primes the glute med before the lift, does not train it. Counted in the lateral bucket on the Volume tab when ticked. Added v11.32.</div>`;}
   return h+`</div>`;
 }
@@ -5008,7 +5188,7 @@ function skillCard(w,dow,dISO,editable,part){
     const kk={0:"mon",2:"wed",4:"fri",5:"sat",6:"sun"}[dow];
     if(kk){const K=KOTG[kk];
       h+=`<div class="card spine ${K.tier==="T2"?"t2":""}"><h3>${kk==="sun"?"KOTG — Primary Session":"KOTG"} <span class="tiertag ${K.tier}">${K.tier}</span></h3>
-      <div class="row"><div class="nm">${K.t}</div></div>${kk==="wed"?`<div class="mini why">Nordic curl added v11.32 on your instruction — never in an earlier version. Low volume is enough (1×10/wk matched 4×40 for fascicle length in the evidence report). Counted as 2 hamstring sets when this card is ticked.</div>`:""}${editable?`${ckHTML(dISO,"kotg")}${rpeHTML(dISO,"kotg")}`:""}</div>`;}
+      ${kotgRows(kk,w,dISO,editable)}${kk==="wed"?`<div class="mini why">Nordic curl added v11.32 on your instruction — never in an earlier version. Low volume is enough (1×10/wk matched 4×40 for fascicle length in the evidence report). Counted as 2 hamstring sets when this card is ticked.</div>`:""}${editable?`${ckHTML(dISO,"kotg")}${rpeHTML(dISO,"kotg")}`:""}</div>`;}
     if(dow===2||dow===4){
       h+=`<div class="card spine"><h3>Baar Wrist/Elbow (optional) <span class="tiertag T3">T3</span></h3>
       <div class="row"><div class="nm">${BAAR.t}</div></div><div class="mini why">${BAAR.note}${dow===4&&dISO>=FF_FROM?" (Friday's class is now the kicking routine, which has no wrist hold — Baar is clean today.)":""}</div>${editable?ckHTML(dISO,"baar"):""}</div>`;}
@@ -5698,7 +5878,6 @@ function weeklyVolume(w){
      hole. A number built to reveal a gap was quietly filling it in. Only the
      programmed add-on is logged; the partner-led portion of the lift is variable and
      is deliberately not modelled. */
-  const p=corePhase(w);
   sunLogged(w).forEach(({i,ex})=>{
     const sets=Number(String(ex.rx).match(/^(\d+)\s*×/)?.[1]||0);
     Object.keys(ex.mus||{}).forEach(m=>{if(tot[m]!=null)tot[m]+=sets*ex.mus[m];});
@@ -5721,7 +5900,14 @@ function weeklyVolume(w){
      Posterior = light dedicated lateral/extension + fractional credit from box squat + trap bar.
      v11.34: the Monday side plank adds 2 anterior-wall sets (obliques/QL); the week-6 trim removes one set
      from every core row with 3+ sets (coreTrimSets), so the tab reflects the trimmed week. */
-  tot.abs_ant+={0:12,1:14,2:15}[p]+2-coreTrimSets(w);
+  /* v11.39 — ANTERIOR CORE IS CREDITED ONLY WHEN THAT DAY'S CORE CARD IS TICKED, like every other add-on outside
+     Biolayne (v11.22 / v11.32 rule). It was credited whether or not core happened. Rows that count: roll-out and side
+     plank (Mon), hanging raise and cable crunch (Wed), pike and, weeks 5–12, the band rotation (Fri) — 14 a fully
+     ticked week, 16 from week 5, which reproduces the old programmed 12+2 / 14+2. Week-6 trim applied per row; a
+     down-week or readiness-cut day (core shown as two easy anti-rotation sets) adds nothing here. */
+  wkDays.forEach((k,dow)=>{const dn=Z.done[k]||{},ck=CORE_DOWK[dow];
+    if(!dn.core||!ck||inDownOn(k)||((readyEff(k)||5)<=2))return;
+    CORE_ROWS[ck].forEach(id=>{const L=LAD[id];if(!L.ant||L.st[0].from>w)return;tot.abs_ant+=L.ant*((L.sets>=3&&coreTrimOn(w,k))?L.sets-1:L.sets);});});
   const bsqSets=RX[w].d1[0][0]+RX[w].d1[1][0];
   const tbSets =RX[w].d3[0][0]+RX[w].d3[1][0];
   tot.abs_post+=4+0.5*(bsqSets+tbSets);   /* 0.5 indirect/heavy compound set (Pelland accounting) */
@@ -5779,7 +5965,7 @@ function rVol(){
   });
   const LG=loggedVolume(w);
   el.innerHTML=`<div class="card"><h3>Combined weekly volume — Week ${w+1}</h3>
-  <div class="meta">Mains + accessories + Sunday block + core, fractional counting. Ticks = MEV / MAV / MRV (masters-adjusted — practical MRV runs lower with kicks, BJJ, and plyos on top). Kicks/BJJ/KOTG are background load not counted here: read quads/glutes conservatively.${isDeloadWeek(w)?" <b>Week 6:</b> app-owned rows with 3+ sets lose one; barbell work as Biolayne wrote it.":""}</div>
+  <div class="meta">Mains + accessories + Sunday block + core, fractional counting. Anterior core counts only when that day's core card is ticked (v11.39). Ticks = MEV / MAV / MRV (masters-adjusted — practical MRV runs lower with kicks, BJJ, and plyos on top). Kicks/BJJ/KOTG are background load not counted here: read quads/glutes conservatively.${isDeloadWeek(w)?" <b>Week 6:</b> app-owned rows with 3+ sets lose one; barbell work as Biolayne wrote it.":""}</div>
   <details><summary class="mini">MEV / MAV / MRV in plain words</summary><div class="mini" style="margin:4px 0 8px"><b>Minimum effective volume</b> — the floor below which a muscle is not really being trained. <b>Maximum adaptive volume</b> — roughly where extra sets stop paying. <b>Maximum recoverable volume</b> — the ceiling beyond which the sets cost more than they return. The three ticks on each bar, left to right.</div></details>
   <div class="wksel" style="margin-bottom:12px">${Array.from({length:12},(_,i)=>`<button class="${i===w?"on":""}" onclick="volWk=${i};render()">${i+1}</button>`).join("")}</div>
   ${rows}
