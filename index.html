@@ -219,7 +219,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.39 · 2026-10-12";
+const BUILD="v11.43 · 2026-10-25";
 /* v11.22 — THE START DATE IS NOW STATE, NOT A CONSTANT.
    Sixth start date (Jul 28 · Aug 3 · Aug 10 · Aug 17 · Aug 24), moved for an episodic
    lumbar recurrence. The point of this change is that there must never be a seventh
@@ -671,6 +671,8 @@ const LAD={
 const CORE_ROWS={mon:["c_mon_ro","c_mon_ar","c_mon_sp"],wed:["c_wed_hr","c_wed_cc"],thu:["c_cop","c_thu_carry"],fri:["c_fri_pike","c_cop","c_fri_rot"],sun:["c_sun_rot"]};
 const CORE_DOWK={0:"mon",2:"wed",3:"thu",4:"fri",6:"sun"};
 function ladCW(w,dISO){const c=ISO_RE.test(dISO||"")?calWeekOf(dISO):null;return c==null?w:c;}
+/* v11.40 — the calendar week (slot) of the date; ladders count taps by slot and cap by plan week. */
+function ladSL(w,dISO){const c=ISO_RE.test(dISO||"")?slotOf(dISO):null;return c==null?w:c;}
 function ladBase(id,si){const v=(Z.stepStart||{})[id+"#"+si];if(v!=null&&v!==""&&!isNaN(v))return Math.max(0,Math.min(TUBE.length-1,Number(v)));
   for(let p=si-1;p>=0;p--)if(LAD[id].st[p].band)return ladBase(id,p);   /* [INF] a new band exercise starts on the band the last one started on */
   return 0;}
@@ -689,12 +691,12 @@ function inDownOn(d){
   return !!(Z.down&&Z.down.until&&d<=Z.down.until&&d>=(Z.down.from||isoBack(Z.down.until,7)));
 }
 /* Did block week i move this row? Any session of the week with a top tap, outside week 6 and outside a down-week. */
-function ladWeekCounts(id,i){if(isDeloadWeek(i))return false;
+function ladWeekCounts(id,i){if(isDeloadWeek(planOfSlot(i)))return false;
   return mkBlockWeekDays(i).some(d=>!!(((Z.top||{})[d]||{})[id])&&!inDownOn(d));}
-function ladPos(id,cw){const F=ladFlat(id),last=F.length-1;
+function ladPos(id,cw,sl){const F=ladFlat(id),last=F.length-1;if(sl==null)sl=cw;
   const cap=k=>Math.min(last,ladMax(id,k));
   let s=Math.min(ladStart(id),last);
-  for(let i=0;i<cw&&i<12;i++)if(ladWeekCounts(id,i)){if(s<cap(i+1))s++;}
+  for(let i=0;i<sl&&i<nSlots();i++)if(ladWeekCounts(id,i)){if(s<cap(planOfSlot(i+1)))s++;}
   return Math.max(0,Math.min(s,cap(cw)));}
 function ladLoadKey(id,dow){const k=CORE_DOWK[dow];if(k&&CORE_ROWS[k].indexOf(id)>=0)return coreLoadKey(k,CORE_ROWS[k].indexOf(id));return LAD[id].key||null;}
 function ladDays(id){if(LAD[id].days)return LAD[id].days;return Object.keys(CORE_DOWK).map(Number).filter(d=>CORE_ROWS[CORE_DOWK[d]].indexOf(id)>=0);}
@@ -706,17 +708,17 @@ function ladLastLoad(id,dISO){let best=null,bd="";
   return best;}
 /* The last block week before cw in which the row was done (a top tap, or a load typed on one of its days). */
 function ladPrevWeek(id,cw){const days=ladDays(id);
-  for(let i=Math.min(cw,12)-1;i>=0;i--){const ds=mkBlockWeekDays(i);
+  for(let i=Math.min(cw,nSlots())-1;i>=0;i--){const ds=mkBlockWeekDays(i);
     if(ds.some((d,dow)=>((Z.top||{})[d]||{})[id]||(days.indexOf(dow)>=0&&ladLoadKey(id,dow)&&((Z.gload||{})[d]||{})[ladLoadKey(id,dow)])))return i;}
   return null;}
-function ladIncText(id,cw,pos,f,dISO){const u=f.inc,pw=ladPrevWeek(id,cw);
-  const last=ladLastLoad(id,ISO_RE.test(dISO||"")?dISO:mkBlockWeekDays(Math.min(cw,11))[0]);
-  if(pw==null||ladFlat(id)[ladPos(id,pw)].si!==f.si)return `new: pick a ${u} that gets you to the bottom of the range`;
-  return pos>ladPos(id,pw)?`up one ${u} from ${last?esc(last):"last time"}`:`same ${u} as last time${last?" ("+esc(last)+")":""}`;}
-function ladText(id,w,dISO,o){o=o||{};const cw=ladCW(w,dISO),F=ladFlat(id),pos=ladPos(id,cw),f=F[pos],S=LAD[id].st[f.si];
+function ladIncText(id,cw,pos,f,dISO,sl){if(sl==null)sl=cw;const u=f.inc,pw=ladPrevWeek(id,sl);
+  const last=ladLastLoad(id,ISO_RE.test(dISO||"")?dISO:mkBlockWeekDays(Math.min(sl,nSlots()-1))[0]);
+  if(pw==null||ladFlat(id)[ladPos(id,planOfSlot(pw),pw)].si!==f.si)return `new: pick a ${u} that gets you to the bottom of the range`;
+  return pos>ladPos(id,planOfSlot(pw),pw)?`up one ${u} from ${last?esc(last):"last time"}`:`same ${u} as last time${last?" ("+esc(last)+")":""}`;}
+function ladText(id,w,dISO,o){o=o||{};const cw=ladCW(w,dISO),sl=ladSL(w,dISO),F=ladFlat(id),pos=ladPos(id,cw,sl),f=F[pos],S=LAD[id].st[f.si];
   const trim=!!o.trim&&LAD[id].sets>=3,rx=trim?trimRow(f.rx):f.rx;
-  const t=f.inc!=null?ladIncText(id,cw,pos,f,dISO):f.t;
-  return {cw,pos,f,S,rx,trim,t,last:F.length-1,
+  const t=f.inc!=null?ladIncText(id,cw,pos,f,dISO,sl):f.t;
+  return {cw,sl,pos,f,S,rx,trim,t,last:F.length-1,
     name:`${o.label||S.x}${o.noRx?"":" — "+rx}${t?" · "+t:""}${LAD[id].ecc?" · lower ~3 s":""}${trim?" · wk-6 trim":""}`};}
 function ladVisible(id,w,dISO){return LAD[id].st[0].from<=ladCW(w,dISO);}
 function ladNotes(id,R,dISO){const L=LAD[id],F=ladFlat(id),n=[];
@@ -724,7 +726,7 @@ function ladNotes(id,R,dISO){const L=LAD[id],F=ladFlat(id),n=[];
   n.push(open?`Step ${R.pos+1}`:`Step ${R.pos+1} of ${F.length}`);   /* an open-ended last stage has no honest "of N" */
   if(isDeloadWeek(R.cw))n.push("week 6: steps hold, a top tap this week does not move the row");
   else if(ISO_RE.test(dISO||"")&&inDownOn(dISO))n.push("down-week: steps hold");
-  else if(ISO_RE.test(dISO||"")&&ladWeekCounts(id,R.cw)&&R.pos<ladMax(id,R.cw+1))n.push("topped this week: next week moves up one step");
+  else if(ISO_RE.test(dISO||"")&&ladWeekCounts(id,R.sl)&&R.pos<ladMax(id,planOfSlot(R.sl+1)))n.push("topped this week: next week moves up one step");
   if(R.pos===R.last)n.push("end of the ladder: stay here and own it");
   else if(R.pos===ladMax(id,R.cw)){const ns=L.st[F[R.pos+1].si];if(ns.from>R.cw)n.push(`top of this lever until week ${ns.from+1}, when ${ns.x} opens`);}
   if(/weight vest/.test(R.f.t))n.push(VEST_NOTE);
@@ -1414,9 +1416,9 @@ const SUNBLOCK=w=>{const p=corePhase(w);return [
  {n:"Chest-Supported Row",rx:"2×10–12 · RIR 2",why:"Only if the Volume tab shows upper back under target this week.",mus:{back:1,bicep:.5,rdelt:.25}},
  {n:"Cable External Rotation",rx:"2×12–15 · RIR 2 (optional)",why:"Cuff insurance under heavy pressing + BJJ.",mus:{rdelt:.25}}];};
 /* Which add-on rows were actually ticked on the Sunday of program week `w`. */
-function sunISO(w){const d=new Date(progStart()+"T00:00:00");d.setDate(d.getDate()+w*7+6);return iso(d);}
-function sunLogged(w){
-  const dn=(Z.sunDone||{})[sunISO(w)]||{};
+function sunISO(w,sl){const d=new Date(progStart()+"T00:00:00");d.setDate(d.getDate()+(sl==null?slotForPlan(w):sl)*7+6);return iso(d);}
+function sunLogged(w,sl){
+  const dn=(Z.sunDone||{})[sunISO(w,sl)]||{};
   return SUNBLOCK(w).map((ex,i)=>({i,ex})).filter(({i})=>!!dn[i]);
 }
 
@@ -1558,7 +1560,7 @@ function scanMissed(dISO,days){
   const out=[];
   for(let i=1;i<=days;i++){
     const d=isoBack(dISO,i);
-    if(d<progStart())continue;
+    if(d<progStart()||d<=missFloor())continue;   /* v11.40: nothing on or before a clear is read */
     const dw=(new Date(d+"T00:00:00").getDay()+6)%7;
     const done=Z.done[d]||{};
     (EXPECT[dw]||[]).forEach(([b,t,dom])=>{ if(!done[b]) out.push({date:d,dow:dw,blk:b,tier:t,dom,age:i}); });
@@ -1591,6 +1593,7 @@ function waveHolds(dISO){
 }
 /* RULE 4: a domain under 50% over the trailing 21 days is a dose or slot problem. */
 function domainDrift(dISO){
+  if(missFloor()&&isoBack(dISO,21)<=missFloor())return [];   /* v11.40: after a clear, drift waits for a full 21 days */
   const exp={},miss={};
   for(let i=1;i<=21;i++){
     const d=isoBack(dISO,i);if(d<progStart())continue;
@@ -1835,7 +1838,7 @@ function workingE1(base,dISO){
     if(k<cut||k>(dISO||todayISO()))return;
     const rec=(Z.lifts[k]||{})[tk]; const wt=rec&&Number(rec.w);
     if(!wt)return;
-    const d=new Date(k+"T00:00:00"), wk=Math.floor((d-new Date(progStart()+"T00:00:00"))/6048e5);
+    const d=new Date(k+"T00:00:00"), wk=calWeekOf(k)==null?-1:calWeekOf(k);   /* v11.40: plan week */
     const dk={boxsq:"d1",bench:"d2",trap:"d3"}[base];
     if(wk<0||wk>11||DKEY[dayIdx(d)]!==dk)return;
     const [,r,rir]=RX[Math.max(0,Math.min(11,wk))][dk][0];
@@ -1875,7 +1878,7 @@ function exposureClass(dISO,dkey){
   const w=Number(raw);
   if(w/W.e1>=HEAVY_PCT)return "heavy";
   const d=new Date(dISO+"T00:00:00");
-  const wk=Math.max(0,Math.min(11,Math.floor((d-new Date(progStart()+"T00:00:00"))/6048e5)));
+  const wk=(()=>{const c=calWeekOf(dISO);if(c!=null)return c;return d<new Date(progStart()+"T00:00:00")?0:11;})();   /* v11.40: plan week */
   const [,r,rir]=RX[wk][dkey][0];
   const target=W.e1*pct1RM(r,rir);
   return (w>=target*PRESCRIBED_TOL)?"heavy":"light";
@@ -2133,7 +2136,7 @@ const VO2_PROTO={
 const VO2_SESS=1, VO2_WKMIN=3, VO2_WKMAX=6, VO2_START_WK=6;   /* zero-indexed: week 7 */
 function vo2On(){return !!(Z.vo2&&Z.vo2.on);}
 function vo2Active(dISO){if(Z.vo2&&Z.vo2.on)return true;if(Z.vo2&&Z.vo2.ended)return false;const w=calWeekOf(dISO);return w!=null&&w>=VO2_START_WK;}
-function vo2StartISO(){if(Z.vo2&&Z.vo2.start)return Z.vo2.start;const d=new Date(progStart()+"T00:00:00");d.setDate(d.getDate()+VO2_START_WK*7);return iso(d);}
+function vo2StartISO(){if(Z.vo2&&Z.vo2.start)return Z.vo2.start;return planStartISO(VO2_START_WK);}   /* v11.40: follows a repeat */
 function vo2Proto(){return (Z.vo2&&VO2_PROTO[Z.vo2.proto])?Z.vo2.proto:"4x4";}
 function vo2Done(){return (Z.vo2&&Z.vo2.done)?Z.vo2.done:{};}
 function vo2WeekCount(dISO){const D=vo2Done();
@@ -2443,15 +2446,45 @@ function dayIdx(d){return (d.getDay()+6)%7;} /* Mon=0 */
    `Math.floor((d-new Date(progStart()+"T00:00:00"))/6048e5)` was written inline in three
    separate places (workingE1, exposureClass, the aero rollup). Duplicated date arithmetic
    is how the two start dates desynced in the first place. One definition. */
+/* ============ v11.40 — REPEAT A WEEK (Robert, 2026-10-24) ============
+   A SLOT is a calendar week counted from the block start. A PLAN WEEK (0..11) is the 4D Hybrid week that slot runs.
+   With no repeat they are the same number and every function here returns exactly what v11.39 returned.
+   Z.repeats = [{mon, back, set}]: from Monday `mon` the plan steps back `back` weeks. back 1 = run the previous
+   slot's week again; back 2 = go back one week further, then carry on. Each entry lengthens the block by `back`
+   weeks. Logged days never move: they stay on their own dates, and only which plan week a date maps to changes,
+   and only from `mon` on. calWeekOf() and curWeek() keep meaning "plan week", so every prescription lookup
+   (RX, deload, phases, test weeks, Layer 2) follows the repeat for free. Completion ladders (Markow, plyos,
+   step ladders) walk SLOTS: they count what was actually done, week by calendar week. */
+function repeatList(){
+  const raw=((typeof Z!=="undefined"&&Z&&Z.repeats)||[]).filter(r=>r&&ISO_RE.test(r.mon||"")).slice().sort((a,b)=>a.mon<b.mon?-1:1);
+  const s0=new Date(progStart()+"T00:00:00");const out=[];let extra=0;
+  raw.forEach(r=>{const k=Math.round((new Date(r.mon+"T00:00:00")-s0)/6048e5),back=Math.max(1,Math.floor(Number(r.back)||1));
+    if(k<1||k>12+extra||out.some(x=>x.s===k))return;              /* not before week 2, not past the extended end */
+    const prev=(k-1)-out.reduce((a,x)=>a+(x.s<=k-1?x.back:0),0);   /* plan week of the slot before */
+    if(back>prev+1)return;                                          /* never steps back before week 1 */
+    out.push({s:k,back,mon:r.mon,set:r.set||null});extra+=back;});
+  return out;}
+function nSlots(){return 12+repeatList().reduce((a,r)=>a+r.back,0);}
+function slotOf(dISO){if(!ISO_RE.test(dISO||""))return null;
+  const k=Math.floor((new Date(dISO+"T00:00:00")-new Date(progStart()+"T00:00:00"))/6048e5);
+  return (k<0||k>=nSlots())?null:k;}
+function planOfSlot(s){return s-repeatList().reduce((a,r)=>a+(r.s<=s?r.back:0),0);}
+function isRerunSlot(s){if(s==null)return false;const p=planOfSlot(s);for(let t=0;t<s;t++)if(planOfSlot(t)>=p)return true;return false;}
+function slotStartISO(s){const d=new Date(progStart()+"T00:00:00");d.setDate(d.getDate()+s*7);return iso(d);}
+function slotsOfPlan(w){const o=[],n=nSlots();for(let s=0;s<n;s++)if(planOfSlot(s)===w)o.push(s);return o;}
+/* Which slot a bare plan week means: the latest one already started, else the first. With no repeat, w itself. */
+function slotForPlan(w){const c=slotsOfPlan(w);if(!c.length)return w;const t=slotOf(todayISO());const p=c.filter(s=>t!=null&&s<=t);return p.length?p[p.length-1]:c[0];}
+function planStartISO(w){const c=slotsOfPlan(w);return slotStartISO(c.length?c[0]:w);}
+function planEndISO(w){const c=slotsOfPlan(w);return isoBack(slotStartISO((c.length?c[c.length-1]:w)+1),1);}
+function blockEndISO(){return isoBack(slotStartISO(nSlots()),1);}
+function curSlot(){const s=new Date(Z.start+"T00:00:00");const n=today();
+  return Math.max(0,Math.min(nSlots()-1,Math.floor((n-s)/(7*86400000))));}
 function calWeekOf(dISO){
   if(!ISO_RE.test(dISO))return null;
-  const wk=Math.floor((new Date(dISO+"T00:00:00")-new Date(progStart()+"T00:00:00"))/6048e5);
-  return (wk<0||wk>11)?null:wk;
+  const s=slotOf(dISO);return s==null?null:planOfSlot(s);
 }
-function curWeek(){ /* 0..11, clamped */
-  const s=new Date(Z.start+"T00:00:00");const n=today();
-  const w=Math.floor((n-s)/(7*86400000));
-  return Math.max(0,Math.min(11,w));
+function curWeek(){ /* 0..11, clamped — v11.40: the plan week of the clamped slot */
+  return planOfSlot(curSlot());
 }
 function ageYears(){const n=new Date();let a=n.getFullYear()-DOB.getFullYear();
   const m=n.getMonth()-DOB.getMonth();if(m<0||(m===0&&n.getDate()<DOB.getDate()))a--;return a;}
@@ -2771,6 +2804,21 @@ function throwCard(){
    hardcode a number, so the panel shows his OWN trend only and says so. It also could not honestly map a
    proprietary Elite score to RMSSD norms even with them. */
 function setElite(dISO,v){Z.elite=Z.elite||{};if(v===""||v==null)delete Z.elite[dISO];else Z.elite[dISO]=Number(v);save();render();}
+/* v11.43 — the seven resting-HR inputs sit in one collapsed row on the morning card (his ask, 2026-10-25). Every
+   input's onchange re-renders the card, so the open state lives in rhrOpen (session only, not saved) and is restored
+   on each render; the summary shows what is already entered so the row is readable closed. */
+let rhrOpen=false;
+function rhrSummary(r,hg,eh){const p=[];
+  if(r.rhr!=null)p.push(`Whoop ${r.rhr}`);
+  if(hg.mean!=null||hg.lo!=null)p.push(`Heart Graph ${hg.lo??"—"}–${hg.hi??"—"} (mean ${hg.mean??"—"})`);
+  if(eh.lo!=null||eh.mean!=null)p.push(`Elite ${eh.lo??"—"}–${eh.hi??"—"} (avg ${eh.mean??"—"})`);
+  const n=[r.rhr,hg.mean,hg.lo,hg.hi,eh.lo,eh.mean,eh.hi].filter(x=>x!=null).length;
+  return `<b>Resting HR</b> · ${p.length?p.join(" · "):"none entered"} <span style="opacity:.6">(${n} of 7)</span>`;}
+/* v11.42 — Elite HRV reading heart rate (min / avg / max for the reading), stored apart from the Elite score so
+   Z.elite[iso] keeps its plain-number shape. */
+function setElHR(dISO,k,v){Z.elhr=Z.elhr||{};Z.elhr[dISO]=Z.elhr[dISO]||{};
+  if(v===""||v==null)delete Z.elhr[dISO][k];else Z.elhr[dISO][k]=Number(v);
+  if(!Object.keys(Z.elhr[dISO]).length)delete Z.elhr[dISO];save();render();}
 function setHgRHR(dISO,k,v){Z.hgrhr=Z.hgrhr||{};Z.hgrhr[dISO]=Z.hgrhr[dISO]||{};
   if(v===""||v==null)delete Z.hgrhr[dISO][k];else Z.hgrhr[dISO][k]=Number(v);
   if(!Object.keys(Z.hgrhr[dISO]).length)delete Z.hgrhr[dISO];save();render();}
@@ -2785,7 +2833,7 @@ function eliteWindow(endISO){
 }
 const ELITE_WEEKS=[1,6,12];
 function eliteCard(){
-  const pts=ELITE_WEEKS.map(wk=>{const d=new Date(progStart()+"T00:00:00");d.setDate(d.getDate()+(wk-1)*7+6);const e=iso(d);return {wk,end:e,win:eliteWindow(e),future:e>todayISO()};});
+  const pts=ELITE_WEEKS.map(wk=>{const e=planEndISO(wk-1);return {wk,end:e,win:eliteWindow(e),future:e>todayISO()};});
   const now=eliteWindow(todayISO());const all=Object.keys(Z.elite||{}).length;
   let h=`<div class="card"><h3>Elite HRV — your own trend</h3>
   <div class="meta">Trailing ${ELITE_WIN}-day mean of the morning score (minimum ${ELITE_MIN} readings), read at weeks ${ELITE_WEEKS.join(" / ")}. Score is 0–100 from ln(RMSSD), not milliseconds; Whoop's HRV is milliseconds from sleep — <b>never on this chart</b>.</div>
@@ -2842,9 +2890,9 @@ function sunLogAdd(dISO){
 }
 function sunLogDel(dISO,i){if(Z.sunLog&&Z.sunLog[dISO]){Z.sunLog[dISO].splice(i,1);if(!Z.sunLog[dISO].length)delete Z.sunLog[dISO];save();render();}}
 /* Logged (not programmed) sets per muscle for program week w. */
-function loggedVolume(w){
+function loggedVolume(w,sl){
   const tot={};Object.keys(MUS).forEach(k=>tot[k]=0);
-  const s=new Date(progStart()+"T00:00:00");s.setDate(s.getDate()+w*7);
+  const s=new Date(progStart()+"T00:00:00");s.setDate(s.getDate()+(sl==null?slotForPlan(w):sl)*7);
   for(let i=0;i<7;i++){const d=new Date(s);d.setDate(s.getDate()+i);const L=(Z.sunLog||{})[iso(d)]||[];
     L.forEach(x=>{if(tot[x.mus]!=null)tot[x.mus]+=Number(x.sets)||0;});}
   return tot;
@@ -3326,8 +3374,8 @@ function mkWeekCounts(ladder,i){
    with no real date, it is the calendar week. */
 function mkWk(ladder,w,dISO){
   if(!ISO_RE.test(dISO||"")||calWeekOf(dISO)==null)return w;
-  const cw=calWeekOf(dISO);let n=0;for(let i=0;i<cw;i++)if(mkWeekCounts(ladder,i))n++;
-  return Math.min(cw,n);
+  const cw=slotOf(dISO);let n=0;for(let i=0;i<cw;i++)if(mkWeekCounts(ladder,i))n++;   /* v11.40: calendar weeks done */
+  return Math.min(cw,n,11);
 }
 /* One line for the card when the plan is behind the calendar. */
 function mkHeldNote(ladder,w,mw){
@@ -3357,8 +3405,8 @@ const SPRINT_STEP_PER_M=0.57;
 function plyoWeekCounts(k,i){const d=mkBlockWeekDays(i)[PLYO_DOW[k]];return !!((Z.done[d]||{}).plyo);}
 function plyoWk(k,w,dISO){
   if(PLYO_DOW[k]===undefined||!ISO_RE.test(dISO||"")||calWeekOf(dISO)==null)return w;
-  const cw=calWeekOf(dISO);let n=0;for(let i=0;i<cw;i++)if(plyoWeekCounts(k,i))n++;
-  return Math.min(cw,n);
+  const cw=slotOf(dISO);let n=0;for(let i=0;i<cw;i++)if(plyoWeekCounts(k,i))n++;   /* v11.40: calendar weeks done */
+  return Math.min(cw,n,11);
 }
 function plyoHeldNote(k,w,pw){
   if(pw>=w)return "";
@@ -3587,7 +3635,7 @@ function render(){
                : inOnramp(_dI) ? `On-ramp Day ${orDayNo(_dI)} of ${orLen(_dI)}`   /* v11.25 — within the block */
                : inGap(_dI) ? (orNext(_dI)?`<b style='color:var(--t2)'>Between blocks</b> · on-ramp resumes ${fmtD(orNext(_dI).d)}`
                                           :`<b style='color:var(--t2)'>Layoff</b> · block starts ${fmtD(progStart())}`)
-               : `Week ${w+1} of 12 · ${isDeloadWeek(w)?"<b style='color:var(--z2)'>Biolayne Deload</b>":phz}`;
+               : `Week ${w+1}${isRerunSlot(curSlot())?" (repeat)":""} of 12 · ${isDeloadWeek(w)?"<b style='color:var(--z2)'>Biolayne Deload</b>":phz}`;
   document.getElementById("hdrSub").innerHTML=`${_phase}${isDown()?" · <b style='color:var(--t2)'>DOWN-WEEK ACTIVE</b>":""} · <span style="opacity:.55">${BUILD}</span>`;
 }
 
@@ -3600,8 +3648,8 @@ function regBanner(dISO){
      is fine. Hidden on a day he has overridden the gates (he has already said how he feels), and it names the
      disagreement when Whoop reads green, so the two cards cannot contradict each other silently. It renders
      here, under the readiness buttons; the open-items card now sits below the morning card, not next to it. */
-  if(downSuggest(dISO)&&!isDown()&&!ov){const T=downTrend(dISO),rec=whoopReady(dISO);
-    h+=`<div class="banner teal"><b>A down-week is on offer.</b> ${T.low>=DOWN_NEED?`Readiness was ${DOWN_LOW} or lower on ${T.low} of the last ${DOWN_WIN} days.`:`Readiness has fallen three days running and is at ${T.v[T.v.length-1]}.`} Seven days: the barbell work stays as written and everything the app owns offloads — accessory volume down 40–50%, base rides at true Zone 2, easy GMB, light core, no plyos. It protects the heavy sets and the weeks behind them. Declining is fine: nothing changes, and the same-day readiness gate still handles a single low morning.${rec!=null&&rec>=REC_GREEN?` Whoop reads ${rec}% today; this offer comes from your own 1–5 trend, which Whoop does not see.`:""}<br><button class="btn sm sec" style="margin-top:6px" onclick="startDown()">Start 7-day down-week</button></div>`;
+  if(downSuggest(dISO)&&!isDown()&&!ov&&!downDismissed(dISO)){const T=downTrend(dISO),rec=whoopReady(dISO);
+    h+=`<div class="banner teal"><b>A down-week is on offer.</b> ${T.low>=DOWN_NEED?`Readiness was ${DOWN_LOW} or lower on ${T.low} of the last ${DOWN_WIN} days.`:`Readiness has fallen three days running and is at ${T.v[T.v.length-1]}.`} Seven days: the barbell work stays as written and everything the app owns offloads — accessory volume down 40–50%, base rides at true Zone 2, easy GMB, light core, no plyos. It protects the heavy sets and the weeks behind them. Declining is fine: nothing changes, and the same-day readiness gate still handles a single low morning.${rec!=null&&rec>=REC_GREEN?` Whoop reads ${rec}% today; this offer comes from your own 1–5 trend, which Whoop does not see.`:""}<br><button class="btn sm sec" style="margin-top:6px" onclick="startDown()">Start 7-day down-week</button> <button class="btn sm sec" style="margin-top:6px" onclick="downNotNow()">Not now</button></div>`;
   }
   if(isDown())h+=`<div class="banner teal"><b>Down-week through ${Z.down.until}.</b> App-owned volume trimmed. Barbell base unchanged (source of truth). <button class="btn sm sec" onclick="endDown()">End early</button></div>`;
   if(ov)h+=`<div class="banner teal"><b>Gates overridden today${r!==null?` (readiness ${r} logged)`:""}.</b> Readiness and Whoop brakes are off for ${fmtD(dISO)} — your call, recorded. ${isDown()?"The down-week still applies; it is not a readiness gate.":""}</div>`;
@@ -3804,7 +3852,7 @@ function chaosCard(dISO){
   if(holds.length){
     h+=`<div class="banner amber" style="margin-top:10px"><b>Wave hold — ${holds.join(", ").toUpperCase()}.</b>
     That day has been missed twice in the last 14. Do <b>not</b> advance its prescribed load this week; repeat the last load you actually completed on that lift.
-    <br><span class="mini">Only the load holds. The calendar does not — the block still ends on schedule and no week repeats.</span></div>`;
+    <br><span class="mini">Only the load holds. To run the whole week again instead, use <b>Repeat a week</b> below.</span></div>`;
   }
 
   drift.forEach(d=>{
@@ -3818,6 +3866,100 @@ function chaosCard(dISO){
   return h;
 }
 function mkDefaultMed(){Z.mkMedDefault=true;save();render();}
+/* ============ v11.40 — CATCH-UP IS OPT-IN (Robert, 2026-10-24) ============
+   The open-items card sat on Today every day and could not be cleared; he said it read as "you suck, take it
+   easy" and did the opposite of what it was for. Now: Today shows one quiet line, only when something is open,
+   and the section (what to do now, the chaosCard rules unchanged, Repeat a week, Clear the slate) opens on tap.
+   Clearing is a view floor (Z.missClear): nothing logged is deleted or rescored; the scan just stops reading
+   days on or before it. Domain drift waits for a full 21 days after a clear. */
+let catchOpen=false;
+function missFloor(){return (typeof Z!=="undefined"&&Z&&Z.missClear)||"";}
+function missClearNow(){Z.missClearPrev=Z.missClear||"";Z.missClear=todayISO();catchOpen=false;save();render();}
+function missClearUndo(){Z.missClear=Z.missClearPrev||null;delete Z.missClearPrev;if(!Z.missClear)delete Z.missClear;save();render();}
+function catchupHas(dISO){return scanOpen(dISO).length>0||waveHolds(dISO).length>0||domainDrift(dISO).length>0||chaosWeek(dISO)||!!repeatAdvice();}
+function catchupLink(dISO){
+  if(catchOpen)return catchupCard(dISO);
+  if(!catchupHas(dISO))return "";
+  return `<div class="mini" style="padding:2px 14px 6px;opacity:.6;cursor:pointer" onclick="catchOpen=true;render()">Catch-up: what to do now →</div>`;
+}
+function catchupCard(dISO){
+  const chaos=chaosWeek(dISO),open=scanOpen(dISO);
+  const next=chaos?"For the next few days, T1 is the whole plan. If most of the week is gone, repeating it (below) is cleaner than squeezing it in."
+    :open.some(m=>m.tier==="T1")?"Move what you can into the slots listed. Everything else this week runs as written."
+    :"Nothing needs moving. The rest of the week runs as written.";
+  let h=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0">Catch-up — what to do now</h3><button class="btn sm sec" onclick="catchOpen=false;render()">Close</button></div>
+  <div class="mini" style="margin-top:6px">${next}</div>${(()=>{const a=repeatAdvice();return a?repeatAdviceHTML(a):"";})()}</div>`;
+  h+=chaosCard(dISO);
+  h+=`<div class="card"><h3>Repeat a week</h3>${repeatPanel({noAdvice:true})}</div>`;
+  h+=`<div class="card"><h3>Clear the slate</h3>
+  <div class="mini">Clears this list through today. Nothing you logged is deleted or scored differently; the list just stops reading anything on or before today. Anything left undone after today shows up here again, and the quiet line on Today comes back with it.</div>
+  <div style="margin-top:8px"><button class="btn sm" onclick="missClearNow()">Clear through today</button>${Z.missClear?` <span class="mini">Last cleared through ${fmtD(Z.missClear)}.${"missClearPrev" in Z?` <a href="#" onclick="missClearUndo();return false">Undo</a>`:""}</span>`:""}</div></div>`;
+  return h;
+}
+/* The down-week offer stays on Today; "Not now" hides it until a new low morning (readiness ≤ DOWN_LOW) is logged
+   on a later date. */
+function downDismissed(dISO){const x=Z.downNo;if(!x)return false;
+  return !Object.keys(Z.readiness||{}).some(k=>k>x&&k<=dISO&&Z.readiness[k]!=null&&Number(Z.readiness[k])<=DOWN_LOW);}
+function downNotNow(){Z.downNo=viewISO();save();render();}
+/* ---- Repeat a week: the control (Today catch-up section and the Log tab) ---- */
+function repeatAdd(mon,back){Z.repeats=Z.repeats||[];if(Z.repeats.some(r=>r&&r.mon===mon))return;
+  Z.repeats.push({mon,back,set:todayISO()});
+  if(!repeatList().some(r=>r.mon===mon))Z.repeats=Z.repeats.filter(r=>r.mon!==mon);   /* invalid: not kept */
+  save();render();}
+/* v11.41 — THE SUNDAY CHECK (Robert, 2026-10-25). On Sunday the week ending that day is read; on Monday and Tuesday,
+   the week just finished. Fewer than REPEAT_HINT_MIN of the four lift days ticked (str on Mon / Wed / Thu / Fri), no
+   repeat already set for that Monday, and no "Carry on" for that week → a one-tap offer in Catch-up and on the Log tab,
+   and the quiet Catch-up line shows on Today even when nothing else is open. Nothing changes until he taps Repeat.
+   [INF] threshold, best practice: 3 of 4 lift days. */
+const REPEAT_HINT_MIN=3;
+function liftDaysIn(anyISO){const W=weekBounds(anyISO);return Object.keys(DKEY).map(Number).filter(dw=>!!(Z.done[W[dw]]||{}).str).length;}
+function repeatAdvice(){
+  const T=todayISO(),cs=slotOf(T);if(cs==null)return null;
+  const dow=dayIdx(today()),thisMon=weekBounds(T)[0];let ev,mon,sl;
+  if(dow===6){ev=thisMon;mon=slotStartISO(cs+1);sl=cs+1;}
+  else if(dow<=1&&cs>=1){ev=isoBack(thisMon,7);mon=thisMon;sl=cs;}
+  else return null;
+  if(repeatList().some(r=>r.s===sl)||(Z.repeatNo||"")===ev)return null;
+  const n=liftDaysIn(ev);if(n>=REPEAT_HINT_MIN)return null;
+  const pv=repeatPreview(mon,1);if(!pv)return null;
+  return {ev,mon,n,p:planOfSlot(slotOf(ev)),when:dow===6?"next":"this",pv};}
+function repeatNoNow(ev){Z.repeatNo=ev;save();render();}
+function repeatAdviceHTML(a){
+  return `<div class="banner teal" style="margin-top:8px"><b>${a.n} of 4 lift days ${a.when==="next"?"this week":"last week"}.</b> Run week ${a.p+1} again ${a.when==="next"?`from ${fmtD(a.mon)}`:"starting this week"}?${a.pv.del>=a.mon?` Deload would move to ${fmtD(a.pv.del)};`:""} block would end ${fmtD(a.pv.end)}.
+  <br><button class="btn sm" style="margin-top:6px" onclick="repeatAdd('${a.mon}',1)">Repeat week ${a.p+1}</button> <button class="btn sm sec" style="margin-top:6px" onclick="repeatNoNow('${a.ev}')">Carry on</button></div>`;}
+function repeatUndo(mon){Z.repeats=(Z.repeats||[]).filter(r=>!(r&&r.mon===mon));save();render();}
+function repeatPreview(mon,back){const keep=Z.repeats;Z.repeats=(keep||[]).concat([{mon,back}]);
+  try{const ok=repeatList().some(r=>r.mon===mon);return ok?{end:blockEndISO(),del:planStartISO(DELOAD_WK)}:null;}finally{Z.repeats=keep;}}
+function repeatPanel(o){o=o||{};
+  const T=todayISO(),cs=slotOf(T),thisMon=weekBounds(T)[0];
+  const L=repeatList();let h="";
+  if(!o.noAdvice){const a=repeatAdvice();if(a)h+=repeatAdviceHTML(a);}
+  if(cs==null)h+=`<div class="mini">${T<progStart()?"Available once the block opens.":"The block has ended."}</div>`;
+  else{
+    const p=planOfSlot(cs),dow=dayIdx(today()),nextMon=slotStartISO(cs+1);
+    const btn=(mon,back,label)=>{const pv=repeatPreview(mon,back);if(!pv)return "";
+      return `<div class="row" style="align-items:flex-start"><div class="nm">${label}<div class="sup">Deload ${pv.del>=mon?"moves to "+fmtD(pv.del):"already behind you"} · block ends ${fmtD(pv.end)} (adds ${back} week${back>1?"s":""})</div></div><button class="btn sm" onclick="repeatAdd('${mon}',${back})">Set</button></div>`;};
+    h+=`<div class="mini">This week (from ${fmtD(thisMon)}) is <b>week ${p+1}${isRerunSlot(cs)?" (repeat)":""}</b>. Pick what runs next; everything after it shifts back.</div>`;
+    if(!L.some(r=>r.s===cs+1)){
+      h+=`<div class="klabel" style="margin-top:8px">From next Monday, ${fmtD(nextMon)}</div>`;
+      h+=btn(nextMon,1,`Run week ${p+1} again`);
+      if(p>=1)h+=btn(nextMon,2,`Go back to week ${p}, then week ${p+1}`);
+    }
+    if(dow<=1&&cs>=1&&!L.some(r=>r.s===cs)){const q=planOfSlot(cs-1);
+      h+=`<div class="klabel" style="margin-top:8px">Or starting this week, ${fmtD(thisMon)}</div>`;
+      h+=btn(thisMon,1,`This week runs week ${q+1} again`);
+      if(q>=1)h+=btn(thisMon,2,`This week goes back to week ${q}, then week ${q+1}`);
+    }
+  }
+  if(L.length){
+    h+=`<div class="klabel" style="margin-top:10px">Set</div>`;
+    L.forEach(r=>{const canUndo=r.mon>=thisMon;
+      h+=`<div class="row"><div class="nm">From ${fmtD(r.mon)}: week ${planOfSlot(r.s)+1}${r.back>1?`, then week ${planOfSlot(r.s)+2}`:" again"}<div class="sup">+${r.back} week${r.back>1?"s":""}${r.set?` · set ${fmtD(r.set)}`:""}</div></div>${canUndo?`<button class="btn sm sec" onclick="repeatUndo('${r.mon}')">Undo</button>`:""}</div>`;});
+    h+=`<div class="mini" style="margin-top:4px">Block ends <b>${fmtD(blockEndISO())}</b>. A repeat can be undone until the week after it starts; logged days stay on their dates either way.</div>`;
+  }
+  h+=`<div class="mini why" style="margin-top:6px">The strength prescription, the week-6 deload, test weeks, Layer 2 and the core ceilings follow the repeated week. Markow, plyos and the step ladders still move on what you actually complete.</div>`;
+  return h;
+}
 /* Latest screen carrying both IR sides. Prefers a clinician measurement when one exists. */
 /* Newest screen regardless of who measured. latestScreen() below deliberately prefers
    PT for the PASSIVE left/right comparison; but the active-vs-passive gap is self-measured
@@ -3904,7 +4046,7 @@ function plannerCard(w,dow,dISO){
     <div class="sup">${sub}</div></div>
     <span class="tiertag ${x.tier}">${x.tier}</span></div>`;});
   if(p.cut.length){
-    h+=`</div><div class="mini" style="margin-top:8px;color:var(--t2)"><b>Dropped:</b> ${p.cut.map(x=>x.name).join(", ")}. Gone, not owed. Nothing repeats and the block does not stall.</div>`;
+    h+=`</div><div class="mini" style="margin-top:8px;color:var(--t2)"><b>Dropped:</b> ${p.cut.map(x=>x.name).join(", ")}. Gone, not owed. Skipping them today does not hold the block back; to run a whole week again, use Repeat a week (Log tab, or Catch-up on Today).</div>`;
   } else {h+=`</div><div class="mini" style="margin-top:8px">Everything fits.</div>`;}
   h+=`<div class="mini" style="margin-top:8px">Ordered T1 → T2 → T3, strength ahead of conditioning ahead of power, per the block's priority stack. Floor versions count as complete.</div></div>`;
   return h;
@@ -4249,7 +4391,7 @@ function setFTP(){
 function setRHR(v){if(v!==""&&v!=null)Z.rhr=Number(v);save();render();}
 function whoopCard(dISO){
   const r=(Z.whoop||{})[dISO]||{},gate=velocityGated(dISO);
-  const rec=r.rec, el=(Z.elite||{})[dISO], hg=(Z.hgrhr||{})[dISO]||{};
+  const rec=r.rec, el=(Z.elite||{})[dISO], hg=(Z.hgrhr||{})[dISO]||{}, eh=(Z.elhr||{})[dISO]||{};   /* v11.42: Elite reading HR */
   const plyoDay=[0,3,5].includes(dayIdx(new Date(dISO+"T00:00:00")));   /* v11.34: plyo copy only on plyo days */
   let band="",cls="";
   if(rec!=null){
@@ -4266,10 +4408,19 @@ function whoopCard(dISO){
     <div><label class="f">Whoop recovery %</label><input type="number" inputmode="decimal" value="${rec??""}" onchange="setWhoop('${dISO}','rec',this.value)"></div>
     <div><label class="f">Whoop HRV (ms)</label><input type="number" inputmode="decimal" value="${r.hrv??""}" onchange="setWhoop('${dISO}','hrv',this.value)"></div>
     <div><label class="f">Elite HRV score (0–100)</label><input type="number" inputmode="decimal" value="${el??""}" onchange="setElite('${dISO}',this.value)"></div>
+  </div>
+  <details class="rhrbox" style="margin-top:8px"${rhrOpen?" open":""} ontoggle="rhrOpen=this.open"><summary class="mini">${rhrSummary(r,hg,eh)}</summary>
+  <div class="grid2" style="margin-top:6px">
+    <div><label class="f">Whoop resting HR (overnight)</label><input type="number" inputmode="decimal" value="${r.rhr??""}" onchange="setWhoop('${dISO}','rhr',this.value)"></div>
+    <div></div>
+    <div><label class="f">Elite reading HR — min</label><input type="number" inputmode="decimal" value="${eh.lo??""}" onchange="setElHR('${dISO}','lo',this.value)"></div>
+    <div><label class="f">Elite reading HR — avg</label><input type="number" inputmode="decimal" value="${eh.mean??""}" onchange="setElHR('${dISO}','mean',this.value)"></div>
+    <div><label class="f">Elite reading HR — max</label><input type="number" inputmode="decimal" value="${eh.hi??""}" onchange="setElHR('${dISO}','hi',this.value)"></div>
+    <div></div>
     <div><label class="f">Heart Graph resting HR — mean</label><input type="number" inputmode="decimal" value="${hg.mean??""}" onchange="setHgRHR('${dISO}','mean',this.value)"></div>
     <div><label class="f">Heart Graph range — low</label><input type="number" inputmode="decimal" value="${hg.lo??""}" onchange="setHgRHR('${dISO}','lo',this.value)"></div>
     <div><label class="f">Heart Graph range — high</label><input type="number" inputmode="decimal" value="${hg.hi??""}" onchange="setHgRHR('${dISO}','hi',this.value)"></div>
-  </div>
+  </div></details>
   ${rec!=null?`<div class="banner ${cls}" style="margin-top:8px"><b>Recovery ${rec}%.</b> ${band}</div>`:
     `<div class="mini" style="margin-top:8px">No recovery entered. The gate falls back to your self-reported 1\u20135${gateOv(dISO)?", and today is overridden anyway":""}.</div>`}
   <div class="mini why" style="margin-top:6px">Gate thresholds are <b>your own</b> 12-month distribution \u2014 p10 = ${REC_GATE}, median = ${REC_GREEN} \u2014 not Whoop\u2019s generic colours, so the brake fires ~10% of days. Whoop stays the gate.</div>
@@ -4556,6 +4707,33 @@ function z2Card(dISO){
   if(tempoHR)h+=`<div class="mini" style="margin-top:4px">${tempoHR} tempo or untagged base ride${tempoHR===1?"":"s"} with an average HR ${tempoHR===1?"is":"are"} on file and deliberately left out: a tempo heart rate is not a Zone 2 heart rate.</div>`;
   return h+`</div>`;
 }
+/* ============ v11.42 — RESTING HR, THREE SOURCES, COLLECTED NOT USED (Robert, 2026-10-25) ============
+   Whoop reads it overnight; Heart Graph and Elite read it in the morning, where moving to put the strap on and
+   settling in bed push it up (his observation; the Heart Graph "high" shows it). He wants the data first and a
+   decision after several weeks. Nothing here feeds hrThreshold(): the strap zones stay on the fixed Z.rhr.
+   The card shows, per series, how many mornings, the 7- and 28-day means and the day-to-day spread (SD), and
+   how many mornings have all of Whoop, Heart Graph low and Elite min. Choosing rule, for later [INF]: prefer the
+   series with the smallest spread that moves with the others; the lowest-of-window readings (Heart Graph low,
+   Elite min) are the least exposed to the movement artefact. */
+const RHR_SERIES=[
+ {k:"whoop", n:"Whoop overnight",       get:d=>((Z.whoop||{})[d]||{}).rhr},
+ {k:"hglo",  n:"Heart Graph low",       get:d=>((Z.hgrhr||{})[d]||{}).lo},
+ {k:"hgmean",n:"Heart Graph mean",      get:d=>((Z.hgrhr||{})[d]||{}).mean},
+ {k:"ello",  n:"Elite reading min",     get:d=>((Z.elhr||{})[d]||{}).lo},
+ {k:"elmean",n:"Elite reading avg",     get:d=>((Z.elhr||{})[d]||{}).mean}];
+function rhrStats(get,end,days){const v=[];for(let i=0;i<days;i++){const x=get(isoBack(end,i));if(x!=null&&!isNaN(x))v.push(Number(x));}
+  if(!v.length)return {n:0,mean:null,sd:null};const m=v.reduce((a,b)=>a+b,0)/v.length;
+  const sd=v.length>1?Math.sqrt(v.reduce((a,b)=>a+(b-m)*(b-m),0)/(v.length-1)):null;return {n:v.length,mean:m,sd};}
+function rhrPaired(end,days){let n=0;for(let i=0;i<days;i++){const d=isoBack(end,i);
+  if(RHR_SERIES[0].get(d)!=null&&RHR_SERIES[1].get(d)!=null&&RHR_SERIES[3].get(d)!=null)n++;}return n;}
+function rhrCompareCard(){
+  const T=todayISO(),f=x=>x==null?"—":x.toFixed(1);
+  const rows=RHR_SERIES.map(S=>{const a=rhrStats(S.get,T,7),b=rhrStats(S.get,T,28);
+    return `<div class="row"><div class="nm">${S.n}<div class="sup">${b.n} of 28 mornings · spread ${b.sd==null?"—":"±"+b.sd.toFixed(1)}</div></div><div class="rx">7 d ${f(a.mean)} · 28 d ${f(b.mean)}</div></div>`;}).join("");
+  return `<div class="card"><h3>Resting HR — three sources <span class="chip ghost">collected, not used</span></h3>
+  <div class="meta">Whoop is overnight. Heart Graph and Elite are morning readings, where moving to put the strap on raises the number. Nothing here changes the strap zones; they stay on the fixed ${Z.rhr}.</div>
+  ${rows}
+  <div class="mini" style="margin-top:6px">Mornings with all three (Whoop, Heart Graph low, Elite min), last 28 days: <b>${rhrPaired(T,28)}</b>. Decide after about four weeks of those. Best-practice rule, not from a named source: pick the series with the smallest spread that moves with the others. The lowest reading of a window is the least affected by movement. If Elite and Heart Graph come from the same strap at the same time, they are one source, not two.</div></div>`;}
 /* ---- v11.34 — the 30-day resting HR is a CALIBRATION CONSTANT, not a daily input. ---- */
 function rhrCard(){
   const H=hrThreshold();
@@ -4921,9 +5099,34 @@ function layoffObsCard(){
   <div class="mini" style="margin-top:8px">Mean error <b>${mean>0?"+":""}${mean.toFixed(1)}%</b>. Positive means you came back stronger than the rule assumed and −${(DECAY_RATE*100).toFixed(1)}%/week is too aggressive.</div>
   <div class="mini" style="margin-top:6px;opacity:.75"><b>Read these with the confound in front of you.</b> A first session back is deliberately submaximal and may be pain-inhibited, so <b>actual</b> systematically understates what you could have done — which makes the rule look more accurate than it is. Two or three clean observations are worth more than ten hurried ones. <b>This table changes nothing on its own; it is here so you can change the rate on purpose.</b></div></div>`;
 }
+/* ============ v11.41 — PROGRESSION CUE (Robert, 2026-10-25) ============
+   He wanted to see, without cross-referencing last week, whether a row got harder, gained volume, or should go up in
+   weight. Each lift card compares today's prescription with what the same card prescribed seven days earlier
+   (rxWeek on that date, so the exposure ledger is respected both times). Direction rules are best practice, not from a
+   named source: fewer RIR at the same or fewer reps = add load; more reps at the same RIR = same or slightly lighter;
+   fewer reps at the same RIR = add load; more RIR = lighter; sets alone = same load; unchanged = match it or add a rep
+   (his wording: only weight is logged on work sets, so a rep is the cue the app can back). RIR still decides. */
+function rxPrev(dkey,dISO){if(!ISO_RE.test(dISO||""))return null;const p=isoBack(dISO,7),w=calWeekOf(p);if(w==null)return null;return rxWeek(dkey,w,p);}
+function progTag(now,prev){
+  const [s,r,q]=now,[s0,r0,q0]=prev,dS=s-s0,dR=r-r0,hasQ=q!=null&&q0!=null;
+  const setTxt=dS?`${dS>0?"+":"−"}${Math.abs(dS)} set${Math.abs(dS)>1?"s":""}`:"";
+  let k,t;
+  if(hasQ&&q>q0){k="dn";t=`easier than last week (RIR ${q0}→${q}${dR?`, ${dR>0?"+":"−"}${Math.abs(dR)} reps`:""}): go lighter`;}
+  else if(hasQ&&q<q0){k="up";t=dR>0?`harder (RIR ${q0}→${q}, +${dR} reps): same load, push the reps`:`harder (RIR ${q0}→${q}${dR<0?`, −${-dR} reps`:""}): add load`;}
+  else if(dR>0){k="up";t=`+${dR} reps: same load or slightly lighter`;}
+  else if(dR<0){k="up";t=`−${-dR} reps: add load`;}
+  else if(dS){return {k:dS>0?"up":"dn",t:`${setTxt} vs last week, same load`};}
+  else return {k:"eq",t:"same as last week: match it or add a rep"};
+  return {k,t:(setTxt?setTxt+" · ":"")+t};}
+function progTagHTML(g){return `<div class="sup prog" style="margin-top:2px">${{up:"↑",dn:"↓",eq:"="}[g.k]} ${g.t}</div>`;}
+function progSumHTML(P){const S=P.reduce((a,x)=>a+x.s,0),S0=P.reduce((a,x)=>a+x.s0,0),up=P.filter(x=>x.k==="up").length,dn=P.filter(x=>x.k==="dn").length,d=S-S0;
+  const body=(!up&&!dn&&!d)?`same prescription as last week (${S} sets): match it or add a rep`
+    :`${S} working sets (${d>0?"+"+d:d<0?"−"+(-d):"same"})${up?` · ${up} row${up>1?"s":""} harder`:""}${dn?` · ${dn} row${dn>1?"s":""} easier`:""}`;
+  return `<div class="mini prog" style="margin:2px 0 6px"><b>vs last week:</b> ${body}</div>`;}
 function strengthCard(w,dkey,dISO,editable){
   const R=rxWeek(dkey,w,dISO);
   const exs=EX[dkey],rx=RX[R.i][dkey];
+  const Rp=rxPrev(dkey,dISO),rxp=Rp?RX[Rp.i][dkey]:null,P=[];   /* v11.41 progression cue */
   const names={d1:"D1 · Lower — Box Squat",d2:"D2 · Upper — Bench",d3:"D3 · Lower — Trap Bar",d4:"D4 · Upper Hypertrophy (MMA gym)"};
   let rows="";
   exs.forEach((e,i)=>{
@@ -4933,7 +5136,7 @@ function strengthCard(w,dkey,dISO,editable){
         rows+=pumperRow(dkey,w,dISO,editable);}
       return;}
     const seTxt="";
-    if(e.k==="bht"){rows+=bootyRow(dISO,s,r,rir,editable);
+    if(e.k==="bht"){if(rxp)P.push({s,s0:rxp[i][0],k:progTag(rx[i],rxp[i]).k});rows+=bootyRow(dISO,s,r,rir,editable);
       if(i===exs.length-1&&GLUTE_PUMP[{d1:0,d3:3}[dkey]]){const gp=GLUTE_PUMP[{d1:0,d3:3}[dkey]];
         rows+=pumperRow(dkey,w,dISO,editable);}
       return;}
@@ -4950,6 +5153,8 @@ function strengthCard(w,dkey,dISO,editable){
                  :(MAINLIFT[e.k]?`${e.tag} · <i>no e1RM yet — set a baseline in the Test tab and this fills in</i>`
                                 :`${e.tag}${lastLoadTag(e.k,dISO)}`);
     const useSets=(i===1&&HEAVY_BO_DAYS.includes(dkey))?Math.max(1,s-hboTrade(R.i)):s;
+    const s0u=rxp?((i===1&&HEAVY_BO_DAYS.includes(dkey))?Math.max(1,rxp[i][0]-hboTrade(Rp.i)):rxp[i][0]):null;
+    const tg=rxp?progTag([useSets,r,rir],[s0u,rxp[i][1],rxp[i][2]]):null;if(tg)P.push({s:useSets,s0:s0u,k:tg.k});
     /* dynamic-effort bench sits after the heavy work on D2 */
     if(i===1&&dkey==="d2"&&Z.de){
       const W=workingE1("bench",dISO);
@@ -4968,7 +5173,7 @@ function strengthCard(w,dkey,dISO,editable){
         rows+=`<div class="row" style="padding:4px 0"><div class="nm" style="font-size:13px;color:var(--mut)">${x.lab}<span class="sup"> · ${x.lb!=null?x.lb+" lb":"—"} · ${x.sets||1}×${x.reps}</span></div>${editable?`<input class="win wu" inputmode="numeric" placeholder="${x.sets||1}" title="sets" value="${rec.sets??""}" onchange="setWu('${dISO}','${e.k}',${x.i},'sets',this.value)"><input class="win wu" inputmode="numeric" placeholder="${x.reps}" title="reps" value="${rec.reps??""}" onchange="setWu('${dISO}','${e.k}',${x.i},'reps',this.value)"><input class="win" inputmode="decimal" placeholder="${x.lb!=null?x.lb:"lb"}" title="lb" value="${rec.w??""}" onchange="setWu('${dISO}','${e.k}',${x.i},'w',this.value)">`:`<div class="rx">${x.sets||1}×${x.reps}</div>`}</div>`;});
       if(editable)rows+=`<div style="margin:2px 0 6px"><button class="btn sm sec" onclick="logWarmups('${dISO}','${e.k}',${sg?sg.lb:"null"})">Log warm-ups as suggested</button> <span class="mini">sets · reps · lb, each editable</span></div>`;
     }
-    rows+=`<div class="row"><div class="nm">${e.n}${seTxt}<div class="sup">${sub2}${(i===1&&HEAVY_BO_DAYS.includes(dkey))?` <i class="why">· ${hboTrade(R.i)} set${hboTrade(R.i)===1?"":"s"} fewer than written — traded for the heavy triples above${R.i>=3?", net-neutral on volume":""}</i>`:""}</div>${dcyNote}</div><div class="rx">${useSets}×${r}${rir!=null?" · RIR "+rir:""}</div>${inp}</div>`;
+    rows+=`<div class="row"><div class="nm">${e.n}${seTxt}<div class="sup">${sub2}${(i===1&&HEAVY_BO_DAYS.includes(dkey))?` <i class="why">· ${hboTrade(R.i)} set${hboTrade(R.i)===1?"":"s"} fewer than written — traded for the heavy triples above${R.i>=3?", net-neutral on volume":""}</i>`:""}</div>${dcyNote}${tg?progTagHTML(tg):""}</div><div class="rx">${useSets}×${r}${rir!=null?" · RIR "+rir:""}</div>${inp}</div>`;
     /* v11.32 — Contreras pumpers, after the last glute slot on the day: frog pump after the D1
        accessories (Mon), banded seated abduction after the Booty Sprout (Thu). Own tick. */
     if(i===exs.length-1&&GLUTE_PUMP[{d1:0,d3:3}[dkey]]){const gp=GLUTE_PUMP[{d1:0,d3:3}[dkey]];
@@ -4981,15 +5186,16 @@ function strengthCard(w,dkey,dISO,editable){
          exposure ledger was behind, and in weeks 5 and 12 that produced a back-off equal
          to the displayed top set again — the exact bug this fix was for, one layer down. */
       const HB=heavyBO(R.i,dkey);
+      const HB0=Rp?heavyBO(Rp.i,dkey):null,htg=HB0?progTag([HB.sets,HB.reps,HB.rir],[HB0.sets,HB0.reps,HB0.rir]):null;if(htg)P.push({s:HB.sets,s0:HB0.sets,k:htg.k});
       const hs=suggestLoad(e.k,HB.reps,HB.rir,dISO);
       const ts=suggestLoad(e.k,r,rir,dISO);
       const hin=editable?`<input class="win" inputmode="decimal" placeholder="${hs?hs.lb:"lb"}" value="${(Z.lifts[dISO]&&Z.lifts[dISO][hk]&&Z.lifts[dISO][hk].w)||""}" onchange="setLoad('${dISO}','${hk}',this.value)">`:"";
       rows+=`<div class="row"><div class="nm">${e.n.replace("Top Set","Heavy Back-offs")}
-        <div class="sup">Main · ${hs?`<b>start ~${hs.lb} lb</b> (${hs.pct}% of ${hs.e1})${ts?` — ${ts.lb-hs.lb} lb under the top set`:""}`:"<i>no e1RM yet</i>"} — the two triples that carry the block</div></div>
+        <div class="sup">Main · ${hs?`<b>start ~${hs.lb} lb</b> (${hs.pct}% of ${hs.e1})${ts?` — ${ts.lb-hs.lb} lb under the top set`:""}`:"<i>no e1RM yet</i>"} — the two triples that carry the block</div>${htg?progTagHTML(htg):""}</div>
         <div class="rx">${HB.sets}×${HB.reps} · RIR ${HB.rir}</div>${hin}</div>`;
     }
   });
-  return `<div class="card spine t1"><h3>${names[dkey]} <span class="tiertag T1">T1</span></h3>
+  return `<div class="card spine t1"><h3>${names[dkey]} <span class="tiertag T1">T1</span></h3>${P.length?progSumHTML(P):""}
   <div class="meta why">4D Hybrid — log top-set loads; blank = last used shown as placeholder.</div>
   <div class="mini why" style="margin-bottom:6px">Accessories carry no e1RM, so each one shows <b>what you used last time and the change since the session before that</b>. That is the only progression signal they have — nothing else in the app is watching them.</div>
   ${dkey==="d2"&&Z.de?`<div class="mini why" style="margin-bottom:6px">⚡ <b>Dynamic-effort bench is on.</b> 6×3 at 50%, 45 s rest, after the heavy work. Bar speed is the point — if it feels like conditioning the weight is too heavy. Not counted in the Volume tab: 18 reps at 50% is below any hypertrophy threshold and counting it would flatter the chest number. Honest caveat: evidence that speed work adds to a trained lifter's 1RM is equivocal, and at your age force rather than velocity limits power. It is here because it costs about five minutes and almost no fatigue.</div>`:""}
@@ -5458,7 +5664,7 @@ function rToday(){
   h+=`<div class="card" style="padding:10px 14px"><b>${DAYS[dow]}</b> · <span class="mini">${dISO} · Week ${w+1}${isDeloadWeek(w)?" · Biolayne's written week-6 deload (the app adds no others) · app-owned rows with 3+ sets lose one":""}</span></div>`;
   h+=proteinLine();
   h+=whoopCard(dISO);
-  h+=chaosCard(dISO);                /* v11.35: below the morning card, so the down-week offer never sits beside open items */
+  h+=catchupLink(dISO);              /* v11.40: open items are opt-in — one quiet line when something is open; the section opens on tap */
   h+=plannerCard(w,dow,dISO);
   h+=dayStack(w,dow,dISO,true);      /* THE WORK — everything above it decides what it is */
   /* v11.34 — Today keeps only today's work, readiness, the override and the note. The scorecard, the
@@ -5510,6 +5716,7 @@ function rCardio(){
   h+=z2Card(dISO);       /* v11.34 — Zone 2, metabolic, its own card */
   h+=vo2Card(dISO);      /* v11.19 Layer 2 — scheduled from week 7 (v11.34) */
   h+=rhrCard();          /* v11.34 — the calibration constant, out of the daily card */
+  h+=rhrCompareCard();   /* v11.42 — three resting-HR sources side by side; collected, not used */
   el.innerHTML=h;
 }
 
@@ -5533,7 +5740,7 @@ function rWeek(){
   const dISO=viewISO(), dowT=dayIdx(new Date(dISO+"T00:00:00")), wNow=(calWeekOf(dISO)!=null)?calWeekOf(dISO):curWeek();
   const w=wkView===null?(inOnramp(todayISO())?-1:wNow):wkView;
   const dow=wkDay===null?dowT:wkDay;
-  let h=`<div class="card" style="padding:10px 14px"><b>This week</b> · <span class="mini">week ${wNow+1} of 12 · ${fmtD(weekBounds(dISO)[0])} → ${fmtD(weekBounds(dISO)[6])}${viewOff()?` · cursor on ${fmtD(dISO)}`:""}</span></div>`;
+  let h=`<div class="card" style="padding:10px 14px"><b>This week</b> · <span class="mini">week ${wNow+1}${isRerunSlot(slotOf(dISO))?" (repeat)":""} of 12${nSlots()>12?` · block ends ${fmtD(blockEndISO())}`:""} · ${fmtD(weekBounds(dISO)[0])} → ${fmtD(weekBounds(dISO)[6])}${viewOff()?` · cursor on ${fmtD(dISO)}`:""}</span></div>`;
   h+=`<div class="card"><h3>Seven days</h3>${weekStrip(dISO)}</div>`;
   h+=scoreCard(dISO);
   {const L=weeklyLoad(dISO);
@@ -5547,7 +5754,7 @@ function rWeek(){
   h+=aeroStrip(dISO);
   h+=baseWeekCard(dISO);   /* v11.35 (J) — base minutes; from week 7, whether the week's true Zone 2 ride is done or chosen */
   h+=realityCard(dowT);
-  {const tot=loggedVolume(wNow);const any=Object.keys(tot).some(k=>tot[k]>0);
+  {const tot=loggedVolume(wNow,slotOf(dISO)==null?undefined:slotOf(dISO));const any=Object.keys(tot).some(k=>tot[k]>0);
    if(any)h+=`<div class="card"><h3>Sunday lift — logged volume, week ${wNow+1}</h3><div class="meta">Free-entry rows from the Sunday card. Shown on the Volume tab in its own colour; never merged into the programmed model.</div>${Object.keys(tot).filter(k=>tot[k]>0).map(k=>`<div class="row"><div class="nm">${MUS[k][0]}</div><div class="rx">${tot[k]} sets</div></div>`).join("")}</div>`;}
   h+=`<details><summary>12-week preview — any week, any day</summary>`;
   h+=`<div class="card"><div class="klabel">Look ahead — the on-ramp, or any week of the block</div>
@@ -5860,7 +6067,8 @@ function rGMB(){
 }
 
 /* ---- Nutrition ---- */
-function weeklyVolume(w){
+function weeklyVolume(w,sl){
+  const _sl=sl==null?slotForPlan(w):sl;   /* v11.40: the calendar week whose ticks are read; w stays the plan week */
   const tot={};Object.keys(MUS).forEach(k=>tot[k]=0);
   ["d1","d2","d3","d4"].forEach(dk=>{
     EX[dk].forEach((e,i)=>{
@@ -5878,13 +6086,13 @@ function weeklyVolume(w){
      hole. A number built to reveal a gap was quietly filling it in. Only the
      programmed add-on is logged; the partner-led portion of the lift is variable and
      is deliberately not modelled. */
-  sunLogged(w).forEach(({i,ex})=>{
+  sunLogged(w,_sl).forEach(({i,ex})=>{
     const sets=Number(String(ex.rx).match(/^(\d+)\s*×/)?.[1]||0);
     Object.keys(ex.mus||{}).forEach(m=>{if(tot[m]!=null)tot[m]+=sets*ex.mus[m];});
   });
   /* v11.32 — additions outside Biolayne, counted ONLY when ticked on the day, same rule as the
      Sunday block: a number built to reveal a gap must not fill it in by default. */
-  const wkDays=[];{const s=new Date(progStart()+"T00:00:00");s.setDate(s.getDate()+w*7);for(let i=0;i<7;i++){const d=new Date(s);d.setDate(s.getDate()+i);wkDays.push(iso(d));}}
+  const wkDays=[];{const s=new Date(progStart()+"T00:00:00");s.setDate(s.getDate()+_sl*7);for(let i=0;i<7;i++){const d=new Date(s);d.setDate(s.getDate()+i);wkDays.push(iso(d));}}
   wkDays.forEach((k,dow)=>{const dn=Z.done[k]||{};
     if(dn.gact&&GLUTE_ACT[dow])tot.gmed+=2;                                    /* activators, Mon + Thu */
     if(dn.gpump&&GLUTE_PUMP[dow]&&GLUTE_PUMP[dow].vec==="L")tot.gmed+=2;      /* lateral pumper, Thu */
@@ -5921,14 +6129,14 @@ function gmedProgrammed(){return {abd:2+2+2,er:2+2,plank:2*SIDE_PLANK_GMED};}   
 /* v11.32 — Contreras vector tally. Vertical = glute credit from squat/hinge slots as Biolayne
    wrote them; Horizontal = the Booty Sprout slot + the Monday frog pump when ticked; Lateral =
    the gmed bucket. Sets, fractional where the exercise is fractional. */
-function gluteVectors(w){
+function gluteVectors(w,sl){
   const v={V:0,H:0,L:0,abd:0,er:0,plank:0};
   ["d1","d3"].forEach(dk=>EX[dk].forEach((e,i)=>{if(e.sup||!e.mus.glute)return;
     let sets=RX[w][dk][i][0];
     if(i===1&&HEAVY_BO_DAYS.includes(dk))sets=Math.max(1,sets-hboTrade(w));
     if(i===0&&HEAVY_BO_DAYS.includes(dk))sets+=heavyBO(w,dk).sets;
     if(e.k==="bht")v.H+=sets;else v.V+=sets*e.mus.glute;}));
-  const s=new Date(progStart()+"T00:00:00");s.setDate(s.getDate()+w*7);
+  const s=new Date(progStart()+"T00:00:00");s.setDate(s.getDate()+(sl==null?slotForPlan(w):sl)*7);
   for(let i=0;i<7;i++){const d=new Date(s);d.setDate(s.getDate()+i);const dn=Z.done[iso(d)]||{};
     if(dn.gpump&&GLUTE_PUMP[i]){if(GLUTE_PUMP[i].vec==="H")v.H+=2;else {v.L+=2;v.abd+=2;}}
     if(dn.gact&&GLUTE_ACT[i]){v.L+=2;v.abd+=2;}
@@ -5947,8 +6155,8 @@ function proteinLine(){
 }
 function rVol(){
   const el=document.getElementById("v_vol");
-  const w=volWk===null?curWeek():volWk;
-  const tot=weeklyVolume(w);
+  const sl=volWk===null?curSlot():Math.min(volWk,nSlots()-1),w=planOfSlot(sl);   /* v11.40: the selector walks calendar weeks */
+  const tot=weeklyVolume(w,sl);
   let rows="";
   Object.keys(MUS).forEach(k=>{
     const [nm,mev,mav,mrv]=MUS[k];const v=tot[k];
@@ -5963,18 +6171,18 @@ function rVol(){
     <div class="bar"><div class="fill" style="width:${pct}%;background:${col}"></div>
     <div class="tick" style="left:${100*mev/max}%"></div><div class="tick" style="left:${100*mav/max}%"></div><div class="tick" style="left:${100*mrv/max}%"></div></div></div>`;
   });
-  const LG=loggedVolume(w);
-  el.innerHTML=`<div class="card"><h3>Combined weekly volume — Week ${w+1}</h3>
+  const LG=loggedVolume(w,sl);
+  el.innerHTML=`<div class="card"><h3>Combined weekly volume — Week ${w+1}${isRerunSlot(sl)?" (repeat)":""}</h3>
   <div class="meta">Mains + accessories + Sunday block + core, fractional counting. Anterior core counts only when that day's core card is ticked (v11.39). Ticks = MEV / MAV / MRV (masters-adjusted — practical MRV runs lower with kicks, BJJ, and plyos on top). Kicks/BJJ/KOTG are background load not counted here: read quads/glutes conservatively.${isDeloadWeek(w)?" <b>Week 6:</b> app-owned rows with 3+ sets lose one; barbell work as Biolayne wrote it.":""}</div>
   <details><summary class="mini">MEV / MAV / MRV in plain words</summary><div class="mini" style="margin:4px 0 8px"><b>Minimum effective volume</b> — the floor below which a muscle is not really being trained. <b>Maximum adaptive volume</b> — roughly where extra sets stop paying. <b>Maximum recoverable volume</b> — the ceiling beyond which the sets cost more than they return. The three ticks on each bar, left to right.</div></details>
-  <div class="wksel" style="margin-bottom:12px">${Array.from({length:12},(_,i)=>`<button class="${i===w?"on":""}" onclick="volWk=${i};render()">${i+1}</button>`).join("")}</div>
+  <div class="wksel" style="margin-bottom:12px">${Array.from({length:nSlots()},(_,i)=>`<button class="${i===sl?"on":""}" onclick="volWk=${i};render()">${planOfSlot(i)+1}${isRerunSlot(i)?"↻":""}</button>`).join("")}</div>
   ${rows}
   <div class="mini why">Overshoot watch: quads / glutes / arms. Undershoot flag: rear delt — owned by the Sunday block and, from week 3, the Wednesday Markow rear-delt fly. Core is split by wall: anterior (RA/obliques) is trained directly for aesthetics; posterior (ES/MF/QL) is largely paid by box squat + trap bar, so dedicated low-back work stays minimal. <b>Session load</b> (how hard the week was) is on the Week tab; this tab answers how many sets per muscle.</div></div>`+
   (()=>{const any=Object.keys(LG).some(k=>LG[k]>0);if(!any)return "";
    return `<div class="card"><h3>Logged, not programmed — Sunday lift, week ${w+1} <span class="chip" style="border-color:var(--warn);color:var(--warn)">logged</span></h3>
    <div class="meta">Free-entry rows from the Sunday card. Kept out of the bars above on purpose, so the programmed model stays clean; add them in your head where a muscle matters.</div>
    ${Object.keys(LG).filter(k=>LG[k]>0).map(k=>`<div class="volrow"><div class="t"><span class="n">${MUS[k][0]}</span><span class="s">${LG[k]} logged sets · programmed ${tot[k].toFixed(1)}</span></div><div class="bar"><div class="fill" style="width:${Math.min(100,100*LG[k]/(MUS[k][3]*1.25))}%;background:var(--warn)"></div></div></div>`).join("")}</div>`;})()+
-  (()=>{const gv=gluteVectors(w);const tot3=gv.V+gv.H+gv.L||1;const P=gmedProgrammed();const okL=gv.L>0,okH=gv.H>0;
+  (()=>{const gv=gluteVectors(w,sl);const tot3=gv.V+gv.H+gv.L||1;const P=gmedProgrammed();const okL=gv.L>0,okH=gv.H>0;
    return `<div class="card"><h3>Glute vectors — Week ${w+1} <span class="chip ghost">Contreras</span></h3>
    <div class="meta">Three vectors, from the source read 2026-09-16: vertical (squat/lunge/hinge), horizontal (thrust/bridge), lateral/rotary (abduction in both planes + external rotation, one vector). Vertical is Biolayne's and is programmed; horizontal is the Booty Sprout plus the Monday frog pump; lateral/rotary is counted <b>only when ticked</b>, so a zero here means unticked, not unprogrammed.</div>
    ${[["Vertical / hinge",gv.V],["Horizontal / thrust",gv.H],["Lateral / rotary",gv.L]].map(([n,x])=>`<div class="volrow"><div class="t"><span class="n">${n}</span><span class="s">${x.toFixed(1)} sets</span></div><div class="bar"><div class="fill" style="width:${Math.min(100,100*x/tot3)}%;background:var(--z2)"></div></div></div>`).join("")}
@@ -6214,7 +6422,7 @@ function rLog(){
     spark=`<svg class="spark" viewBox="0 0 300 44"><polyline points="${pts}" fill="none" stroke="#E0A458" stroke-width="2"/></svg>`;
   }
   /* this week's compliance vs tiers */
-  const s=new Date(Z.start+"T00:00:00");s.setDate(s.getDate()+curWeek()*7);
+  const s=new Date(Z.start+"T00:00:00");s.setDate(s.getDate()+curSlot()*7);   /* v11.40: this calendar week */
   let t1=0,t1max=0,t2=0,t2max=0;
   for(let i=0;i<7;i++){
     const d=new Date(s);d.setDate(d.getDate()+i);const k=iso(d);const dn=Z.done[k]||{};
@@ -6233,10 +6441,12 @@ function rLog(){
   <div class="mini" style="margin-top:6px">${
     todayISO()<progStart()
       ? `Block has not opened yet — Week 1 begins <b>${fmtD(progStart())}</b>.`
-      : `Currently <b>Week ${curWeek()+1} of 12</b>.`
+      : `Currently <b>Week ${curWeek()+1}${isRerunSlot(curSlot())?" (repeat)":""} of 12</b>.${nSlots()>12?` Block ends <b>${fmtD(blockEndISO())}</b>.`:""}`
   } This date drives the whole app: the Today card, the week grid, the exposure ledger, the benchmark-ride weeks and the week-4/8/12 screens. Nothing else holds a start date.</div>
   <div class="mini" style="margin-top:6px">Moving it <b>preserves everything you have logged</b> — readiness, lifts, HR, benchmarks are all keyed by calendar date. What resets is the periodization: which week the wave thinks you are in. Sessions logged before the new start date fall outside the block and stop counting toward the ledger, which is what you want after a layoff.</div>
   <div class="mini" style="margin-top:6px;opacity:.7">Set to a <b>Monday</b>. Any other weekday shifts the whole D1–D4 pattern off the week and the day-of-week prescriptions will not line up.</div>
+  <div class="klabel" style="margin-top:12px">Repeat a week</div>
+  ${repeatPanel()}
   <label class="f">Decay anchor</label>
   <div class="mini">${decayAnchor()?`The e1RM layoff-decay clock for all three lifts cannot start before <b>${decayAnchor()}</b>${decayAnchor()===progStart()?", the block start":`, which is not the current block start (${progStart()}) — clear it and re-anchor to move it`}. Banked test dates are unchanged. <button class="btn sm sec" style="margin-left:6px" onclick="Z.decayAnchor=null;save();render()">Clear anchor</button>`
     :`No anchor — the decay clock reads the last tested or logged date. <button class="btn sm sec" style="margin-left:6px" onclick="Z.decayAnchor=progStart();save();render()">Anchor at block start</button>`}</div>
