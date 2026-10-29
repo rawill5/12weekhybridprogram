@@ -219,7 +219,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
 const DOB=new Date(1985,4,16), HT_CM=175.3, SEX="M";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 /* ================= v10: ON-RAMP + BLOCK START ================= */
-const BUILD="v11.43 · 2026-10-25";
+const BUILD="v11.45 · 2026-10-28";
 /* v11.22 — THE START DATE IS NOW STATE, NOT A CONSTANT.
    Sixth start date (Jul 28 · Aug 3 · Aug 10 · Aug 17 · Aug 24), moved for an episodic
    lumbar recurrence. The point of this change is that there must never be a seventh
@@ -527,10 +527,17 @@ const CORE={
  /* v11.32 — Copenhagen ladder from WEEK 1, Thu + Fri, on Robert's instruction ("we lost our adductor work"); it
     replaces the side plank here (the side plank is in the library). Golden Groin cue: bent-knee -> full -> straight-leg.
     v11.39: one shared ladder for both days, moving by the week (his answer 2026-10-12). */
- thu:{lbl:"Anti-lateral + adductor — trunk pre-taxed by trap bar",tier:"T3",focus:"QL / lateral wall + adductors, kept light",
+ /* v11.44 — the pike moves here from Friday from Thu 2026-10-29 (his ask, 2026-10-28: the Swiss ball is at home, not at
+    the MMA gym). It is anterior work; the trap bar mostly taxes the erectors, QL and grip, so the overlap is small. */
+ thu:{lbl:"Anti-lateral + adductor + pike — trunk pre-taxed by trap bar",tier:"T3",focus:"QL / lateral wall + adductors kept light; the pike (Tier-1 RA/EO, 84% MVIC EO) moved here from Friday",
   lib:["Tier-1 QL/lateral: side plank (toes), side plank + top-leg lift, side plank row","Carries: suitcase, front-rack, waiter","Prehab: Incline Adductor Side Plank, Copenhagen (knees)"]},
- fri:{lbl:"Obliques (V-taper) + adductor + rotation",tier:"T2",focus:"EO/IO — pike is Tier-1 (84% MVIC)",
-  lib:["Tier-1 EO: pike, front plank (brace), side bridge on toes","Rotation: resisted cable/band rotation, medball side slam","Prehab: Plank Oblique Crunch (SB), Hollow Hold/Rock, Copenhagen"]},
+ /* v11.44 — from Fri 2026-10-30 the pike slot is the MMA gym's rotary torso machine (seated, elbows on pads); the pike is
+    on Thursday. Resisted rotation is Tier 2 for EO in the core report.
+    v11.45 — the machine is PNEUMATIC (his correction, 2026-10-28): resistance rises with how hard he pushes, both
+    directions resist, nothing at end range, and he already uses the max setting. So it progresses on reps, then rest,
+    and it replaces the band rotation (same movement; he does not bring bands to the gym). */
+ fri:{lbl:"Obliques (V-taper) + adductor + rotation",tier:"T2",focus:"EO/IO — rotary torso machine, pneumatic: it resists only as hard as you push, so every rep is a hard push both ways; turn from the ribs, hips square, no pause at end range (nothing resists there) [INF]",
+  lib:["Tier-1 EO: front plank (brace), side bridge on toes, suspended roll-out if there are straps","Rotation: rotary torso machine, resisted cable/band rotation, medball side slam","Prehab: Plank Oblique Crunch (SB), Hollow Hold/Rock, Copenhagen"]},
  sun:{lbl:"Optional rotation — BJJ prep",tier:"T3",focus:"transverse-plane power",
   lib:["Prehab: Half-Kneeling Chop/Lift, Split-Stance Medball Rotation","Medball: scoop toss, shot-put, rotational throw","Landmine rotation / Russian twist (loaded)"]}
 };
@@ -558,11 +565,11 @@ function trimRow(t){return t.replace(/(\d+)(×)(?=\d)/g,(m,n,x)=>Number(n)>=3?St
 function coreTrimOn(w,dISO){return isDeloadWeek(w)&&!isDown()&&((readyEff(dISO)||5)>2);}
 /* v11.39 — the day's core rows as text, from the ladders (the step this week has earned). */
 function coreItems(k,w,dISO){const trim=coreTrimOn(w,dISO);
-  return CORE_ROWS[k].filter(id=>ladVisible(id,w,dISO)).map(id=>ladText(id,w,dISO,{trim}).name);}
+  return coreRows(k,dISO).filter(id=>ladVisible(id,w,dISO)).map(id=>ladText(id,w,dISO,{trim}).name);}
 /* Sets removed from the core rows by the week-6 trim, across the week's core days (rows with 3+ sets lose one). */
-function coreTrimSets(w){
-  if(!isDeloadWeek(w))return 0;let n=0;
-  Object.keys(CORE_ROWS).forEach(k=>CORE_ROWS[k].forEach(id=>{if(LAD[id].st[0].from<=w&&LAD[id].sets>=3)n++;}));
+function coreTrimSets(w,dISO){   /* v11.45: dated layout (default: that block week's Friday) */
+  if(!isDeloadWeek(w))return 0;let n=0;const d=ISO_RE.test(dISO||"")?dISO:mkBlockWeekDays(w)[4];
+  Object.keys(CORE_ROWS).forEach(k=>coreRows(k,d).forEach(id=>{if(LAD[id].st[0].from<=w&&LAD[id].sets>=3)n++;}));
   return n;
 }
 
@@ -641,6 +648,11 @@ const LAD={
   {x:"Pike, feet-elevated",rx:"3×10–15",from:4,steps:[""]},
   {x:"Pike, deficit",rx:"3×10–15",from:8,steps:["","2 s hold at the top"]}]},
  c_fri_rot:{sets:2,ant:1,st:[{x:"Standing Band Rotation",rx:"2×10–15/side",from:4,steps:TUBE_STEPS}]},   /* weeks 5–12, his answer 2026-10-12 */
+ /* v11.44 — own load key (lk): slot c:fri:0 holds the pike's old Friday loads, which must not become this row's hint.
+    v11.45 — pneumatic at its max setting: no load steps. Reps, then shorter rest; set count fixed at 3 so the Volume
+    tab stays honest. [INF] ladder. */
+ c_fri_rtm:{sets:3,ant:1,lk:"c:fri:rtm",st:[{x:"Rotary Torso Machine (pneumatic, max setting)",from:0,steps:[
+  {t:"rest 60 s",rx:"3×12/side"},{t:"rest 60 s",rx:"3×15/side"},{t:"rest 60 s",rx:"3×20/side"},{t:"rest 45 s",rx:"3×20/side"},{t:"rest 30 s",rx:"3×20/side"}]}]},
  /* ---- core, Sunday ---- */
  c_sun_rot:{sets:2,st:[
   {x:"Half-Kneeling Lift (band)",rx:"2×10–15/side",from:0,band:1,len:3},
@@ -668,7 +680,13 @@ const LAD={
 };
 /* Core rows per day, in card order. The slot index is the row's position here, so the v11.38 load keys c:<day>:<i>
    keep pointing at the same ladder (Mon 0 roll-out, 1 anti-rotation, 2 side plank; Fri 2 is the rotation). */
-const CORE_ROWS={mon:["c_mon_ro","c_mon_ar","c_mon_sp"],wed:["c_wed_hr","c_wed_cc"],thu:["c_cop","c_thu_carry"],fri:["c_fri_pike","c_cop","c_fri_rot"],sun:["c_sun_rot"]};
+/* v11.44 — dated layouts. Before CORE_SWAP_FROM the v11.43 rows (pike on Friday); from it, the pike on Thursday (appended,
+   so c:thu:0 / c:thu:1 keep their rows) and the rotary torso machine in Friday slot 0 (own key, see LAD.c_fri_rtm).
+   Past days keep rendering, keying and crediting as they were. The pike keeps its id, so its top taps and step carry. */
+const CORE_ROWS_PRE={mon:["c_mon_ro","c_mon_ar","c_mon_sp"],wed:["c_wed_hr","c_wed_cc"],thu:["c_cop","c_thu_carry"],fri:["c_fri_pike","c_cop","c_fri_rot"],sun:["c_sun_rot"]};
+const CORE_SWAP_FROM="2026-10-29";
+const CORE_ROWS={mon:["c_mon_ro","c_mon_ar","c_mon_sp"],wed:["c_wed_hr","c_wed_cc"],thu:["c_cop","c_thu_carry","c_fri_pike"],fri:["c_fri_rtm","c_cop"],sun:["c_sun_rot"]};   /* v11.45: band rotation off Friday */
+function coreRows(k,dISO){return ((ISO_RE.test(dISO||"")&&dISO<CORE_SWAP_FROM)?CORE_ROWS_PRE:CORE_ROWS)[k]||[];}
 const CORE_DOWK={0:"mon",2:"wed",3:"thu",4:"fri",6:"sun"};
 function ladCW(w,dISO){const c=ISO_RE.test(dISO||"")?calWeekOf(dISO):null;return c==null?w:c;}
 /* v11.40 — the calendar week (slot) of the date; ladders count taps by slot and cap by plan week. */
@@ -698,18 +716,18 @@ function ladPos(id,cw,sl){const F=ladFlat(id),last=F.length-1;if(sl==null)sl=cw;
   let s=Math.min(ladStart(id),last);
   for(let i=0;i<sl&&i<nSlots();i++)if(ladWeekCounts(id,i)){if(s<cap(planOfSlot(i+1)))s++;}
   return Math.max(0,Math.min(s,cap(cw)));}
-function ladLoadKey(id,dow){const k=CORE_DOWK[dow];if(k&&CORE_ROWS[k].indexOf(id)>=0)return coreLoadKey(k,CORE_ROWS[k].indexOf(id));return LAD[id].key||null;}
-function ladDays(id){if(LAD[id].days)return LAD[id].days;return Object.keys(CORE_DOWK).map(Number).filter(d=>CORE_ROWS[CORE_DOWK[d]].indexOf(id)>=0);}
+function ladLoadKey(id,dow,dISO){if(LAD[id].lk)return LAD[id].lk;const k=CORE_DOWK[dow];const R=k?coreRows(k,dISO):[];if(R.indexOf(id)>=0)return coreLoadKey(k,R.indexOf(id));return LAD[id].key||null;}
+/* v11.44 — every weekday the row has ever sat on (both layouts), so loads logged before the move still read. */
+function ladDays(id){if(LAD[id].days)return LAD[id].days;return Object.keys(CORE_DOWK).map(Number).filter(d=>CORE_ROWS[CORE_DOWK[d]].indexOf(id)>=0||CORE_ROWS_PRE[CORE_DOWK[d]].indexOf(id)>=0);}
 /* Last load typed for this row on one of its own weekdays (gpump is one key for the Mon frog pump and the Thu abduction). */
-function ladLastLoad(id,dISO){let best=null,bd="";
-  ladDays(id).forEach(dow=>{const key=ladLoadKey(id,dow);if(!key)return;
-    Object.keys(Z.gload||{}).forEach(d=>{if(!(d<dISO)||!ISO_RE.test(d)||dayIdx(new Date(d+"T00:00:00"))!==dow)return;
-      const x=(Z.gload[d]||{})[key];if(x&&d>bd){bd=d;best=x;}});});
+function ladLastLoad(id,dISO){let best=null,bd="";const days=ladDays(id);   /* v11.44: the key is read per date (dated layouts) */
+  Object.keys(Z.gload||{}).forEach(d=>{if(!(d<dISO)||!ISO_RE.test(d))return;const dow=dayIdx(new Date(d+"T00:00:00"));if(days.indexOf(dow)<0)return;
+    const key=ladLoadKey(id,dow,d);if(!key)return;const x=(Z.gload[d]||{})[key];if(x&&d>bd){bd=d;best=x;}});
   return best;}
 /* The last block week before cw in which the row was done (a top tap, or a load typed on one of its days). */
 function ladPrevWeek(id,cw){const days=ladDays(id);
   for(let i=Math.min(cw,nSlots())-1;i>=0;i--){const ds=mkBlockWeekDays(i);
-    if(ds.some((d,dow)=>((Z.top||{})[d]||{})[id]||(days.indexOf(dow)>=0&&ladLoadKey(id,dow)&&((Z.gload||{})[d]||{})[ladLoadKey(id,dow)])))return i;}
+    if(ds.some((d,dow)=>((Z.top||{})[d]||{})[id]||(days.indexOf(dow)>=0&&ladLoadKey(id,dow,d)&&((Z.gload||{})[d]||{})[ladLoadKey(id,dow,d)])))return i;}
   return null;}
 function ladIncText(id,cw,pos,f,dISO,sl){if(sl==null)sl=cw;const u=f.inc,pw=ladPrevWeek(id,sl);
   const last=ladLastLoad(id,ISO_RE.test(dISO||"")?dISO:mkBlockWeekDays(Math.min(sl,nSlots()-1))[0]);
@@ -762,7 +780,7 @@ function topBtn(dISO,id){const on=!!(((Z.top||{})[dISO]||{})[id]);
 function ladRow(id,w,dISO,editable,o){o=o||{};if(!ladVisible(id,w,dISO))return "";
   const R=ladText(id,w,dISO,o),live=editable&&ISO_RE.test(dISO||"");
   const dow=ISO_RE.test(dISO||"")?dayIdx(new Date(dISO+"T00:00:00")):null;
-  const key=o.loadKey!==undefined?o.loadKey:(dow!=null?ladLoadKey(id,dow):null);
+  const key=o.loadKey!==undefined?o.loadKey:(dow!=null?ladLoadKey(id,dow,dISO):null);
   /* The top button and the one-time picker sit under the name, so the right-hand column (load box + tick) is no wider
      than in v11.38 — the iOS row-squeeze fixes of v11.36 stay intact. */
   return `<div class="row"><div class="nm">${R.name}<div class="sup">${o.sup?o.sup+" · ":""}<span class="mini">${ladNotes(id,R,dISO)}</span></div>${live?`<div class="ladctl" style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:0">${topBtn(dISO,id)}${ladPicker(id,R,dISO)}</div>`:""}</div>${o.rxCol!=null?`<div class="rx">${o.rxCol}</div>`:""}${live?(key?gloadInp(dISO,key):"")+(o.tick?ckHTML(dISO,o.tick):""):""}</div>`;}
@@ -5219,7 +5237,7 @@ function coreCard(w,dow,dISO,editable){
   const loadNote=(k==="wed"||k==="fri")?" · loaded work ADDS LOAD weekly (aesthetics #1)":"";
   const slam=(k==="fri"&&!down)?upperBlock("fri",w):null;const trim=coreTrimOn(w,dISO);
   const rows=down?`<div class="row"><div class="nm">Anti-rotation only — Pallof march / bird dog, 2 easy sets</div></div>`
-                 :CORE_ROWS[k].map(id=>ladRow(id,w,dISO,editable,{trim})).join("");
+                 :coreRows(k,dISO).map(id=>ladRow(id,w,dISO,editable,{trim})).join("");
   return `<div class="card spine ${c.tier==="T2"?"t2":""}"><h3>Core — ${c.lbl} <span class="tiertag ${c.tier}">${c.tier}</span></h3>
   <div class="meta">Circuited between strength sets · each row is a step ladder: tap <b>top</b> when every set reached the top of the range with about 2 in reserve, and the row moves up one step next week${trim?" · <b>week-6 trim</b>: one set off each 3+ row":""}<span class="why"> · ${c.focus}${loadNote}</span></div>
   ${rows}
@@ -6110,12 +6128,13 @@ function weeklyVolume(w,sl){
      from every core row with 3+ sets (coreTrimSets), so the tab reflects the trimmed week. */
   /* v11.39 — ANTERIOR CORE IS CREDITED ONLY WHEN THAT DAY'S CORE CARD IS TICKED, like every other add-on outside
      Biolayne (v11.22 / v11.32 rule). It was credited whether or not core happened. Rows that count: roll-out and side
-     plank (Mon), hanging raise and cable crunch (Wed), pike and, weeks 5–12, the band rotation (Fri) — 14 a fully
+     plank (Mon), hanging raise and cable crunch (Wed), pike and, weeks 5–12, the band rotation (Fri; v11.44: pike on Thu from 10-29, rotary torso machine 2 in its Fri slot,
+     so 18 a fully ticked week from then; v11.45: machine 3, band rotation off Friday, so 17) — 14 a fully
      ticked week, 16 from week 5, which reproduces the old programmed 12+2 / 14+2. Week-6 trim applied per row; a
      down-week or readiness-cut day (core shown as two easy anti-rotation sets) adds nothing here. */
   wkDays.forEach((k,dow)=>{const dn=Z.done[k]||{},ck=CORE_DOWK[dow];
     if(!dn.core||!ck||inDownOn(k)||((readyEff(k)||5)<=2))return;
-    CORE_ROWS[ck].forEach(id=>{const L=LAD[id];if(!L.ant||L.st[0].from>w)return;tot.abs_ant+=L.ant*((L.sets>=3&&coreTrimOn(w,k))?L.sets-1:L.sets);});});
+    coreRows(ck,k).forEach(id=>{const L=LAD[id];if(!L.ant||L.st[0].from>w)return;tot.abs_ant+=L.ant*((L.sets>=3&&coreTrimOn(w,k))?L.sets-1:L.sets);});});
   const bsqSets=RX[w].d1[0][0]+RX[w].d1[1][0];
   const tbSets =RX[w].d3[0][0]+RX[w].d3[1][0];
   tot.abs_post+=4+0.5*(bsqSets+tbSets);   /* 0.5 indirect/heavy compound set (Pelland accounting) */
